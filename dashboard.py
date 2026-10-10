@@ -274,15 +274,22 @@ def snapshot() -> dict:
         }
 
 
-def find_control(identifier):
+def find_control(identifier, seat=None):
+    fallback = None
     for view in ac.VIEWS:
         for control in view["controls"]:
             if control["id"] == identifier:
-                return control, view
+                if seat is None or (seat in view["seats"] and ("seats" not in control or seat in control["seats"])):
+                    return control, view
+                if fallback is None:
+                    fallback = (control, view)
         for lamp in view["lamps"]:
             if lamp.get("button") == identifier:
-                return {"id": identifier, "type": "button", "hold": 0.3}, view
-    return None, None
+                if seat is None or seat in view["seats"]:
+                    return {"id": identifier, "type": "button", "hold": 0.3}, view
+                if fallback is None:
+                    fallback = ({"id": identifier, "type": "button", "hold": 0.3}, view)
+    return fallback or (None, None)
 
 
 def send(identifier: str, value) -> None:
@@ -403,11 +410,11 @@ def command(body: dict) -> tuple[bool, str, bool | None]:
 
 
 def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | None]:
-    control, view = find_control(identifier)
-    if control is None:
-        return False, "unknown control", None
     with lock:
         seat = read(SEAT)
+    control, view = find_control(identifier, seat)
+    if control is None:
+        return False, "unknown control", None
     if seat is None:
         return False, "no DCS data", None
     if seat not in view["seats"]:
