@@ -55,7 +55,7 @@ Download it with **Code → Download ZIP** on GitHub and unzip it, or clone it w
 
 ### 5. Config
 
-Copy `config.example.toml` to `config.toml` in the repo folder and check `saved_games`. `config.toml` stays on your machine and is never committed.
+Copy `config.example.toml` to `config.toml` in the repo folder. `saved_games = "auto"` finds the DCS Saved Games folder by itself; set a path only if that fails. `config.toml` stays on your machine and is never committed.
 
 ### 6. Run Stage 1
 
@@ -78,9 +78,11 @@ Results are in `logs\stage2_results.csv`. The test procedure is in [docs/STAGE2.
 ### 8. Run the dashboard
 
 1. Start DCS in windowed or borderless mode. The tablet and the PC must be on the same network.
-2. In the repo folder run `python dashboard.py`. It prints the address to open, for example `http://<PC address>:8080`. If Windows asks to allow Python on the network, allow it for private networks.
-3. Open that address in the tablet's browser. On an iPad: Share → Add to Home Screen for full screen.
+2. Double-click `start_dashboard.bat` in the repo folder (or run `python dashboard.py`). It prints the address to open, for example `http://<PC address>:8080`. If Windows asks to allow Python on the network, allow it for private networks.
+3. Open that address in the tablet's browser. On an iPad: Share → Add to Home Screen. The page then runs full screen with its own icon; scrolling and zooming are switched off. To get a new icon after an update, remove the home screen app and add it again.
 4. Load an AH-64D mission. The AIRCRAFT tab controls the pilot seat (read only in the CP/G seat); the FIGHT tab follows the seat you are in.
-5. Stop with Ctrl+C.
+5. Stop with Ctrl+C or close the window.
 
 The power levers are moved by keypresses, so DCS must be the active window on the PC; the dashboard brings it to the front itself. The test procedure is in [docs/STAGE3.md](docs/STAGE3.md#test-run-windows-manual).
+
+The gear button at the bottom right opens the settings: logging on or off (remembered on the PC), keep the tablet screen on, and information such as the detected DCS folder and the address for another tablet. The iPad cannot lock the rotation from a web page; use the rotation lock in Control Center. In portrait the page shows a hint to turn the iPad.

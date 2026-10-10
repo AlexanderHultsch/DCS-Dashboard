@@ -110,6 +110,17 @@ The TEDAC grip hats of the CP/G (LHG WAS, RHG sight select) are left out on purp
 - The header shows `NO DCS DATA` when no DCS-BIOS packet arrived for 3 s, and `BRIDGE OFFLINE` when the page cannot reach the bridge.
 - The bridge refuses commands of a view outside its seats.
 
+## Settings and page lock
+
+- A gear button at the bottom right opens a settings page over the dashboard; `BACK` closes it. A free strip at the bottom of the controls keeps the gear clear of every control.
+- **LOGGING** OFF / ON switches writing `logs/dcs-dashboard.log` on the PC (the console output stays). Saved in `settings.json` next to `dashboard.py` (git-ignored) and applied at the next start.
+- **KEEP SCREEN ON** OFF / ON uses the browser's screen wake lock, for this tablet only (stored in the browser).
+- **INFO** shows the DCS Saved Games folder the bridge uses, the DCS data status and the address to open on another tablet.
+- `saved_games = "auto"` in `config.toml` asks Windows for the Saved Games folder and uses `DCS` or `DCS.openbeta`, whichever has DCS-BIOS installed.
+- The page is locked for use as a home screen app: no scrolling, no rubber-band bounce, no pinch or double-tap zoom, no text selection or long-press menu. Rotation cannot be locked from a web page on iOS: use the iPad's rotation lock; in portrait a full-screen hint asks to turn the iPad.
+- Home screen icon `web/apple-touch-icon.png` (180 × 180, "DCS" / "Dashboard", white on grey), name "DCS Dashboard".
+- `start_dashboard.bat` starts the bridge with a double-click and keeps the window open if it stops with an error.
+
 ## How it works
 
 ```
@@ -133,6 +144,7 @@ Tablet browser  --GET /            -->  dashboard.py  (serves web/index.html)
 - `GET /layout` → `{"views": [{"name": "Aircraft", "seats": [0], "lamps": [...], "controls": [...]}, {"name": "Fight", "seats": [0, 1], ...}]}`
 - `GET /state` → `{"seat": 0, "age": 0.1, "values": {"PLT_MASTER_IGN_SW": 1, ...}}`; `seat` is `null` before the first packet.
 - `POST /command` with `{"id": "PLT_MASTER_IGN_SW", "value": 1}`, `{"id": "power_left", "value": "FLY"}` or, for a hat, `{"id": "{seat}_WAS", "value": "up"}` → `{"ok": true}` or HTTP 409 with `{"error": "..."}`. Displays are read only: a command for a display returns `{"error": "display only"}`.
+- `GET /settings` → `{"logging": true, "saved_games": "...", "address": "http://<PC address>:8080"}`; `POST /settings` with `{"logging": false}` → the same JSON, or HTTP 400.
 
 ### Log
 
@@ -150,6 +162,8 @@ The rolling log gets the start, every command with its result (source `dash`), e
 dashboard.py        new: view list, DCS-BIOS thread, web server, command handling
 web/index.html      new: the page; HTML, CSS and JavaScript in one file
 README.md           + "Run the dashboard"
+web/apple-touch-icon.png  home screen icon
+start_dashboard.bat       starts dashboard.py
 ```
 
 Reused unchanged: `bridge/config.py`, `bridge/log.py`, `bridge/dcsbios.py`, `bridge/keys.py`, the `[dashboard]` and `[keys]` config. No new dependencies. The export script is not needed for the dashboard.
@@ -201,6 +215,7 @@ Each step is verified before the next one starts.
 5. Seat-aware views, hat / display / button without cover, Fight view and TAIL WHEEL in `dashboard.py`. Check: against the fake DCS-BIOS in both seats.
 6. Page: tabs AIRCRAFT / FIGHT, hat cross, count displays. Check: in a browser at 1180 × 820 and 1024 × 768 and in both seats.
 7. Docs (this update).
+8. Settings page, page lock, app icon, `start_dashboard.bat`, Saved Games detection and the logging switch. Check: in a browser against the fake DCS-BIOS at 1024 × 768 and 1180 × 820 (no control under the gear, nothing clipped), logging off writes nothing and survives a restart, the portrait hint covers the screen, the icon is served as PNG.
 
 ## Open points
 
