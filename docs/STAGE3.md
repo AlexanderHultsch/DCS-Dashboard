@@ -2,7 +2,7 @@
 
 Detailed spec for Stage 3 of [SPEC.md](SPEC.md). Goal: a dashboard page on the tablet that replaces the keyboard and mouse for cockpit commands.
 
-Status: draft, waiting for review.
+Status: approved, build in progress.
 
 Stage 3 is built one view at a time. This first part covers the **Startup** view only. Navigation, Fighting and George follow once Startup works in DCS.
 
@@ -48,8 +48,8 @@ Lamps are display only. Master caution and warning have no DCS-BIOS input, so th
 | APU | `PLT_APU_BTN` | push button | DCS-BIOS | press = 1, released to 0 after 0.3 s; locked while the cover is closed |
 | ENG 1 START | `PLT_ENG1_START` | 2 = START, 1 = OFF, 0 = IGN ORIDE | DCS-BIOS | START and IGN ORIDE are spring-loaded: set, held 0.5 s, back to OFF |
 | ENG 2 START | `PLT_ENG2_START` | 2 = START, 1 = OFF, 0 = IGN ORIDE | DCS-BIOS | as ENG 1 START |
-| ENG 1 power lever | readback `PLT_ENG_L_PW_LVR` | OFF, IDLE, FLY, LOCKOUT | keys | slider, see below; LOCKOUT greyed |
-| ENG 2 power lever | readback `PLT_ENG_R_PW_LVR` | OFF, IDLE, FLY, LOCKOUT | keys | as ENG 1 |
+| PWR LVR 1 | readback `PLT_ENG_L_PW_LVR` | OFF, IDLE, FLY, LOCKOUT | keys | slider, see below; LOCKOUT greyed |
+| PWR LVR 2 | readback `PLT_ENG_R_PW_LVR` | OFF, IDLE, FLY, LOCKOUT | keys | as ENG 1 |
 | RTR BRK | `PLT_ROTOR_BRK` | 2 = OFF, 1 = BRK, 0 = LOCK | DCS-BIOS | BRK greyed |
 | PARK BRAKE | `PLT_PARK_BRAKE` | 0 = IN, 1 = PULLED | DCS-BIOS | |
 
@@ -65,7 +65,7 @@ A selector shows one button per position, the current position highlighted. Tapp
   - FLY → IDLE: `power_<side>_down`
   - IDLE → OFF: `power_<side>_off`
   - OFF → FLY and FLY → OFF go through IDLE.
-- `<side>` is `left` for ENG 1 and `right` for ENG 2.
+- `<side>` is `left` for PWR LVR 1 (engine 1) and `right` for PWR LVR 2 (engine 2).
 
 ### Seat
 
