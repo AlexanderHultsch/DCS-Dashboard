@@ -18,6 +18,7 @@ PRESS_MIN = 0.3
 PRESS_MAX = 1.0
 CONFIRM_WAIT = 0.5
 CONFIRM_POLL = 0.02
+GUARD_WINDOW = 5.0
 
 MPD_SEPARATOR = "-" * 41
 MPD_BUTTON = re.compile(r"^PB(\d+)_(?:bold_)?(\d+)$")
@@ -49,6 +50,7 @@ stick_lock = threading.Lock()
 stick_last = {}
 trim = {}
 trim_switch = {}
+guard_open = {}
 cmd_sock = None
 
 
@@ -85,10 +87,15 @@ def read_names() -> list[str]:
                     names += expand_all(control["trim_switch"])
             elif control["type"] == "stick":
                 names += expand_all(control["x"]) + expand_all(control["y"])
+            elif control["type"] == "display" and "ids" in control:
+                for identifier in control["ids"]:
+                    names += expand_all(identifier)
             else:
                 names += expand_all(control["id"])
             if "lamp" in control:
                 names += expand_all(control["lamp"])
+            if "requires" in control:
+                names += expand_all(control["requires"]["id"])
     return list(dict.fromkeys(names))
 
 
@@ -407,6 +414,19 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
         return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only", None
     if "seats" in control and seat not in control["seats"]:
         return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only", None
+    if body.get("guard") == "open":
+        if not control.get("guard"):
+            return False, "not guarded", None
+        with lock:
+            guard_open.clear()
+            guard_open[identifier] = time.monotonic()
+        log.line("dash", identifier, "guard open")
+        return True, "", None
+    if control.get("guard"):
+        with lock:
+            opened = guard_open.pop(identifier, None)
+        if opened is None or time.monotonic() - opened > GUARD_WINDOW:
+            return False, "guard closed", None
     name = expand(identifier, seat)
     if control["type"] in ("display", "controls"):
         return False, "display only", None
