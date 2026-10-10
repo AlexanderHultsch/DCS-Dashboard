@@ -137,7 +137,21 @@ body.ro .panel { opacity: 0.6; }
 .grid .stack { gap: 4px; }
 .grid .pos, .grid .push { min-width: 44px; min-height: 44px; font-size: 13px; }
 .grid .push { font-size: 15px; }
+.grid .cross { grid-template-columns: repeat(3, minmax(44px, 1fr)); grid-template-rows: repeat(3, minmax(44px, 1fr)); }
 .cross.two { grid-template-columns: minmax(44px, 1fr); grid-template-rows: minmax(44px, 1fr) 28px minmax(44px, 1fr); }
+
+.panel.pad {
+  position: relative; display: block; padding: 0; overflow: hidden; touch-action: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) 0 50% / 100% 1px no-repeat,
+    #0b0c0d;
+}
+.pad .padlabel { position: absolute; top: 8px; left: 0; right: 0; text-align: center; font-size: 12px; color: #999; pointer-events: none; }
+.padring, .paddot { position: absolute; display: none; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; }
+.padring { border: 2px solid rgba(255, 255, 255, 0.4); }
+.paddot { width: 40px; height: 40px; background: #f2f2f2; opacity: 0.85; box-shadow: 0 0 12px rgba(255, 255, 255, 0.5); }
+.pad.live .padring, .pad.live .paddot { display: block; }
 
 .litpush { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 .lw {
@@ -178,7 +192,6 @@ body.ro .panel { opacity: 0.6; }
   position: absolute; top: 2%; left: 0; right: 0; text-align: center; line-height: 1;
   font-size: calc(var(--u) * 0.2); letter-spacing: 0.04em; color: #f2f2f2; font-stretch: condensed;
 }
-.knob.vid .kn-l { text-align: left; padding-left: 4%; }
 .kn-m, .kn-p {
   position: absolute; bottom: calc(6% + var(--kd) / 2 - 0.5em); line-height: 1;
   font-size: calc(var(--u) * 0.26); color: #5d656c;
@@ -187,61 +200,66 @@ body.ro .panel { opacity: 0.6; }
 .kn-m { left: 6%; }
 .kn-p { right: 6%; }
 
-.bezel {
-  --kd: calc(var(--u) * 0.5);
-  --b: calc(var(--u) * (var(--row) - 0.07));
-  position: relative; flex: none; display: grid;
-  grid-template-columns: repeat(8, var(--u)) calc(var(--u) * 0.75);
-  grid-template-rows: repeat(11, calc(var(--u) * var(--row)));
-  padding: calc(var(--u) * 0.25);
-  background: #2a2e33; border: 1px solid #40464c; border-radius: calc(var(--u) * 0.4);
-  box-shadow: inset 0 0 calc(var(--u) * 0.3) rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.6);
-}
-#controls.mpd, #controls.ku {
+#controls.ku {
   --u: min(5vw, 5.5vh);
-  --row: 0.78;
   display: flex; align-items: center; justify-content: center;
 }
-#controls.mpd { gap: calc(var(--u) * 0.3); }
-body.ro .bezel, body.ro .kupanel { opacity: 0.6; }
-.screen {
-  grid-area: 2 / 2 / 11 / 8; background: #0a0f0b; border: 1px solid #040604; border-radius: calc(var(--u) * 0.15);
-  box-shadow: inset 0 0 calc(var(--u) * 0.3) rgba(0, 0, 0, 0.95), inset 0 2px 8px #000;
-}
-.mkey, .kkey { place-self: center; width: 84%; height: 84%; padding: 0; position: relative; font-stretch: condensed; letter-spacing: 0.02em; }
-.mkey { width: var(--b); height: var(--b); }
-.mkey:active, .kkey:active { transform: scale(0.95); }
-.mkey.pressed, .kkey.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
-.mkey.var {
-  background: linear-gradient(#dde4ea, #c9d3dc 45%, #b9c4ce); border: 1px solid #8e9ba7; border-radius: 12%;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 2px 3px rgba(0, 0, 0, 0.6);
-}
-.mkey.var::before {
-  content: ""; position: absolute; top: 28%; right: 28%; bottom: 28%; left: 28%;
-  background: #9eb0c0; border-radius: 12%; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-.mkey.var::after { content: ""; position: absolute; background: #e8e8e8; }
-.mkey.e-t::after { left: 50%; top: 100%; width: 1.5px; height: calc(var(--u) * 0.2); margin-left: -0.75px; }
-.mkey.e-b::after { left: 50%; bottom: 100%; width: 1.5px; height: calc(var(--u) * 0.2); margin-left: -0.75px; }
-.mkey.e-l::after { top: 50%; left: 100%; height: 1.5px; width: calc(var(--u) * 0.2); margin-top: -0.75px; }
-.mkey.e-r::after { top: 50%; right: 100%; height: 1.5px; width: calc(var(--u) * 0.2); margin-top: -0.75px; }
-.mkey.fix, .kkey {
+#controls.mpd { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-bottom: 12px; }
+body.ro .mbezel, body.ro .kupanel { opacity: 0.6; }
+.kkey { place-self: center; width: 84%; height: 84%; padding: 0; position: relative; font-stretch: condensed; letter-spacing: 0.02em; }
+.kkey:active { transform: scale(0.95); }
+.kkey.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
+.kkey {
   background: linear-gradient(#25292c, #111314); border: 1px solid #000; border-top-color: #41474c; border-radius: 14%;
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.65); color: #f2f2f2;
 }
-.mkey.fix { font-size: calc(var(--u) * 0.27); }
-.mkey.ast { font-size: calc(var(--u) * 0.5); line-height: 1; padding-top: 0.2em; }
-.bezel .knob { padding-bottom: calc(var(--u) * 0.04); }
-.bezel .kn-l { font-size: calc(var(--u) * 0.17); }
-.bezel .kn-m, .bezel .kn-p { bottom: calc(var(--u) * 0.04 + var(--kd) / 2 - 0.5em); }
-.modeknob { display: flex; align-items: center; justify-content: center; }
-.modelabs { grid-area: 1 / 9 / 3 / 10; display: flex; flex-direction: column; }
-.mlab {
-  flex: 1; min-height: 0; padding: 0 0 0 calc(var(--u) * 0.1); background: none; border: 0; text-align: left;
-  font-size: calc(var(--u) * 0.27); font-stretch: condensed; letter-spacing: 0.02em; color: #f2f2f2; opacity: 0.45;
+
+.mpdsw { flex: none; width: 388px; max-width: 100%; }
+.mpdsw .pos { flex: 1; min-width: 0; min-height: 44px; height: 48px; font-size: 16px; }
+.mpdstage { position: relative; flex: 1; min-height: 0; width: 100%; }
+.mbezel { position: absolute; }
+.mart { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.mart text { fill: #f2f2f2; font-size: 28px; text-anchor: middle; }
+.mart .lead { stroke: #f2f2f2; stroke-width: 2.2; }
+.mkey, .mknob { position: absolute; margin: 0; padding: 0; }
+.mkey::before, .mknob::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: var(--hw, 100%); height: var(--hh, 100%); transform: translate(-50%, -50%);
 }
-.mlab.cur { opacity: 1; }
-.mlab.pending { outline: 2px solid #ffb300; outline-offset: -2px; border-radius: 4px; }
+.mkey { font-stretch: condensed; letter-spacing: 0.02em; }
+.mkey:active { transform: scale(0.95); }
+.mkey.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
+.mkey.var {
+  background: #e9eaea; border: 1px solid #b4b7b9; border-radius: 12%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+.mkey.var::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 24%; height: 24%; transform: translate(-50%, -50%);
+  background: #4fd06a; border-radius: 50%;
+}
+.mkey.fix {
+  background: #121314; border: 1px solid #000; border-top-color: #4b5258; border-radius: 14%;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.65); color: #5be36f; font-size: calc(var(--bh) * 0.023);
+}
+.mkey.ast { font-size: calc(var(--bh) * 0.05); line-height: 1; padding-top: 0.2em; }
+.mknob { display: block; background: none; border: 0; }
+.mknob:active .dial { transform: scale(0.95); }
+.mknob .dial {
+  display: block; width: 100%; height: 100%;
+  background:
+    repeating-conic-gradient(rgba(0, 0, 0, 0.16) 0deg 5deg, rgba(255, 255, 255, 0) 5deg 10deg),
+    radial-gradient(circle at 35% 30%, #f3f5f7, #d9dde1 55%, #aab0b6);
+}
+.mknob .dial::before {
+  content: ""; position: absolute; left: 12%; top: 12%; right: 12%; bottom: 12%; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #fbfcfc, #dfe3e6 60%, #c4c9ce); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+.mlabel {
+  position: absolute; pointer-events: none; white-space: pre; line-height: 1.1; text-transform: none; letter-spacing: 0.02em;
+  font-family: "Courier New", Consolas, monospace; font-size: calc(var(--bh) * 0.026); color: #38ff5a;
+}
+.mlabel.e-t, .mlabel.e-b { text-align: center; transform: translateX(-50%); }
+.mlabel.e-l { text-align: left; transform: translateY(-50%); }
+.mlabel.e-r { text-align: right; transform: translateY(-50%); }
 
 .kupanel {
   --kd: calc(var(--u) * 0.62);
@@ -273,6 +291,28 @@ body.ro .bezel, body.ro .kupanel { opacity: 0.6; }
 .kh1 { grid-column: 7 / 10; grid-row: 6; align-self: end; margin: 0 calc(var(--u) * -0.4) -1px -1px; border-top-width: 2px; }
 .kstep { grid-column: 7; grid-row: 7; margin-left: -1px; border-left-width: 2px; }
 .kh2 { grid-column: 3 / 10; grid-row: 7; align-self: end; margin: 0 calc(var(--u) * -0.4) -1px -1px; border-top-width: 2px; }
+
+#kscrim { position: fixed; inset: 0; z-index: 60; display: none; }
+#kbar {
+  position: fixed; z-index: 61; display: none; flex-direction: column; gap: 0; width: 420px; max-width: calc(100vw - 24px); height: 120px; padding: 8px 16px;
+  background: #1b1d1f; border: 1px solid #3a3d40; border-radius: 6px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8);
+}
+body.knob-open #kscrim, body.knob-open #kbar { display: flex; }
+.khead { display: flex; align-items: center; gap: 12px; height: 48px; }
+.ktitle { flex: 1; font-size: 16px; color: #ddd; white-space: nowrap; }
+.kpct { font-size: 16px; color: #bbb; font-family: "Courier New", Consolas, monospace; }
+#kclose { width: 48px; height: 48px; margin-right: -12px; padding: 0; background: none; border: 0; font-size: 22px; }
+.ktrack { position: relative; height: 56px; touch-action: none; }
+.krail { position: absolute; left: 0; right: 0; top: 24px; height: 8px; background: #3a3d40; border-radius: 4px; }
+.khandle {
+  position: absolute; top: 8px; width: 40px; height: 40px;
+  background: linear-gradient(#eee, #bbb); border: 2px solid #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+.khandle.pending { border-color: #ffb300; box-shadow: 0 0 12px 3px rgba(255, 179, 0, 0.8); }
+.khandle.none { display: none; }
+.kstops { display: flex; gap: 8px; height: 56px; }
+.kstops .pos { min-height: 0; }
+#kbar[aria-disabled="true"] .ktrack, #kbar[aria-disabled="true"] .kstops { opacity: 0.4; }
 
 #toast {
   position: fixed; z-index: 70; left: 50%; bottom: 24px; transform: translateX(-50%);
@@ -360,6 +400,16 @@ body.settings-open #gear { display: none; }
     </div>
   </div>
 </div>
+<div id="kscrim"></div>
+<div id="kbar" role="dialog">
+  <div class="khead">
+    <span class="ktitle" id="ktitle"></span>
+    <span class="kpct" id="kpct"></span>
+    <button id="kclose" type="button" aria-label="Close">&#x2715;</button>
+  </div>
+  <div class="ktrack" id="ktrack"><div class="krail"></div><div class="khandle" id="khandle"></div></div>
+  <div class="kstops" id="kstops"></div>
+</div>
 <div id="portrait">TURN THE IPAD TO LANDSCAPE</div>
 <div id="toast" role="status"></div>
 <script>
@@ -369,9 +419,14 @@ const POLL_MS = 200;
 const STALE_S = 3;
 const TOAST_MS = 3000;
 const CONFIRM_MS = 1500;
+const CURSOR_Y_SIGN = 1;
+const CURSOR_RADIUS = 0.3;
+const CURSOR_GAP_MS = 66;
+const KNOB_GAP_MS = 100;
 
 const TAB_KEY = 'dcs-dashboard-tab';
 const WAKE_KEY = 'dcs-dashboard-wake';
+const MPD_KEY = 'dcs-dashboard-mpd';
 const UNREACHABLE = 'bridge not reachable';
 const SEAT_PREFIX = ['PLT', 'CPG'];
 const SEAT_LABEL = ['PILOT', 'CP/G'];
@@ -387,15 +442,24 @@ const CTRL_PEDAL_SIGN = 1;
 const KNOB_MAX = 65535;
 const MODE_BASE = 90;
 const MODE_STEP = 45;
-const MPD_ROW = 0.78;
-const FIT = { mpd: { w: 18.8, h: 11 * MPD_ROW + 0.5, bw: 4, bh: 2 }, ku: { w: 9.8, h: 8.1, bw: 2, bh: 2 } };
-const MPD_CELLS = { VIDEO: [1, 1], MODE: [1, 8], BRT: [2, 1], AST: [2, 8], FCR: [9, 1], VID: [9, 8], WPN: [10, 1], COM: [10, 8], TSD: [11, 1], AC: [11, 8] };
-for (let n = 1; n <= 6; n++) {
-  MPD_CELLS['T' + n] = [1, n + 1];
-  MPD_CELLS['L' + n] = [n + 2, 1];
-  MPD_CELLS['R' + n] = [n + 2, 8];
-  MPD_CELLS['B' + n] = [11, n + 1];
-}
+const KNOB_TOL = 700;
+const TOUCH_MIN = 56;
+const FIT = { ku: { w: 9.8, h: 8.1, bw: 2, bh: 2 } };
+const MPD_BOX = { x: 470, y: 25, w: 1060, h: 1065 };
+const MPD_SCREEN = { x: 605, y: 165, w: 790, h: 787 };
+const MPD_SIDES = [['L', 'LEFT MPD'], ['R', 'RIGHT MPD']];
+const MPD_GEO = {
+  B1: [752, 1020, 58, 46], TSD: [650, 1022, 58, 46], AC: [1355, 1017, 58, 46], FCR: [538, 893, 58, 46],
+  WPN: [538, 973, 58, 46], VID: [1465, 886, 58, 46], COM: [1465, 966, 58, 46], AST: [1462, 210, 58, 46],
+  VIDEO: [643, 82, 85, 85], BRT: [523, 205, 80, 80], MODE: [1352, 82, 85, 85],
+};
+[750, 849, 948, 1048, 1148, 1248].forEach((x, i) => { MPD_GEO['T' + (i + 1)] = [x, 100, 52, 52]; });
+[313, 411, 511, 611, 711, 811].forEach((y, i) => { MPD_GEO['L' + (i + 1)] = [541, y, 52, 52]; });
+[306, 406, 506, 606, 706, 806].forEach((y, i) => { MPD_GEO['R' + (i + 1)] = [1458, y, 52, 52]; });
+[[853, 1020], [953, 1020], [1053, 1018], [1153, 1018], [1252, 1018]].forEach(([x, y], i) => { MPD_GEO['B' + (i + 2)] = [x, y, 52, 52]; });
+const MPD_PRINT = [
+  ['VID', 577, 88], ['BRT', 525, 152], ['DAY', 1437, 47], ['NT', 1430, 82], ['MONO', 1446, 116],
+];
 const KU_ROWS = [
   ['A', 'B', 'C', 'D', 'E', 'F', '1', '2', '3'],
   ['G', 'H', 'I', 'J', 'K', 'L', '4', '5', '6'],
@@ -411,8 +475,10 @@ let views = [];
 let activeIndex = 0;
 let lamps = [];
 let controls = [];
-let current = { status: 'offline', seat: null, values: {}, controls: {}, controlsAge: null, trim: {} };
+let current = { status: 'offline', seat: null, values: {}, controls: {}, controlsAge: null, trim: {}, mpdLabels: null };
 let toastTimer = null;
+let mpdView = null;
+let bar = null;
 let serverSettings = null;
 let loggingPending = null;
 let wakeWanted = false;
@@ -427,6 +493,45 @@ function make(tag, cls, text) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function makeStream(gap, post) {
+  let sentAt = 0;
+  let timer = null;
+  let last = null;
+  let queued = null;
+  let chain = Promise.resolve();
+  const drop = () => {
+    clearTimeout(timer);
+    timer = null;
+    queued = null;
+  };
+  const emit = (value, key) => {
+    drop();
+    last = key;
+    sentAt = Date.now();
+    chain = chain.then(() => post(value));
+  };
+  return {
+    push(value) {
+      const key = JSON.stringify(value);
+      if (key === queued) return;
+      drop();
+      if (key === last) return;
+      const wait = sentAt + gap - Date.now();
+      if (wait <= 0) {
+        emit(value, key);
+      } else {
+        queued = key;
+        timer = setTimeout(() => emit(value, key), wait);
+      }
+    },
+    flush(value, force) {
+      const key = JSON.stringify(value);
+      if (key === last && !force) drop();
+      else emit(value, key);
+    },
+  };
 }
 
 function resolve(name) {
@@ -536,6 +641,8 @@ function render() {
     c.update();
     c.el.classList.toggle('off', usable() && !can(c));
   });
+  renderMpd();
+  renderBar();
 }
 
 function buildLamp(def) {
@@ -828,7 +935,7 @@ function buildKey(def) {
 function buildKnob(def, bare) {
   const arm = make('span', 'arm');
   const dial = make('span', 'dial');
-  const btn = make('button', def.slot === 'VIDEO' ? 'knob vid' : 'knob');
+  const btn = make('button', 'knob');
   btn.type = 'button';
   dial.append(arm);
   if (bare) btn.append(make('span', 'kn-l', def.label));
@@ -839,51 +946,197 @@ function buildKnob(def, bare) {
     el.append(make('div', 'title', def.label), btn);
   }
   const c = { def, el, busy: false, pending: null };
-  btn.addEventListener('click', (e) => {
-    if (!can(c) || c.busy) return;
-    const r = btn.getBoundingClientRect();
-    const dir = e.clientX < r.left + r.width / 2 ? 'down' : 'up';
-    run(c, { id: def.id, value: dir }, dir);
-  });
+  btn.addEventListener('click', () => openBar(c));
   c.update = () => {
     const v = readValue(def.id);
     arm.style.visibility = typeof v === 'number' ? '' : 'hidden';
     if (typeof v === 'number') arm.style.transform = 'rotate(' + (v / KNOB_MAX * 270 - 135) + 'deg)';
-    btn.classList.toggle('pending', c.pending !== null);
-    btn.setAttribute('aria-disabled', String(!can(c) || c.busy));
+    btn.setAttribute('aria-disabled', String(!can(c)));
   };
   return c;
 }
 
-function buildMode(def) {
+function buildMpdKnob(def) {
   const arm = make('span', 'arm');
   const dial = make('span', 'dial');
-  const el = make('div', 'modeknob');
-  const labels = make('div', 'modelabs');
+  const btn = make('button', 'mknob');
+  btn.type = 'button';
   dial.append(arm);
-  el.append(dial);
-  const c = { def, el, extra: labels, busy: false, pending: null, buttons: [] };
-  def.positions.forEach((p) => {
-    const btn = make('button', 'mlab', p.label);
-    btn.type = 'button';
-    btn.addEventListener('click', () => {
-      if (!can(c) || c.busy || p.disabled || readValue(def.id) === p.value) return;
-      run(c, { id: def.id, value: p.value }, p.value);
-    });
-    labels.append(btn);
-    c.buttons.push(btn);
-  });
+  btn.append(dial);
+  const mode = def.type === 'selector';
+  const c = { def, el: btn, busy: false, pending: null };
+  btn.addEventListener('click', () => openBar(c));
   c.update = () => {
     const v = readValue(def.id);
     arm.style.visibility = typeof v === 'number' ? '' : 'hidden';
-    if (typeof v === 'number') arm.style.transform = 'rotate(' + (MODE_BASE + (1 - v) * MODE_STEP) + 'deg)';
-    def.positions.forEach((p, i) => {
-      c.buttons[i].classList.toggle('cur', v === p.value);
-      c.buttons[i].classList.toggle('pending', c.pending === p.value);
-      c.buttons[i].setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
-    });
+    if (typeof v === 'number') {
+      arm.style.transform = 'rotate(' + (mode ? MODE_BASE + (1 - v) * MODE_STEP : v / KNOB_MAX * 270 - 135) + 'deg)';
+    }
+    btn.setAttribute('aria-disabled', String(!can(c)));
   };
   return c;
+}
+
+function buildStick(def) {
+  const pad = make('div', 'panel pad');
+  const ring = make('div', 'padring');
+  const dot = make('div', 'paddot');
+  pad.append(make('div', 'padlabel', def.label), ring, dot);
+  const c = { def, el: pad };
+  const stream = makeStream(CURSOR_GAP_MS, (value) => send({ id: def.id, value }));
+  let drag = null;
+  const at = (e) => {
+    const r = pad.getBoundingClientRect();
+    return [e.clientX - r.left - pad.clientLeft, e.clientY - r.top - pad.clientTop];
+  };
+  const finish = (e) => {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    drag = null;
+    pad.classList.remove('live');
+    stream.flush({ x: 0, y: 0 }, true);
+  };
+  pad.addEventListener('pointerdown', (e) => {
+    if (drag || !can(c)) return;
+    pad.setPointerCapture(e.pointerId);
+    const [x, y] = at(e);
+    const radius = CURSOR_RADIUS * Math.min(pad.clientWidth, pad.clientHeight);
+    drag = { id: e.pointerId, x, y, radius };
+    ring.style.left = x + 'px';
+    ring.style.top = y + 'px';
+    ring.style.width = ring.style.height = radius * 2 + 'px';
+    dot.style.left = x + 'px';
+    dot.style.top = y + 'px';
+    pad.classList.add('live');
+  });
+  pad.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!can(c)) {
+      finish(null);
+      return;
+    }
+    const [x, y] = at(e);
+    let dx = (x - drag.x) / drag.radius;
+    let dy = (y - drag.y) / drag.radius;
+    const len = Math.hypot(dx, dy);
+    if (len > 1) {
+      dx /= len;
+      dy /= len;
+    }
+    dot.style.left = drag.x + dx * drag.radius + 'px';
+    dot.style.top = drag.y + dy * drag.radius + 'px';
+    stream.push({ x: Math.round(dx * 1000) / 1000, y: Math.round(-dy * CURSOR_Y_SIGN * 1000) / 1000 });
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((type) => pad.addEventListener(type, finish));
+  c.update = () => pad.setAttribute('aria-disabled', String(!can(c)));
+  return c;
+}
+
+function barTitle(def) {
+  const side = def.side ? MPD_SIDES.find(([s]) => s === def.side)[1] : 'KU';
+  return side + ' · ' + def.label;
+}
+
+function openBar(c) {
+  if (!can(c)) return;
+  closeBar();
+  const mode = c.def.type === 'selector';
+  bar = { c, mode, hold: null, holdAt: 0, dragging: false, stops: [] };
+  const post = (value) => send({ id: c.def.id, value });
+  bar.stream = makeStream(KNOB_GAP_MS, post);
+  document.getElementById('ktitle').textContent = barTitle(c.def);
+  const stops = document.getElementById('kstops');
+  stops.replaceChildren();
+  if (mode) {
+    c.def.positions.forEach((p) => {
+      const btn = make('button', 'pos', p.label);
+      btn.type = 'button';
+      btn.addEventListener('click', () => {
+        if (!bar || !can(c) || c.busy || p.disabled || readValue(c.def.id) === p.value) return;
+        run(c, { id: c.def.id, value: p.value }, p.value).then(renderBar);
+        renderBar();
+      });
+      stops.append(btn);
+      bar.stops.push(btn);
+    });
+  }
+  document.getElementById('ktrack').style.display = mode ? 'none' : '';
+  stops.style.display = mode ? '' : 'none';
+  document.getElementById('kpct').textContent = '';
+  const area = document.getElementById('controls').getBoundingClientRect();
+  const panel = document.getElementById('kbar');
+  const w = Math.min(420, window.innerWidth - 24);
+  panel.style.left = Math.max(0, area.left + (area.width - w) / 2) + 'px';
+  panel.style.top = Math.max(0, area.top + (area.height - 120) / 2) + 'px';
+  document.body.classList.add('knob-open');
+  renderBar();
+}
+
+function closeBar() {
+  bar = null;
+  document.body.classList.remove('knob-open');
+}
+
+function barFraction(e) {
+  const r = document.getElementById('ktrack').getBoundingClientRect();
+  const half = document.getElementById('khandle').offsetWidth / 2;
+  return Math.min(Math.max((e.clientX - r.left - half) / (r.width - half * 2), 0), 1);
+}
+
+function barMove(e) {
+  const value = Math.round(barFraction(e) * KNOB_MAX);
+  bar.hold = value;
+  bar.holdAt = Date.now();
+  bar.stream.push(value);
+  renderBar();
+}
+
+function renderBar() {
+  if (!bar) return;
+  const c = bar.c;
+  const id = c.def.id;
+  document.getElementById('kbar').setAttribute('aria-disabled', String(!can(c)));
+  if (bar.mode) {
+    const v = readValue(id);
+    c.def.positions.forEach((p, i) => {
+      bar.stops[i].classList.toggle('cur', v === p.value);
+      bar.stops[i].classList.toggle('pending', c.pending === p.value);
+      bar.stops[i].setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
+    });
+    return;
+  }
+  const v = readValue(id);
+  if (bar.hold !== null && !bar.dragging && ((typeof v === 'number' && Math.abs(v - bar.hold) <= KNOB_TOL) || Date.now() - bar.holdAt > CONFIRM_MS)) bar.hold = null;
+  const shown = bar.hold !== null ? bar.hold : v;
+  const known = typeof shown === 'number';
+  const handle = document.getElementById('khandle');
+  handle.classList.toggle('none', !known);
+  handle.classList.toggle('pending', bar.hold !== null && !bar.dragging);
+  document.getElementById('kpct').textContent = known ? Math.round(shown / KNOB_MAX * 100) + ' %' : '';
+  if (known) handle.style.left = 'calc((100% - 40px) * ' + shown / KNOB_MAX + ')';
+}
+
+function initBar() {
+  const track = document.getElementById('ktrack');
+  const endDrag = () => {
+    if (!bar || !bar.dragging) return;
+    bar.dragging = false;
+    bar.holdAt = Date.now();
+    bar.stream.flush(bar.hold, false);
+    renderBar();
+  };
+  track.addEventListener('pointerdown', (e) => {
+    if (!bar || bar.mode || bar.dragging || !can(bar.c)) return;
+    track.setPointerCapture(e.pointerId);
+    bar.dragging = true;
+    barMove(e);
+  });
+  track.addEventListener('pointermove', (e) => {
+    if (bar && bar.dragging) barMove(e);
+  });
+  track.addEventListener('pointerup', endDrag);
+  track.addEventListener('pointercancel', endDrag);
+  document.getElementById('kclose').addEventListener('click', closeBar);
+  document.getElementById('kscrim').addEventListener('click', closeBar);
 }
 
 function buildMpdButton(def) {
@@ -912,12 +1165,13 @@ function buildScratch(def) {
 }
 
 function buildControl(def, layout) {
-  if (def.type === 'selector') return layout === 'mpd' ? buildMode(def) : buildSelector(def);
+  if (def.type === 'selector') return layout === 'mpd' ? buildMpdKnob(def) : buildSelector(def);
   if (def.type === 'button') {
     if (layout === 'mpd') return buildMpdButton(def);
     return layout === 'ku' ? buildKuButton(def) : buildButton(def);
   }
-  if (def.type === 'knob') return buildKnob(def, !!layout);
+  if (def.type === 'knob') return layout === 'mpd' ? buildMpdKnob(def) : buildKnob(def, !!layout);
+  if (def.type === 'stick') return buildStick(def);
   if (def.type === 'key') return buildKey(def);
   if (def.type === 'lever') return buildLever(def);
   if (def.type === 'hat') return buildHat(def);
@@ -931,17 +1185,191 @@ function place(c, row, col) {
   c.el.style.gridColumn = col;
 }
 
+function mpdRect(el, cx, cy, w, h) {
+  el.style.left = (cx - w / 2 - MPD_BOX.x) / MPD_BOX.w * 100 + '%';
+  el.style.top = (cy - h / 2 - MPD_BOX.y) / MPD_BOX.h * 100 + '%';
+  el.style.width = w / MPD_BOX.w * 100 + '%';
+  el.style.height = h / MPD_BOX.h * 100 + '%';
+}
+
+function mpdSvg() {
+  const line = (x1, y1, x2, y2) => '<line class="lead" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>';
+  const leaders = [];
+  Object.keys(MPD_GEO).forEach((slot) => {
+    const [x, y] = MPD_GEO[slot];
+    if (slot === 'B1' || !/^[TLRB][1-6]$/.test(slot)) return;
+    if (slot[0] === 'T') leaders.push(line(x, y + 26, x, 160));
+    if (slot[0] === 'B') leaders.push(line(x, y - 26, x, 958));
+    if (slot[0] === 'L') leaders.push(line(x + 26, y, 603, y));
+    if (slot[0] === 'R') leaders.push(line(x - 26, y, 1397, y));
+  });
+  const [kx, ky] = MPD_GEO.MODE;
+  MPD_PRINT.slice(2).forEach(([, x, y]) => {
+    const len = Math.hypot(x - kx, y - ky);
+    const ux = (x - kx) / len;
+    const uy = (y - ky) / len;
+    leaders.push(line(kx + ux * 50, ky + uy * 50, kx + ux * 64, ky + uy * 64));
+  });
+  const screws = [[490, 47], [1503, 47], [490, 1070], [1505, 1062]].map(([x, y], i) => (
+    '<circle cx="' + x + '" cy="' + y + '" r="10" fill="#5b6269" stroke="#1a1c1e" stroke-width="2"/>'
+    + '<line x1="' + (x - 6) + '" y1="' + y + '" x2="' + (x + 6) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.5" transform="rotate(' + (i * 35 + 20) + ' ' + x + ' ' + y + ')"/>'
+  ));
+  const text = MPD_PRINT.map(([t, x, y]) => '<text x="' + x + '" y="' + y + '" dy="0.35em">' + t + '</text>');
+  const sc = MPD_SCREEN;
+  return '<svg class="mart" viewBox="' + [MPD_BOX.x, MPD_BOX.y, MPD_BOX.w, MPD_BOX.h].join(' ') + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<defs><linearGradient id="mbevel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4147"/><stop offset="1" stop-color="#15181a"/></linearGradient></defs>'
+    + '<rect x="472" y="27" width="1056" height="1061" rx="46" fill="#26292c" stroke="#3d4348" stroke-width="4"/>'
+    + '<path d="M512 27 H700 V112 Q700 165 648 165 H472 V67 Q472 27 512 27 Z" fill="#2f3438" stroke="#474e54" stroke-width="3"/>'
+    + '<rect x="582" y="142" width="836" height="833" rx="14" fill="url(#mbevel)" stroke="#0e1012" stroke-width="3"/>'
+    + '<rect x="' + sc.x + '" y="' + sc.y + '" width="' + sc.w + '" height="' + sc.h + '" rx="6" fill="#0b120d" stroke="#000" stroke-width="3"/>'
+    + leaders.join('') + screws.join('') + text.join('')
+    + '</svg>';
+}
+
+function pbSlot(pb) {
+  if (pb <= 6) return 'T' + pb;
+  if (pb <= 12) return 'R' + (pb - 6);
+  if (pb <= 18) return 'B' + (19 - pb);
+  return 'L' + (25 - pb);
+}
+
+function mpdLabel(pb) {
+  const slot = pbSlot(pb);
+  const [cx, cy] = MPD_GEO[slot];
+  const sc = MPD_SCREEN;
+  const pad = 8;
+  const el = make('div', 'mlabel e-' + slot[0].toLowerCase());
+  const pctX = (x) => (x - MPD_BOX.x) / MPD_BOX.w * 100 + '%';
+  const pctY = (y) => (y - MPD_BOX.y) / MPD_BOX.h * 100 + '%';
+  if (slot[0] === 'T') {
+    el.style.left = pctX(cx);
+    el.style.top = pctY(sc.y + pad);
+  } else if (slot[0] === 'B') {
+    el.style.left = pctX(cx);
+    el.style.bottom = (MPD_BOX.y + MPD_BOX.h - (sc.y + sc.h) + pad) / MPD_BOX.h * 100 + '%';
+  } else if (slot[0] === 'L') {
+    el.style.left = pctX(sc.x + pad);
+    el.style.top = pctY(cy);
+  } else {
+    el.style.right = (MPD_BOX.x + MPD_BOX.w - (sc.x + sc.w) + pad) / MPD_BOX.w * 100 + '%';
+    el.style.top = pctY(cy);
+  }
+  return el;
+}
+
+function loadMpdSide() {
+  try {
+    return localStorage.getItem(MPD_KEY) === 'R' ? 'R' : 'L';
+  } catch (e) { /* storage not available, start on the left MPD */ }
+  return 'L';
+}
+
+function saveMpdSide(side) {
+  try {
+    localStorage.setItem(MPD_KEY, side);
+  } catch (e) { /* storage not available, the choice is not remembered */ }
+}
+
+function setMpdSide(side) {
+  if (!mpdView || mpdView.side === side) return;
+  closeBar();
+  mpdView.side = side;
+  saveMpdSide(side);
+  mpdView.stage.replaceChildren(mpdView.bezels[side]);
+  MPD_SIDES.forEach(([s]) => mpdView.buttons[s].classList.toggle('cur', s === side));
+  fit();
+  renderMpd();
+}
+
 function placeMpd(box, cs) {
-  ['L', 'R'].forEach((side) => {
-    const bezel = make('div', 'bezel');
-    bezel.append(make('div', 'screen'));
-    cs.filter((c) => c.def.side === side && MPD_CELLS[c.def.slot]).forEach((c) => {
-      const [row, col] = MPD_CELLS[c.def.slot];
-      place(c, row, col);
+  const sw = make('div', 'seg mpdsw');
+  const stage = make('div', 'mpdstage');
+  mpdView = { side: loadMpdSide(), stage, bezels: {}, labels: {}, buttons: {}, items: {} };
+  MPD_SIDES.forEach(([side, name]) => {
+    const btn = make('button', 'pos', name);
+    btn.type = 'button';
+    btn.addEventListener('click', () => setMpdSide(side));
+    btn.classList.toggle('cur', side === mpdView.side);
+    sw.append(btn);
+    mpdView.buttons[side] = btn;
+    const bezel = make('div', 'mbezel');
+    bezel.insertAdjacentHTML('beforeend', mpdSvg());
+    mpdView.labels[side] = {};
+    for (let pb = 1; pb <= 24; pb++) {
+      mpdView.labels[side][pb] = mpdLabel(pb);
+      bezel.append(mpdView.labels[side][pb]);
+    }
+    mpdView.items[side] = cs.filter((c) => c.def.side === side && MPD_GEO[c.def.slot]);
+    mpdView.items[side].forEach((c) => {
+      const [cx, cy, w, h] = MPD_GEO[c.def.slot];
+      mpdRect(c.el, cx, cy, w, h);
       bezel.append(c.el);
-      if (c.extra) bezel.append(c.extra);
     });
-    box.append(bezel);
+    mpdView.bezels[side] = bezel;
+  });
+  box.append(sw, stage);
+  stage.append(mpdView.bezels[mpdView.side]);
+}
+
+function renderMpd() {
+  if (!mpdView) return;
+  const m = current.mpdLabels;
+  const live = !!m && typeof m.age === 'number' && m.age <= STALE_S;
+  MPD_SIDES.forEach(([side]) => {
+    const texts = {};
+    if (live && m[side]) Object.keys(m[side]).forEach((pb) => { texts[parseInt(pb, 10)] = m[side][pb]; });
+    for (let pb = 1; pb <= 24; pb++) {
+      const text = typeof texts[pb] === 'string' ? texts[pb] : '';
+      const el = mpdView.labels[side][pb];
+      if (el.textContent !== text) el.textContent = text;
+    }
+  });
+}
+
+function fitMpd() {
+  if (!mpdView) return;
+  const w = mpdView.stage.clientWidth;
+  const h = mpdView.stage.clientHeight;
+  const s = Math.min(w / MPD_BOX.w, h / MPD_BOX.h);
+  if (!(s > 0)) return;
+  const bw = MPD_BOX.w * s;
+  const bh = MPD_BOX.h * s;
+  MPD_SIDES.forEach(([side]) => {
+    const st = mpdView.bezels[side].style;
+    st.left = (w - bw) / 2 + 'px';
+    st.top = (h - bh) / 2 + 'px';
+    st.width = bw + 'px';
+    st.height = bh + 'px';
+    st.setProperty('--bh', bh + 'px');
+  });
+  const items = mpdView.items[mpdView.side].map((c) => {
+    const [cx, cy, w0, h0] = MPD_GEO[c.def.slot];
+    const item = { c, x: cx * s, y: cy * s, vw: w0 * s, vh: h0 * s };
+    item.hw = Math.max(item.vw, TOUCH_MIN) / 2;
+    item.hh = Math.max(item.vh, TOUCH_MIN) / 2;
+    return item;
+  });
+  const cut = (item, key, floor, amount) => {
+    const taken = Math.min(amount, item[key] - floor);
+    item[key] -= taken;
+    return amount - taken;
+  };
+  for (let pass = 0; pass < 3; pass++) {
+    items.forEach((a, n) => items.slice(n + 1).forEach((b) => {
+      const dx = Math.abs(a.x - b.x);
+      const dy = Math.abs(a.y - b.y);
+      if (dx >= a.hw + b.hw || dy >= a.hh + b.hh) return;
+      const wide = dx / (a.hw + b.hw) >= dy / (a.hh + b.hh);
+      const key = wide ? 'hw' : 'hh';
+      const vis = wide ? 'vw' : 'vh';
+      const excess = a[key] + b[key] - (wide ? dx : dy) + 1;
+      const rest = cut(b, key, b[vis] / 2, excess / 2 + cut(a, key, a[vis] / 2, excess / 2));
+      cut(a, key, a[vis] / 2, rest);
+    }));
+  }
+  items.forEach((i) => {
+    i.c.el.style.setProperty('--hw', i.hw * 2 + 'px');
+    i.c.el.style.setProperty('--hh', i.hh * 2 + 'px');
   });
 }
 
@@ -972,6 +1400,10 @@ const PLACERS = { mpd: placeMpd, ku: placeKu };
 
 function fit() {
   const box = document.getElementById('controls');
+  if (box.className === 'mpd') {
+    fitMpd();
+    return;
+  }
   const m = FIT[box.className];
   if (!m) return;
   const cs = getComputedStyle(box);
@@ -979,7 +1411,6 @@ function fit() {
   const h = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const u = Math.max(20, Math.floor(Math.min((w - m.bw) / m.w, (h - m.bh) / m.h) * 10) / 10);
   box.style.setProperty('--u', u + 'px');
-  if (box.className === 'mpd') box.style.setProperty('--row', MPD_ROW);
 }
 
 function showView(index) {
@@ -990,6 +1421,8 @@ function showView(index) {
   const controlBox = document.getElementById('controls');
   const layout = view.layout || null;
   const grid = !layout && view.controls.some((d) => d.grid);
+  mpdView = null;
+  closeBar();
   lampBox.replaceChildren();
   controlBox.replaceChildren();
   controlBox.className = layout || (grid ? 'grid' : '');
@@ -1138,9 +1571,9 @@ function closeSettings() {
 async function poll() {
   try {
     const s = await getJson('/state');
-    current = { status: statusOf(s), seat: s.seat, values: s.values || {}, controls: s.controls || {}, controlsAge: s.controls_age, trim: s.trim || {} };
+    current = { status: statusOf(s), seat: s.seat, values: s.values || {}, controls: s.controls || {}, controlsAge: s.controls_age, trim: s.trim || {}, mpdLabels: s.mpd_labels || null };
   } catch (e) {
-    current = { status: 'offline', seat: current.seat, values: current.values, controls: {}, controlsAge: null, trim: {} };
+    current = { status: 'offline', seat: current.seat, values: current.values, controls: {}, controlsAge: null, trim: {}, mpdLabels: null };
   }
   render();
   setTimeout(poll, POLL_MS);
@@ -1177,6 +1610,7 @@ if ('ResizeObserver' in window) new ResizeObserver(fit).observe(document.getElem
 const wakeSupported = 'wakeLock' in navigator;
 const logButtons = buildSeg(document.getElementById('logseg'), setLogging);
 const wakeButtons = buildSeg(document.getElementById('wakeseg'), setWake);
+initBar();
 document.getElementById('gear').addEventListener('click', openSettings);
 document.getElementById('back').addEventListener('click', closeSettings);
 renderSettings();
