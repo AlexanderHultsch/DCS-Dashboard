@@ -136,12 +136,18 @@ A hat is drawn as a cross of four buttons. A tap sets the axis (`_UD` or `_LR`) 
 
 The TEDAC grip hats of the CP/G (LHG WAS, RHG sight select) are left out on purpose: they do the same as the cyclic WAS and the collective sight select. If the cyclic WAS does not act in the CP/G seat in DCS, swap to the TEDAC ones (both passed in Stage 2).
 
-### Cursor
+### CMWS (pilot seat only)
 
-- CURSOR pad (rows 1–3, columns 5–7) for the collective cursor controller `{seat}_COLLECTIVE_CURSOR_LR` / `_UD` (analog, centre 32768). Put a finger anywhere on the pad and push: the distance from the touch point (up to 30 % of the pad) is the deflection, i.e. the cursor speed, like the real force-sensing controller. Lifting the finger sends centre.
-- The page sends `{"x", "y"}` (−1..1) at most every 66 ms; the bridge sends only changed axes and does not wait behind slow commands. `CURSOR_Y_SIGN` at the top of the page script flips up / down if needed.
-- ENTER (`{seat}_COLLECTIVE_CURSOR_ENTER`) and DISPLAY (`{seat}_COLLECTIVE_CURSOR_DISPLAY`, moves the cursor to the other MPD) are separate buttons.
-- The Fight view uses the same fixed 3 × 7 grid as Startup and Flight.
+Flares only fire with the CMWS panel set up: CMWS PWR ON, FLARE SQUIBS ARM, CMWS MODE CMWS; CMWS OPER BYPASS / AUTO decides whether the CMWS dispenses on its own. Chaff must be armed on the MPD ASE page. On the ground dispensing may be blocked.
+
+| Label | DCS-BIOS | Positions | Grid |
+| --- | --- | --- | --- |
+| CMWS PWR | `PLT_CMWS_PW` | 2 = TEST (spring-loaded, 0.5 s), 1 = ON, 0 = OFF | row 1, column 5 |
+| FLARE SQUIBS | `PLT_CMWS_ARM` | 1 = ARM, 0 = SAFE | row 1, column 6 |
+| CMWS MODE | `PLT_CMWS_MODE` | 1 = CMWS, 0 = NAV | row 2, column 5 |
+| CMWS OPER | `PLT_CMWS_BYPASS` | 1 = BYPASS, 0 = AUTO | row 2, column 6 |
+
+The Fight view uses the same fixed 3 × 7 grid as Startup and Flight.
 
 ## MPD view
 
@@ -150,7 +156,13 @@ One MPD at a time, following the current seat (`"layout": "mpd"`). A `LEFT MPD |
 - Laid out 1:1 after a photo of the real MPD: every button, knob and print is placed at its measured position (square spacing, about 100 px pitch on the photo). VID knob on the raised top-left corner, BRT below it, MODE top right with DAY / NT / MONO; \* above R1; FCR / WPN below L6, VID / COM below R6; TSD and A/C offset in the bottom corners next to M and B2–B6.
 - Variable action buttons are light grey with a green dot; fixed action buttons are black keys with green text. Buttons are drawn at true size (about 33 px on the iPad Air) but have a larger invisible touch area (56 px where neighbours allow).
 - **Live labels:** the export script sends the pilot's MPD texts (`ind7` left, `ind9` right; CP/G `ind11` / `ind13`) 4 times per second. The bridge reads the `PB<n>` fields and serves them as `mpd_labels` in `/state`; the page writes each label in MPD green next to its button. Mapping: PB1–6 = T1–T6, PB7–12 = R1–R6, PB13–18 = B6…B1 (PB18 = M), PB19–24 = L6…L1. No labels when no MPD text arrived for 3 s.
-- Buttons are pressed for 0.15 s. In the CP/G seat the left MPD's L1–L6 did not respond in Stage 2.
+- In the CP/G seat the left MPD's L1–L6 did not respond in Stage 2.
+
+### Cursor
+
+- The CURSOR pad sits to the right of the bezel, for the collective cursor controller `{seat}_COLLECTIVE_CURSOR_LR` / `_UD` (analog, centre 32768). Put a finger anywhere on the pad and push: the distance from the touch point (up to 30 % of the pad) is the deflection, i.e. the cursor speed, like the real force-sensing controller. Lifting the finger sends centre.
+- The page sends `{"x", "y"}` (−1..1) at most every 66 ms; the bridge sends only changed axes and does not wait behind slow commands. `CURSOR_Y_SIGN` at the top of the page script flips up / down if needed.
+- Below the pad: CURSOR SWITCH DISPLAY (`{seat}_COLLECTIVE_CURSOR_DISPLAY`, moves the cursor to the other MPD) and ENTER (`{seat}_COLLECTIVE_CURSOR_ENTER`).
 
 ### Knob bar
 
@@ -181,6 +193,12 @@ The keyboard unit, laid out like the cockpit (`"layout": "ku"`), following the c
 - The page is locked for use as a home screen app: no scrolling, no rubber-band bounce, no pinch or double-tap zoom, no text selection or long-press menu. Rotation cannot be locked from a web page on iOS: use the iPad's rotation lock; in portrait a full-screen hint asks to turn the iPad.
 - Home screen icon `web/apple-touch-icon.png` (180 × 180, "DCS" / "Dashboard", white on grey), name "DCS Dashboard".
 - `start_dashboard.bat` starts the bridge with a double-click and keeps the window open if it stops with an error.
+
+## Confirmed presses
+
+- The page's feedback used to mean only "sent". Now the bridge checks DCS-BIOS: a push button is held until DCS reports it pressed (at least 0.3 s, at most 1 s) and then released; a hat until its axis shows the direction; a selector until the readback shows the new position (up to 0.5 s).
+- The reply is `{"ok": true, "confirmed": true | false | null}` (`null` = not checked: knobs, cursor, keypresses). The log says `pressed, not confirmed` / `sent, not confirmed`, and the page shows an amber note `<label>: not confirmed by DCS` with a short amber flash on the control.
+- Likely causes of lost presses before this change: MPD / KU presses of only 0.15 s (press and release in one DCS frame), commands waiting behind a slow power lever sequence, keypresses when DCS cannot be brought to the front, and double taps on toggle buttons.
 
 ## How it works
 
@@ -297,5 +315,6 @@ Each step is verified before the next one starts.
 - Trim display: confirm the ring and tick directions in DCS after a few trims.
 - MPD labels: check page changes in DCS; which labels are boxed (selected) is not shown yet; long labels can overlap their neighbours.
 - Cursor pad: check the speed and the up / down direction in DCS.
+- Flares / chaff: test with the CMWS set up, in the air; note which presses show "not confirmed".
 - The export port can be used by either dashboard.py or stage1_read.py, not both at once.
 - Symbology keys are not needed: the switch is set through DCS-BIOS.
