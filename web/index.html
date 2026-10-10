@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>DCS-Dashboard</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: #111; color: #fff; }
+body {
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column;
+  font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  touch-action: manipulation;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+button { font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; touch-action: manipulation; }
+
+header {
+  display: flex; align-items: center; gap: 16px;
+  min-height: 64px; padding: 4px 12px;
+  background: #1b1d1f; border-bottom: 1px solid #3a3d40;
+}
+.app { font-size: 18px; color: #bbb; }
+nav { display: flex; gap: 8px; flex: 1; }
+.tab {
+  min-width: 56px; min-height: 56px; padding: 0 20px;
+  background: #26292c; border: 1px solid #555; border-radius: 6px; font-size: 16px;
+}
+.tab.active { background: #f2f2f2; color: #111; border-color: #f2f2f2; }
+.badge { padding: 14px 18px; border: 2px solid; border-radius: 6px; font-size: 16px; white-space: nowrap; }
+.badge.ok { color: #43a047; border-color: #43a047; }
+.badge.ro { color: #ffb300; border-color: #ffb300; }
+.badge.bad { color: #e53935; border-color: #e53935; }
+
+#lamps {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;
+  padding: 10px 12px 0;
+}
+.lamp {
+  --c: #888; --d: #26292c; --g: rgba(255, 255, 255, 0.5); --t: #fff;
+  min-height: 64px; padding: 6px; display: flex; align-items: center; justify-content: center;
+  text-align: center; font-size: 14px; line-height: 1.2;
+  background: var(--d); border: 1px solid var(--c); border-radius: 6px; color: #ddd;
+}
+.lamp.red { --c: #e53935; --d: #3b1716; --g: rgba(229, 57, 53, 0.8); }
+.lamp.amber { --c: #ffb300; --d: #3d2d08; --g: rgba(255, 179, 0, 0.8); --t: #111; }
+.lamp.green { --c: #43a047; --d: #14301a; --g: rgba(67, 160, 71, 0.8); }
+.lamp.lit { background: var(--c); color: var(--t); box-shadow: 0 0 22px 5px var(--g); }
+
+#controls {
+  flex: 1; display: grid; gap: 10px; padding: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-auto-rows: minmax(230px, 1fr); grid-auto-flow: dense;
+}
+.panel {
+  display: flex; flex-direction: column; gap: 8px; min-height: 0; padding: 8px;
+  background: #1b1d1f; border: 1px solid #3a3d40; border-radius: 6px;
+}
+.panel.lever { grid-row: span 2; padding: 4px; }
+.title { font-size: 14px; text-align: center; color: #ddd; }
+body.ro .panel { opacity: 0.6; }
+
+.stack { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.pos, .push {
+  flex: 1; min-width: 56px; min-height: 56px; padding: 4px;
+  background: #26292c; border: 1px solid #666; border-radius: 6px; font-size: 16px;
+}
+.pos.cur { background: #f2f2f2; color: #111; border-color: #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+.pos.pending { outline: 3px solid #ffb300; outline-offset: 1px; }
+.pos.dis { opacity: 0.4; border-style: dashed; }
+.panel.busy .pos { cursor: progress; }
+
+.push { font-size: 22px; background: #2e3236; border-width: 2px; }
+.push.locked { opacity: 0.35; border-style: dashed; }
+.push.pressed { background: #ffb300; color: #111; border-color: #ffb300; transform: scale(0.97); }
+
+.zone { position: relative; flex: 1; min-height: 270px; touch-action: none; }
+.rail { position: absolute; top: 28px; bottom: 28px; left: 0; right: 0; }
+.track { position: absolute; left: 28px; top: 0; bottom: 0; width: 8px; margin-left: -4px; background: #3a3d40; border-radius: 4px; }
+.stop {
+  position: absolute; left: 0; right: 0; height: 56px; transform: translateY(50%);
+  display: flex; align-items: center; padding-left: 64px; font-size: 12px; letter-spacing: 0.02em;
+  white-space: nowrap; color: #999;
+}
+.stop::before { content: ""; position: absolute; left: 57px; width: 5px; height: 2px; background: #777; }
+.stop.cur { color: #fff; }
+.stop.dis { opacity: 0.35; }
+.handle {
+  position: absolute; left: 28px; width: 56px; height: 56px; transform: translate(-50%, 50%);
+  background: linear-gradient(#eee, #bbb); border: 2px solid #fff; border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); transition: bottom 0.15s;
+}
+.handle::after { content: ""; position: absolute; left: 10px; right: 10px; top: 24px; height: 8px; border-top: 2px solid #555; border-bottom: 2px solid #555; }
+.handle.drag { transition: none; }
+.handle.pending { border-color: #ffb300; box-shadow: 0 0 12px 3px rgba(255, 179, 0, 0.8); }
+.handle.none { display: none; }
+
+#toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  max-width: 90%; padding: 14px 22px; background: #e53935; color: #fff; border-radius: 6px;
+  font-size: 16px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+#toast.show { opacity: 1; }
+</style>
+</head>
+<body class="ro">
+<header>
+  <span class="app">DCS-Dashboard</span>
+  <nav id="tabs"></nav>
+  <span id="seat" class="badge bad">BRIDGE OFFLINE</span>
+</header>
+<div id="lamps"></div>
+<div id="controls"></div>
+<div id="toast" role="status"></div>
+<script>
+'use strict';
+
+const POLL_MS = 200;
+const STALE_S = 3;
+const TOAST_MS = 3000;
+const CONFIRM_MS = 1500;
+
+const BADGES = {
+  pilot: { text: 'PILOT', cls: 'ok' },
+  cpg: { text: 'CP/G – READ ONLY', cls: 'ro' },
+  nodata: { text: 'NO DCS DATA', cls: 'bad' },
+  offline: { text: 'BRIDGE OFFLINE', cls: 'bad' },
+};
+
+let views = [];
+let lamps = [];
+let controls = [];
+let current = { status: 'offline', values: {} };
+let toastTimer = null;
+
+function make(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isPilot() {
+  return current.status === 'pilot';
+}
+
+function toast(message) {
+  const t = document.getElementById('toast');
+  t.textContent = message;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), TOAST_MS);
+}
+
+async function getJson(url) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 2000);
+  try {
+    const r = await fetch(url, { cache: 'no-store', signal: ctl.signal });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function send(body) {
+  try {
+    const r = await fetch('/command', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (r.ok) return true;
+    let message = 'error ' + r.status;
+    try { message = (await r.json()).error || message; } catch (e) { /* keep the status text */ }
+    toast(message);
+  } catch (e) {
+    toast('bridge not reachable');
+  }
+  return false;
+}
+
+async function run(c, body, target) {
+  if (c.busy || !isPilot()) return;
+  c.busy = true;
+  c.pending = target;
+  c.update();
+  const ok = await send(body);
+  c.busy = false;
+  if (c.def.type === 'lever' && ok) c.doneAt = Date.now();
+  else c.pending = null;
+  c.update();
+}
+
+function statusOf(s) {
+  if (s.seat === null || s.age === null || s.age > STALE_S) return 'nodata';
+  if (s.seat === 0) return 'pilot';
+  if (s.seat === 1) return 'cpg';
+  return 'nodata';
+}
+
+function renderBadge() {
+  const b = BADGES[current.status];
+  const el = document.getElementById('seat');
+  el.textContent = b.text;
+  el.className = 'badge ' + b.cls;
+  document.body.classList.toggle('ro', !isPilot());
+}
+
+function render() {
+  renderBadge();
+  lamps.forEach((l) => l.update());
+  controls.forEach((c) => c.update());
+}
+
+function buildLamp(def) {
+  const el = make('div', 'lamp ' + def.color, def.label);
+  return { el, update: () => el.classList.toggle('lit', current.values[def.id] > 0) };
+}
+
+function buildSelector(def) {
+  const panel = make('div', 'panel');
+  const stack = make('div', 'stack');
+  panel.append(make('div', 'title', def.label), stack);
+  const c = { def, el: panel, busy: false, pending: null, buttons: [] };
+  def.positions.forEach((p) => {
+    const btn = make('button', 'pos', p.label);
+    btn.type = 'button';
+    btn.addEventListener('click', () => {
+      if (!isPilot() || c.busy || p.disabled || current.values[def.id] === p.value) return;
+      run(c, { id: def.id, value: p.value }, p.value);
+    });
+    stack.append(btn);
+    c.buttons.push(btn);
+  });
+  c.update = () => {
+    panel.classList.toggle('busy', c.busy);
+    def.positions.forEach((p, i) => {
+      const btn = c.buttons[i];
+      btn.classList.toggle('cur', current.values[def.id] === p.value);
+      btn.classList.toggle('pending', c.pending === p.value);
+      btn.classList.toggle('dis', !!p.disabled);
+      btn.setAttribute('aria-disabled', String(!!p.disabled || !isPilot() || c.busy));
+    });
+  };
+  return c;
+}
+
+function buildButton(def) {
+  const panel = make('div', 'panel');
+  const btn = make('button', 'push', def.label);
+  btn.type = 'button';
+  panel.append(btn);
+  const c = { def, el: panel, busy: false, pending: null };
+  const locked = () => current.values[def.requires.id] !== def.requires.value;
+  btn.addEventListener('click', () => {
+    if (!isPilot() || c.busy || locked()) return;
+    run(c, { id: def.id }, null);
+  });
+  c.update = () => {
+    btn.classList.toggle('locked', locked());
+    btn.classList.toggle('pressed', c.busy);
+    btn.setAttribute('aria-disabled', String(locked() || !isPilot() || c.busy));
+  };
+  return c;
+}
+
+function leverIndex(def, raw) {
+  if (typeof raw !== 'number') return null;
+  let best = 0;
+  def.positions.forEach((p, i) => {
+    if (Math.abs(p.value - raw) < Math.abs(def.positions[best].value - raw)) best = i;
+  });
+  return best;
+}
+
+function stopFraction(def, i) {
+  return i / (def.positions.length - 1);
+}
+
+function nearestEnabled(def, f) {
+  let best = null;
+  def.positions.forEach((p, i) => {
+    if (p.disabled) return;
+    if (best === null || Math.abs(stopFraction(def, i) - f) < Math.abs(stopFraction(def, best) - f)) best = i;
+  });
+  return best;
+}
+
+function buildLever(def) {
+  const panel = make('div', 'panel lever');
+  const zone = make('div', 'zone');
+  const rail = make('div', 'rail');
+  const handle = make('div', 'handle');
+  rail.append(make('div', 'track'));
+  const stops = def.positions.map((p, i) => {
+    const s = make('div', 'stop', p.label);
+    s.style.bottom = stopFraction(def, i) * 100 + '%';
+    s.classList.toggle('dis', !!p.disabled);
+    rail.append(s);
+    return s;
+  });
+  rail.append(handle);
+  zone.append(rail);
+  panel.append(make('div', 'title', def.label), zone);
+  const c = { def, el: panel, busy: false, pending: null, doneAt: 0, dragFrac: null };
+  const topEnabled = stopFraction(def, nearestEnabled(def, 1));
+
+  const fractionAt = (e) => {
+    const r = rail.getBoundingClientRect();
+    return Math.min(Math.max((r.bottom - e.clientY) / r.height, 0), topEnabled);
+  };
+  zone.addEventListener('pointerdown', (e) => {
+    if (!isPilot() || c.busy) return;
+    zone.setPointerCapture(e.pointerId);
+    c.dragFrac = fractionAt(e);
+    c.update();
+  });
+  zone.addEventListener('pointermove', (e) => {
+    if (c.dragFrac === null) return;
+    c.dragFrac = fractionAt(e);
+    c.update();
+  });
+  zone.addEventListener('pointerup', (e) => {
+    if (c.dragFrac === null) return;
+    const idx = nearestEnabled(def, fractionAt(e));
+    c.dragFrac = null;
+    if (idx !== leverIndex(def, current.values[def.readback]) && isPilot() && !c.busy) {
+      run(c, { id: def.id, value: def.positions[idx].label }, idx);
+    } else {
+      c.update();
+    }
+  });
+  zone.addEventListener('pointercancel', () => {
+    c.dragFrac = null;
+    c.update();
+  });
+
+  c.update = () => {
+    const idx = leverIndex(def, current.values[def.readback]);
+    if (c.pending !== null && !c.busy && (idx === c.pending || Date.now() - c.doneAt > CONFIRM_MS)) c.pending = null;
+    const shown = c.pending !== null ? c.pending : idx;
+    let f = null;
+    if (c.dragFrac !== null) f = c.dragFrac;
+    else if (shown !== null) f = stopFraction(def, shown);
+    handle.classList.toggle('none', f === null);
+    handle.classList.toggle('drag', c.dragFrac !== null);
+    handle.classList.toggle('pending', c.pending !== null);
+    if (f !== null) handle.style.bottom = f * 100 + '%';
+    stops.forEach((s, i) => s.classList.toggle('cur', i === idx));
+    panel.classList.toggle('busy', c.busy);
+  };
+  return c;
+}
+
+function buildControl(def) {
+  if (def.type === 'selector') return buildSelector(def);
+  if (def.type === 'button') return buildButton(def);
+  if (def.type === 'lever') return buildLever(def);
+  return null;
+}
+
+function showView(index) {
+  const view = views[index];
+  const lampBox = document.getElementById('lamps');
+  const controlBox = document.getElementById('controls');
+  lampBox.replaceChildren();
+  controlBox.replaceChildren();
+  lamps = view.lamps.map(buildLamp);
+  controls = view.controls.map(buildControl).filter((c) => c !== null);
+  lamps.forEach((l) => lampBox.append(l.el));
+  controls.forEach((c) => controlBox.append(c.el));
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === index));
+  render();
+}
+
+function buildTabs() {
+  const nav = document.getElementById('tabs');
+  views.forEach((v, i) => {
+    const tab = make('button', 'tab', v.name);
+    tab.type = 'button';
+    tab.addEventListener('click', () => showView(i));
+    nav.append(tab);
+  });
+}
+
+async function poll() {
+  try {
+    const s = await getJson('/state');
+    current = { status: statusOf(s), values: s.values || {} };
+  } catch (e) {
+    current = { status: 'offline', values: current.values };
+  }
+  render();
+  setTimeout(poll, POLL_MS);
+}
+
+async function init() {
+  renderBadge();
+  for (;;) {
+    try {
+      views = (await getJson('/layout')).views;
+      break;
+    } catch (e) {
+      await sleep(1000);
+    }
+  }
+  buildTabs();
+  showView(0);
+  poll();
+}
+
+init();
+</script>
+</body>
+</html>
