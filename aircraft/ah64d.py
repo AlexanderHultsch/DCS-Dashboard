@@ -1,3 +1,5 @@
+import math
+
 DCSBIOS_MODULE = "AH-64D"
 
 POWER_POSITIONS = [
@@ -91,11 +93,12 @@ MASTER_LAMPS = [
 ]
 
 
-def panel_pages(name: str, cells: dict, box: list, placard: list, art: list, controls: list) -> list[dict]:
+def panel_pages(name: str, cells: dict, box: list, placard: list, art: list, controls: list, indicators: list | None = None) -> list[dict]:
     return [
         {
             "name": name, "seats": [seat], "panel": True, "layout": "panel", "map": cell, "box": box,
             "lamps": MASTER_LAMPS, "print": placard, "art": art, "controls": controls,
+            **({"indicators": indicators} if indicators else {}),
         }
         for seat, cell in cells.items()
     ]
@@ -440,6 +443,163 @@ def eufd_pages() -> list[dict]:
     return panel_pages("EUFD", {0: [1, 7, 1, 3], 1: [1, 8, 1, 3]}, [556, 197], placard, art, controls)
 
 
+THREAT_CENTER = (376, 95)
+
+
+def dial_point(radius: float, angle: float) -> tuple[float, float]:
+    rad = math.radians(angle)
+    return THREAT_CENTER[0] + radius * math.sin(rad), THREAT_CENTER[1] - radius * math.cos(rad)
+
+
+def threat_sector(name: str, label: str, angle: float) -> dict:
+    inner, outer, half = 28, 52, 20
+    pts = [dial_point(inner, angle - half), dial_point(outer, angle - half), dial_point(outer, angle + half), dial_point(inner, angle + half)]
+    x, y = min(p[0] for p in pts), min(p[1] for p in pts)
+    (ax, ay), (bx, by), (cx, cy), (dx, dy) = [(round(p[0] - x, 1), round(p[1] - y, 1)) for p in pts]
+    d = f"M{ax} {ay}L{bx} {by}A{outer} {outer} 0 0 1 {cx} {cy}L{dx} {dy}A{inner} {inner} 0 0 0 {ax} {ay}Z"
+    return {
+        "bright": f"PLT_CMWS_{name}_BRT_L", "dim": f"PLT_CMWS_{name}_DIM_L", "label": label, "shape": "sector", "d": d,
+        "at": [round(x, 1), round(y, 1), round(max(p[0] for p in pts) - x, 1), round(max(p[1] for p in pts) - y, 1)],
+    }
+
+
+def threat_letter(name: str, y: float) -> dict:
+    return {
+        "bright": f"PLT_CMWS_{name}_BRT_L", "dim": f"PLT_CMWS_{name}_DIM_L", "label": name, "shape": "letter", "text": name, "size": 17,
+        "at": [THREAT_CENTER[0] - 9, y - 9, 18, 18],
+    }
+
+
+def threat_dial_art() -> list[dict]:
+    r = 56
+    ticks = ""
+    for i in range(36):
+        a = math.radians(i * 10)
+        inner = r - (9 if i % 3 == 0 else 5)
+        ticks += f"M{round(r + inner * math.sin(a), 1)} {round(r - inner * math.cos(a), 1)}L{round(r + r * math.sin(a), 1)} {round(r - r * math.cos(a), 1)}"
+    at = [THREAT_CENTER[0] - r, THREAT_CENTER[1] - r, r * 2, r * 2]
+    return [
+        {"shape": "path", "at": at, "d": f"M0 {r}a{r} {r} 0 1 0 {r * 2} 0a{r} {r} 0 1 0 {-r * 2} 0", "width": 1.2},
+        {"shape": "path", "at": at, "d": ticks, "width": 1.2},
+    ]
+
+
+def cmws_toggle(name: str, label: str, top: str, bottom: str, x: float, guard: bool = False) -> dict:
+    return {
+        "id": f"PLT_CMWS_{name}", "label": label, "type": "selector", "positions": [{"value": 1, "label": top}, {"value": 0, "label": bottom}],
+        "at": [x - 33, 344, 66, 96], **({"guard": True} if guard else {}),
+    }
+
+
+def cmws_pages() -> list[dict]:
+    controls = [
+        {
+            "id": "PLT_CMWS_PW", "label": "PWR", "type": "selector", "style": "rotary", "rest": 1, "hold": 0.5, "knob": [124, 122, 36],
+            "positions": [
+                {"value": 0, "label": "OFF", "angle": 50, "y": 62}, {"value": 1, "label": "ON", "angle": 92, "y": 116},
+                {"value": 2, "label": "TEST", "momentary": True, "angle": 128, "y": 170},
+            ],
+            "at": [60, 34, 150, 170],
+        },
+        {
+            "id": "PLT_CMWS_STATUS", "label": "STATUS", "type": "display", "cols": 4, "at": [215, 58, 100, 96], "page": "PLT_CMWS_PAGE",
+            "ids": [
+                "PLT_CMWS_PAGE", "PLT_CMWS_FLARE_LETTER", "PLT_CMWS_FLARE_COUNT", "PLT_CMWS_CHAFF_LETTER", "PLT_CMWS_CHAFF_COUNT",
+                "PLT_CMWS_BIT_LINE_1", "PLT_CMWS_BIT_LINE_2",
+            ],
+            "pages": {
+                "MAIN": [["PLT_CMWS_FLARE_LETTER", "PLT_CMWS_FLARE_COUNT"], ["PLT_CMWS_CHAFF_LETTER", "PLT_CMWS_CHAFF_COUNT"]],
+                "TEST": [["PLT_CMWS_BIT_LINE_1"], ["PLT_CMWS_BIT_LINE_2"]],
+            },
+        },
+        {"id": "PLT_CMWS_VOL", "label": "AUDIO", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135], "at": [454, 30, 60, 60]},
+        {"id": "PLT_CMWS_LAMP", "label": "LAMP", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135], "at": [457, 110, 60, 60]},
+        cmws_toggle("ARM", "ARM / SAFE", "ARM", "SAFE", 163),
+        cmws_toggle("MODE", "CMWS / NAV", "CMWS", "NAV", 275),
+        cmws_toggle("BYPASS", "BYPASS / AUTO", "BYPASS", "AUTO", 387),
+        cmws_toggle("JETT", "JETTISON", "ON", "OFF", 514, True),
+    ]
+    placard = [
+        ["OFF", 176, 77, 19, 38], ["ON", 190, 116, 19, 26, 90], ["TEST", 184, 161, 19, 44],
+        ["PWR", 181, 192, 21, 40], ["STATUS", 274, 190, 21, 64], ["THREAT", 385, 190, 21, 66],
+        ["AUDIO", 484, 100, 21, 48], ["LAMP", 487, 190, 21, 44], ["+", 534, 100, 14],
+        ["CMWS CONTROL PANEL", 263, 266, 25, 245], ["+", 225, 303, 16],
+        ["ARM", 163, 346, 20, 36], ["CMWS", 275, 342, 20, 50], ["BYPASS", 387, 342, 20, 66],
+        ["SAFE", 163, 444, 20, 40], ["NAV", 275, 444, 20, 30], ["AUTO", 387, 444, 20, 38],
+        ["JETTISON", 574, 380, 22, 118, 90],
+    ]
+    art = [
+        {"shape": "plate", "at": [4, 4, 620, 228]}, {"shape": "plate", "at": [4, 244, 620, 238]},
+        {"shape": "screw", "at": [32, 122, 13]}, {"shape": "screw", "at": [528, 52, 13]}, {"shape": "screw", "at": [604, 108, 14]},
+        {"shape": "screw", "at": [542, 176, 12]}, {"shape": "screw", "at": [132, 192, 11]},
+        {"shape": "screw", "at": [36, 332, 14]}, {"shape": "screw", "at": [44, 414, 14]},
+        {"shape": "screw", "at": [598, 302, 14]}, {"shape": "screw", "at": [606, 386, 14]},
+        {"shape": "glass", "at": [210, 22, 238, 146]},
+        *threat_dial_art(),
+        {"shape": "line", "at": [156.2, 95, 9.2, -7.7]}, {"shape": "line", "at": [166, 120.5, 12, -0.6]}, {"shape": "line", "at": [157.1, 147.9, 9.5, 7.3]},
+        {"shape": "hazard", "at": [432, 252, 56, 216], "period": 22},
+    ]
+    indicators = [
+        threat_sector("FWD_LEFT", "FWD LEFT", -45), threat_sector("FWD_RIGHT", "FWD RIGHT", 45),
+        threat_sector("AFT_RIGHT", "AFT RIGHT", 135), threat_sector("AFT_LEFT", "AFT LEFT", -135),
+        threat_letter("D", 70), threat_letter("R", 120),
+    ]
+    return panel_pages("CMWS", {0: [1, 10, 2, 3]}, [628, 486], placard, art, controls, indicators)
+
+
+def center_pages() -> list[dict]:
+    def ckt(name: str, label: str, x: float) -> dict:
+        return {
+            "id": f"PLT_CHK_OSPD_ENG_{name}", "label": label, "type": "selector", "rest": 1, "hold": 0.5, "at": [x - 40, 24.5, 80, 180],
+            "positions": [
+                {"value": 2, "label": "ENG 1", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "ENG 2", "momentary": True},
+            ],
+        }
+
+    controls = [
+        ckt("A", "CKT A", 146.5), ckt("B", "CKT B", 291.9),
+        {
+            "id": "PLT_GEN_RESET", "label": "GEN RST", "type": "selector", "orient": "h", "rest": 1, "hold": 0.5, "at": [373.4, 76.7, 180, 80],
+            "positions": [
+                {"value": 0, "label": "GEN 1", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 2, "label": "GEN 2", "momentary": True},
+            ],
+        },
+        {"id": "PLT_DEFOG_BTN", "label": "DEFOG", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD, "at": [147.7, 301.4, 70, 70]},
+        {
+            "id": "PLT_WIPER_SW", "label": "WINDSHIELD WIPER", "type": "selector", "style": "rotary", "orient": "h", "knob": [420, 358, 52],
+            "positions": [
+                {"value": 0, "label": "PARK", "angle": -42, "x": 335}, {"value": 1, "label": "OFF", "angle": 0, "x": 397},
+                {"value": 2, "label": "LO", "angle": 37, "x": 451}, {"value": 3, "label": "HI", "angle": 74, "x": 519},
+            ],
+            "at": [305, 250, 240, 165],
+        },
+        {
+            "id": "PLT_PARK_BRAKE", "label": "PARK BRAKE", "type": "selector", "orient": "h", "at": [170, 505, 150, 66],
+            "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "PULLED"}],
+        },
+        {"id": "PLT_ALT_SET_KNB", "label": "ALT SET", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135], "at": [462, 506, 64, 64]},
+    ]
+    placard = [
+        ["CHK OVSP TEST", 193.7, 41.8, 30, 256], ["GEN RST", 466.4, 41.8, 30, 128],
+        ["ENG 1", 219.2, 81.8, 16, 57], ["OFF", 219.2, 113, 16, 29], ["ENG 2", 219.2, 142, 16, 57],
+        ["CKT A", 146.5, 175.6, 21, 74], ["CKT B", 291.9, 175.6, 21, 74],
+        ["+", 381.3, 89.8, 14], ["GEN 1", 390.8, 113.8, 17, 52], ["GEN 2", 538, 113.8, 17, 58],
+        ["WINDSHIELD WIPER", 317.9, 243, 28, 295], ["+", 104.6, 267, 14], ["DEFOG", 181.2, 285.7, 22, 76],
+        ["PARK", 350.5, 281, 15, 46], ["OFF", 420.7, 264.7, 15, 28], ["LO", 479.3, 281, 15, 20], ["HI", 501, 335, 15, 18],
+        ["PARK BRAKE", 92, 538, 22, 108], ["IN", 196, 538, 18, 18], ["PULLED", 309, 538, 18, 56], ["ALT SET", 402, 538, 22, 80],
+    ]
+    art = [
+        {"shape": "plate", "at": [4, 4, 620, 207]}, {"shape": "plate", "at": [4, 217, 620, 265]}, {"shape": "plate", "at": [4, 488, 620, 100]},
+        {"shape": "screw", "at": [34.5, 68, 17]}, {"shape": "screw", "at": [550, 76.7, 11]},
+        {"shape": "screw", "at": [75.2, 149.4, 13]}, {"shape": "screw", "at": [591.4, 149.4, 17]},
+        {"shape": "screw", "at": [31.5, 271.3, 20]}, {"shape": "screw", "at": [555.3, 282.1, 13]}, {"shape": "screw", "at": [73.4, 390.6, 14]},
+        {"shape": "screw", "at": [595.8, 389.2, 18]}, {"shape": "screw", "at": [35.5, 463, 17]}, {"shape": "screw", "at": [593.6, 463, 17]},
+        {"shape": "screw", "at": [24, 500, 9]}, {"shape": "screw", "at": [604, 576, 9]},
+        {"shape": "line", "at": [369.2, 301.6, -6.7, -7.6]}, {"shape": "line", "at": [465.8, 297.3, 6.6, -8]}, {"shape": "line", "at": [477.7, 341.4, 9.6, -2.7]},
+    ]
+    return panel_pages("CENTER", {0: [6, 5, 2, 4]}, [628, 592], placard, art, controls)
+
+
 VIEWS = [
     {
         "name": "COCKPIT",
@@ -466,6 +626,8 @@ VIEWS = [
     *jettison_pages(),
     *armament_pages(),
     *eufd_pages(),
+    *cmws_pages(),
+    *center_pages(),
     {
         "name": "Startup",
         "seats": [0],

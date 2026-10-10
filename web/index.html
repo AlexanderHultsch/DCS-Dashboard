@@ -355,6 +355,7 @@ body.ro .pbox { opacity: 0.6; }
 .pgrip { fill: #3d4247; stroke: #9aa0a6; stroke-width: 2; }
 .pgrip.pending { stroke: #ffb300; stroke-width: 4; }
 .pdisp { overflow: hidden; container-type: size; background: #121a16; }
+.pind { pointer-events: none; }
 .ptext {
   transform-origin: 0 0; transform: scaleY(var(--sy)); font-size: calc(100cqw / var(--em)); line-height: calc(100cqh / var(--rows) / var(--sy));
   white-space: pre; text-transform: none; letter-spacing: 0; color: #50dc5c;
@@ -609,6 +610,7 @@ const HOLD_MS = 1000;
 const LIST_HOLD_MS = 500;
 const PRINT_SIZE = 25;
 const LINE_COLS = 56;
+const INDICATOR_FILL = ['#2b251c', '#8a4b10', '#ff9a1f'];
 const MONO_FONT = '"Courier New", Consolas, monospace';
 const LAYOUT_CLASS = { panel: 'plate' };
 const PADLOCK = '<span class="glock"><svg viewBox="0 0 24 24" fill-rule="evenodd" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V11a1 1 0 0 0-1-1h-1V7a5 5 0 0 0-5-5zM9 10V7a3 3 0 0 1 6 0v3z"/></svg></span>';
@@ -1796,24 +1798,44 @@ function buildPlateHat(def) {
 
 function buildPlateDisplay(def) {
   const [, , w, h] = def.at;
-  const rows = def.ids.length;
+  const cols = def.cols || LINE_COLS;
+  const rows = def.pages ? Math.max(...Object.values(def.pages).map((page) => page.length)) : def.ids.length;
   const ratio = document.createElement('canvas').getContext('2d');
   ratio.font = 'bold 100px ' + MONO_FONT;
   const em = ratio.measureText('0').width / 100;
   const text = make('div', 'ptext');
   const el = make('div', 'pctl pdisp');
   text.style.fontFamily = MONO_FONT;
-  el.style.setProperty('--em', LINE_COLS * em);
+  el.style.setProperty('--em', cols * em);
   el.style.setProperty('--rows', rows);
-  el.style.setProperty('--sy', h * em * LINE_COLS / (rows * w));
+  el.style.setProperty('--sy', h * em * cols / (rows * w));
   el.append(text);
   const c = { def, el };
+  const line = (id) => {
+    const v = readValue(id);
+    return typeof v === 'string' ? v.replace(/\0+$/, '') : '';
+  };
   c.update = () => {
-    const shown = def.ids.map((id) => {
-      const v = readValue(id);
-      return typeof v === 'string' ? v.replace(/\0+$/, '') : '';
-    }).join('\n');
+    const page = def.pages ? def.pages[line(def.page).trim()] || [] : null;
+    const shown = (page ? page.map((row) => row.map((id) => line(id).trim()).join(' ')) : def.ids.map(line)).join('\n');
     if (text.textContent !== shown) text.textContent = shown;
+  };
+  c.touchAt = () => [];
+  return c;
+}
+
+function buildIndicator(def) {
+  const [, , w, h] = def.at;
+  const letter = def.shape === 'letter';
+  const el = make('div', 'pctl pind');
+  el.insertAdjacentHTML('beforeend', '<svg class="pswitch" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">'
+    + (letter ? '<text x="' + w / 2 + '" y="' + h / 2 + '" dy="0.35em" text-anchor="middle" font-size="' + def.size + '">' + def.text + '</text>' : '<path d="' + def.d + '"/>')
+    + '</svg>');
+  const shape = el.querySelector(letter ? 'text' : 'path');
+  const c = { def, el };
+  c.update = () => {
+    const level = readValue(def.bright) > 0 ? 2 : readValue(def.dim) > 0 ? 1 : 0;
+    shape.setAttribute('fill', INDICATOR_FILL[level]);
   };
   c.touchAt = () => [];
   return c;
@@ -2200,6 +2222,7 @@ function plateArt(a) {
       + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.4" transform="rotate(' + (x + y) % 90 + ' ' + x + ' ' + y + ')"/>';
   }
   if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"');
+  if (a.shape === 'glass') return rect(8, 'fill="#121a16" stroke="#3a3f44" stroke-width="3"');
   if (a.shape === 'line') return '<line x1="' + x + '" y1="' + y + '" x2="' + (x + w) + '" y2="' + (y + h) + '" stroke="#e8e8e8" stroke-width="3"/>';
   if (a.shape === 'arrow') {
     const tip = a.up ? y : y + h;
@@ -2390,7 +2413,7 @@ function showView(index) {
   lampBox.classList.toggle('compact', grid || layout === 'map' || layout === 'panel');
   lampBox.style.display = view.lamps.length ? '' : 'none';
   lamps = view.lamps.map(buildLamp);
-  controls = view.controls.map((d) => buildControl(d, layout)).filter((c) => c !== null);
+  controls = [...view.controls.map((d) => buildControl(d, layout)), ...(view.indicators || []).map(buildIndicator)].filter((c) => c !== null);
   lamps.forEach((l) => lampBox.append(l.el));
   if (layout && PLACERS[layout]) PLACERS[layout](controlBox, controls);
   else if (grid) placeGrid(controlBox, controls);
