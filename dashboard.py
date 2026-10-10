@@ -427,7 +427,7 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
         with lock:
             guard_open.clear()
             guard_open[identifier] = time.monotonic()
-        log.line("dash", identifier, "guard open")
+        log.line("dash", expand(identifier, seat), "guard open")
         return True, "", None
     if control.get("guard"):
         with lock:

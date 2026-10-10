@@ -330,10 +330,24 @@ body.ro .pbox { opacity: 0.6; }
 .pbtn.lit.c-green::after { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8), inset 0 0 0 1px #000; }
 .pbtn.lit.c-amber::after { background: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8), inset 0 0 0 1px #000; }
 .plegend { position: relative; z-index: 1; font-size: calc(var(--bh) * 0.045); letter-spacing: 0.02em; color: #7d858c; pointer-events: none; }
-.pbtn.lit.c-amber .plegend { color: #111; }
+.pbtn.lit.c-amber .plegend, .pbtn.lit.c-green .plegend { color: #111; }
 .ppos { position: absolute; left: 0; width: 100%; margin: 0; padding: 0; background: none; border: 0; }
 .ppos:active { background: rgba(255, 255, 255, 0.12); }
 .ppos.pending { outline: 3px solid #ffb300; outline-offset: -3px; }
+.pgrip { fill: #3d4247; stroke: #9aa0a6; stroke-width: 2; }
+.pgrip.pending { stroke: #ffb300; stroke-width: 4; }
+.pslot { position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0; background: none; border: 0; }
+.pcover {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 3; margin: 0; padding: 0;
+  background: linear-gradient(#a3a9ae, #6d747a); border: 1px solid #2b2f33; border-radius: 6%;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform-origin: 50% 0; transition: transform 0.25s;
+}
+.pctl.thru { pointer-events: none; }
+.thru .pcover { pointer-events: auto; }
+.pcover::after { content: ""; position: absolute; left: 30%; right: 30%; bottom: 7%; height: 6%; background: #4b5258; border-radius: 3px; }
+.pcover.open { transform: scaleY(0.16); }
+.pcover:active { filter: brightness(1.15); }
 
 .gcover {
   position: absolute; inset: 0; z-index: 3; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center;
@@ -999,6 +1013,18 @@ function nearestEnabled(def, f) {
   return best;
 }
 
+function leverShown(c) {
+  const idx = leverIndex(c.def, readValue(c.def.readback));
+  if (c.pending !== null && !c.busy && (idx === c.pending || Date.now() - c.doneAt > CONFIRM_MS)) c.pending = null;
+  return [idx, c.pending !== null ? c.pending : idx];
+}
+
+function goLever(c, idx) {
+  if (idx === leverIndex(c.def, readValue(c.def.readback)) || !can(c) || c.busy) return false;
+  run(c, { id: c.def.id, value: c.def.positions[idx].label }, idx);
+  return true;
+}
+
 function buildLever(def) {
   const panel = make('div', 'panel lever');
   const zone = make('div', 'zone');
@@ -1037,11 +1063,7 @@ function buildLever(def) {
     if (c.dragFrac === null) return;
     const idx = nearestEnabled(def, fractionAt(e));
     c.dragFrac = null;
-    if (idx !== leverIndex(def, readValue(def.readback)) && can(c) && !c.busy) {
-      run(c, { id: def.id, value: def.positions[idx].label }, idx);
-    } else {
-      c.update();
-    }
+    if (!goLever(c, idx)) c.update();
   });
   zone.addEventListener('pointercancel', () => {
     c.dragFrac = null;
@@ -1049,9 +1071,7 @@ function buildLever(def) {
   });
 
   c.update = () => {
-    const idx = leverIndex(def, readValue(def.readback));
-    if (c.pending !== null && !c.busy && (idx === c.pending || Date.now() - c.doneAt > CONFIRM_MS)) c.pending = null;
-    const shown = c.pending !== null ? c.pending : idx;
+    const [idx, shown] = leverShown(c);
     let f = null;
     if (c.dragFrac !== null) f = c.dragFrac;
     else if (shown !== null) f = stopFraction(def, shown);
@@ -1187,6 +1207,7 @@ function buildStick(def) {
 }
 
 function barTitle(def) {
+  if (views[activeIndex].layout === 'panel') return def.label;
   const side = def.side ? DISPLAYS.find(([s]) => s === def.side)[1] : 'KU';
   return side + ' · ' + def.label;
 }
@@ -1420,29 +1441,61 @@ function buildPlateButton(def) {
   return c;
 }
 
+function toggleArt(cx, cy, r) {
+  return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#101112" stroke="#e8e8e8" stroke-width="3"/>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.74 + '" fill="#3b1d19" stroke="#8a3a2b" stroke-width="3"/>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.42 + '" fill="#050505"/>'
+    + '<line class="lv" x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + cy + '" stroke="#cfd3d8" stroke-width="8" stroke-linecap="round"/>'
+    + '<circle class="tip" cx="' + cx + '" cy="' + cy + '" r="7" fill="#e9edf0" stroke="#7b8288" stroke-width="2"/>';
+}
+
+function rotaryArt(x, y, r) {
+  return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#16181a" stroke="#4b5258" stroke-width="4"/>'
+    + '<circle cx="' + x + '" cy="' + y + '" r="' + r * 0.86 + '" fill="#0d0e0f" stroke="#2b2f33" stroke-width="3"/>'
+    + '<line class="pt" x1="' + x + '" y1="' + y + '" x2="' + x + '" y2="' + (y - r * 0.9) + '" stroke="#d9dcdf" stroke-width="' + r * 0.12 + '" stroke-linecap="round"/>'
+    + '<circle cx="' + x + '" cy="' + y + '" r="' + r * 0.14 + '" fill="#d9dcdf"/>';
+}
+
+function positionEdges(def) {
+  const [, y, , h] = def.at;
+  const p = def.positions;
+  if (p[0].y === undefined) return p.map((q, i) => [y + h * i / p.length, y + h * (i + 1) / p.length]);
+  const order = p.map((q, i) => i).sort((a, b) => p[a].y - p[b].y);
+  const edges = [];
+  order.forEach((i, k) => {
+    edges[i] = [k > 0 ? (p[i].y + p[order[k - 1]].y) / 2 : y, k < p.length - 1 ? (p[i].y + p[order[k + 1]].y) / 2 : y + h];
+  });
+  return edges;
+}
+
+function placeBand(btn, def, [top, bottom]) {
+  const [, y, , h] = def.at;
+  btn.style.top = (top - y) / h * 100 + '%';
+  btn.style.height = (bottom - top) / h * 100 + '%';
+}
+
 function buildPlateSwitch(def) {
-  const [, , w, h] = def.at;
+  const [ax, ay, w, h] = def.at;
   const n = def.positions.length;
   const cx = w / 2;
   const cy = h / 2;
   const r = Math.min(w, h) * 0.45;
+  const rotary = def.style === 'rotary';
+  const kx = rotary ? def.knob[0] - ax : 0;
+  const ky = rotary ? def.knob[1] - ay : 0;
   const wrap = make('div', 'pctl');
   wrap.insertAdjacentHTML('beforeend', '<svg class="pswitch" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">'
-    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#101112" stroke="#e8e8e8" stroke-width="3"/>'
-    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.74 + '" fill="#3b1d19" stroke="#8a3a2b" stroke-width="3"/>'
-    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.42 + '" fill="#050505"/>'
-    + '<line class="lv" x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + cy + '" stroke="#cfd3d8" stroke-width="8" stroke-linecap="round"/>'
-    + '<circle class="tip" cx="' + cx + '" cy="' + cy + '" r="7" fill="#e9edf0" stroke="#7b8288" stroke-width="2"/>'
-    + '</svg>');
+    + (rotary ? rotaryArt(kx, ky, def.knob[2]) : toggleArt(cx, cy, r)) + '</svg>');
   const lever = wrap.querySelector('.lv');
   const tip = wrap.querySelector('.tip');
+  const pointer = wrap.querySelector('.pt');
   const c = { def, el: wrap, busy: false, pending: null, buttons: [] };
+  const edges = positionEdges(def);
   const free = (p) => can(c) && !c.busy && !p.disabled && readValue(def.id) !== p.value;
   const items = def.positions.map((p, i) => {
     const btn = make('button', 'ppos');
     btn.type = 'button';
-    btn.style.top = i / n * 100 + '%';
-    btn.style.height = 100 / n + '%';
+    placeBand(btn, def, edges[i]);
     btn.setAttribute('aria-label', p.label);
     btn.addEventListener('click', () => {
       if (def.guard || !free(p)) return;
@@ -1454,23 +1507,121 @@ function buildPlateSwitch(def) {
   });
   c.update = () => {
     const idx = def.positions.findIndex((p) => p.value === readValue(def.id));
-    const dy = idx < 0 || n < 2 ? 0 : (idx / (n - 1) * 2 - 1) * r * 0.55;
-    lever.setAttribute('y2', cy + dy);
-    tip.setAttribute('cy', cy + dy);
-    lever.style.visibility = tip.style.visibility = idx < 0 ? 'hidden' : '';
+    if (rotary) {
+      pointer.setAttribute('transform', 'rotate(' + (idx < 0 ? 0 : def.positions[idx].angle) + ' ' + kx + ' ' + ky + ')');
+      pointer.style.visibility = idx < 0 ? 'hidden' : '';
+    } else {
+      const dy = idx < 0 || n < 2 ? 0 : (idx / (n - 1) * 2 - 1) * r * 0.55;
+      lever.setAttribute('y2', cy + dy);
+      tip.setAttribute('cy', cy + dy);
+      lever.style.visibility = tip.style.visibility = idx < 0 ? 'hidden' : '';
+    }
     def.positions.forEach((p, i) => {
       c.buttons[i].classList.toggle('pending', c.pending === p.value);
       c.buttons[i].setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
     });
   };
-  c.touchAt = ([x, y, tw, th]) => c.buttons.map((el, i) => ({ el, cx: x + tw / 2, cy: y + th * (i + 0.5) / n, w: tw, h: th / n }));
+  c.touchAt = ([x, , tw]) => c.buttons.map((el, i) => ({ el, cx: x + tw / 2, cy: (edges[i][0] + edges[i][1]) / 2, w: tw, h: edges[i][1] - edges[i][0] }));
   if (def.guard) addGuard(c, items, true);
+  return c;
+}
+
+function buildPlateCover(def) {
+  const btn = make('button', 'pcover');
+  btn.type = 'button';
+  btn.setAttribute('aria-label', def.label);
+  const wrap = make('div', 'pctl thru');
+  wrap.append(btn);
+  const c = { def, el: wrap, busy: false, pending: null };
+  btn.addEventListener('click', () => {
+    const open = readValue(def.id) === 1;
+    if (!can(c) || c.busy) return;
+    run(c, { id: def.id, value: open ? 0 : 1 }, open ? 0 : 1);
+  });
+  c.update = () => {
+    btn.classList.toggle('open', readValue(def.id) === 1);
+    btn.setAttribute('aria-disabled', String(!can(c) || c.busy));
+  };
+  c.touchAt = () => [];
+  return c;
+}
+
+function leverY(def, raw) {
+  const p = def.positions;
+  let i = 1;
+  while (i < p.length - 1 && raw > p[i].value) i++;
+  const f = Math.min(Math.max((raw - p[i - 1].value) / (p[i].value - p[i - 1].value), 0), 1);
+  return p[i - 1].y + (p[i].y - p[i - 1].y) * f;
+}
+
+function buildPlateLever(def) {
+  const [x, y, w, h] = def.at;
+  const [hx, hw, hh] = def.handle;
+  const p = def.positions;
+  const wrap = make('div', 'pctl');
+  wrap.insertAdjacentHTML('beforeend', '<svg class="pswitch" viewBox="' + [x, y, w, h].join(' ') + '" aria-hidden="true">'
+    + '<rect class="pgrip" x="' + (hx - hw / 2) + '" y="0" width="' + hw + '" height="' + hh + '" rx="' + hh / 4 + '"/></svg>');
+  const grip = wrap.querySelector('.pgrip');
+  const c = { def, el: wrap, busy: false, pending: null, doneAt: 0, buttons: [], bands: [] };
+  const edges = positionEdges(def);
+  p.forEach((q, i) => {
+    const btn = make('button', 'ppos');
+    btn.type = 'button';
+    placeBand(btn, def, edges[i]);
+    btn.setAttribute('aria-label', q.label);
+    btn.addEventListener('click', () => {
+      if (!q.disabled) goLever(c, i);
+    });
+    wrap.append(btn);
+    c.buttons.push(btn);
+    c.bands.push({ el: btn, cx: x + w / 2, cy: (edges[i][0] + edges[i][1]) / 2, w, h: edges[i][1] - edges[i][0] });
+  });
+  c.update = () => {
+    const [, shown] = leverShown(c);
+    const raw = readValue(def.readback);
+    const known = shown !== null && typeof raw === 'number';
+    const gy = c.pending !== null ? p[shown].y : known ? leverY(def, raw) : y;
+    grip.style.visibility = known ? '' : 'hidden';
+    grip.setAttribute('y', gy - hh / 2);
+    grip.classList.toggle('pending', c.pending !== null);
+    p.forEach((q, i) => {
+      c.buttons[i].classList.toggle('pending', c.pending === i);
+      c.buttons[i].setAttribute('aria-disabled', String(!!q.disabled || !can(c) || c.busy));
+    });
+  };
+  c.touchAt = () => c.bands;
+  return c;
+}
+
+function buildPlateSlider(def) {
+  const [, , w, h] = def.at;
+  const gh = 52;
+  const wrap = make('div', 'pctl');
+  wrap.insertAdjacentHTML('beforeend', '<svg class="pswitch" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">'
+    + '<rect x="' + (w * 0.78 - 19) + '" y="0" width="38" height="' + h + '" rx="6" fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"/>'
+    + '<rect class="pgrip" x="0" y="0" width="' + w * 0.87 + '" height="' + gh + '" rx="8"/></svg>');
+  const grip = wrap.querySelector('.pgrip');
+  const btn = make('button', 'pslot');
+  btn.type = 'button';
+  btn.setAttribute('aria-label', def.label);
+  wrap.append(btn);
+  const c = { def, el: wrap, busy: false, pending: null };
+  btn.addEventListener('click', () => openBar(c));
+  c.update = () => {
+    const v = readValue(def.id);
+    grip.style.visibility = typeof v === 'number' ? '' : 'hidden';
+    if (typeof v === 'number') grip.setAttribute('y', (h - gh) * (1 - v / KNOB_MAX));
+    btn.setAttribute('aria-disabled', String(!can(c)));
+  };
+  c.touchAt = () => [{ el: btn, cx: def.at[0] + w / 2, cy: def.at[1] + h / 2, w, h }];
   return c;
 }
 
 function buildPanelControl(def) {
   if (def.type === 'button') return buildPlateButton(def);
-  if (def.type === 'selector') return buildPlateSwitch(def);
+  if (def.type === 'selector') return def.style === 'cover' ? buildPlateCover(def) : buildPlateSwitch(def);
+  if (def.type === 'lever') return buildPlateLever(def);
+  if (def.type === 'knob' && def.style === 'slider') return buildPlateSlider(def);
   console.error('no panel drawing for control type ' + def.type + ' (' + def.id + ')');
   return null;
 }
@@ -1839,6 +1990,14 @@ function plateArt(a) {
   if (a.shape === 'screw') {
     return '<circle cx="' + x + '" cy="' + y + '" r="' + w + '" fill="#5b6269" stroke="#1a1c1e" stroke-width="2"/>'
       + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.4" transform="rotate(' + (x + y) % 90 + ' ' + x + ' ' + y + ')"/>';
+  }
+  if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"');
+  if (a.shape === 'line') return '<line x1="' + x + '" y1="' + y + '" x2="' + (x + w) + '" y2="' + (y + h) + '" stroke="#e8e8e8" stroke-width="3"/>';
+  if (a.shape === 'arrow') {
+    const tip = a.up ? y : y + h;
+    const back = a.up ? tip + w : tip - w;
+    return '<path d="M' + (x + w / 2) + ' ' + (a.up ? y + h : y) + 'V' + tip + 'M' + x + ' ' + back + 'L' + (x + w / 2) + ' ' + tip + 'L' + (x + w) + ' ' + back
+      + '" fill="none" stroke="#e8e8e8" stroke-width="3"/>';
   }
   if (a.shape === 'hazard') {
     const [hx, hy, hw, hh] = a.hole;
