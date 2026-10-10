@@ -56,6 +56,8 @@ DCS-BIOS and a small export script deliver the data. The bridge holds it, sends 
 
 Goal: prove which values we can read live, for both seats and in flight.
 
+Detailed spec, value list and build steps: [STAGE1.md](STAGE1.md). It takes precedence over this section; USB controls (source 4) are deferred there.
+
 Sources:
 
 1. DCS-BIOS ([DCS-Skunkworks fork](https://github.com/DCS-Skunkworks/dcs-bios), AH-64D module): switch positions, lamps, EUFD and KU text, radio frequencies, standby instruments, current seat.
