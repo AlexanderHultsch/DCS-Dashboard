@@ -2,9 +2,9 @@
 
 Detailed spec for Stage 3 of [SPEC.md](SPEC.md). Goal: a dashboard page on the tablet that replaces the keyboard and mouse for cockpit commands.
 
-Status: Aircraft view tested on Windows. Fight view built, waiting for the test run.
+Status: Aircraft view tested on Windows. Fight, MPD and KU views built, waiting for the test run.
 
-Stage 3 is built one view at a time. Built so far: **Aircraft** (start-up and flight, pilot seat) and **Fight** (weapons, sights, countermeasures, both seats). Navigation and George are not built yet.
+Stage 3 is built one view at a time. Built so far: **Aircraft** (start-up and flight, pilot seat), **Fight** (weapons, sights, countermeasures, both seats), **MPD** (both MPD bezels, both seats) and **KU** (keyboard unit, both seats); George is not built yet.
 
 ## What Stage 2 tells us
 
@@ -18,7 +18,7 @@ Stage 3 is built one view at a time. Built so far: **Aircraft** (start-up and fl
 
 - **Cockpit names and positions.** Every control uses the label printed in the cockpit and shows all of its real positions, in cockpit order, even positions we do not use. A position that cannot be set (see Stage 2) is shown greyed out and cannot be selected.
 - **The tablet shows the cockpit, not the last tap.** Every control shows the position read back from DCS. A switch moved in the cockpit with the mouse moves on the tablet too.
-- **Big touch targets**: at least 56 × 56 CSS pixels, enough space between controls.
+- **Big touch targets**: 56 × 56 CSS pixels where space allows; at least 44 px on the three-row AIRCRAFT view and as on the real bezel on the MPD view (about 0.7 of the button spacing).
 - **Landscape first.** Designed for an iPad Air in landscape (1180 × 820 CSS pixels), but laid out with a CSS grid that also fits other tablets from about 1024 × 768 up. Portrait works but is not optimised.
 - **Plain look.** Dark background, white stencil-style labels, lamp colours as in the cockpit. No images, no frameworks, no external files.
 
@@ -37,7 +37,9 @@ Pilot seat only (`"seats": [0]`), controls grouped like the cockpit. Values are 
 | ENG 2 FIRE | `PLT_ENG_2_FIRE_L` | red |
 | APU ON | `PLT_APU_L` | green (check against the cockpit in the test run) |
 
-Lamps are display only. Master caution and warning have no DCS-BIOS input, so they cannot be reset from the tablet.
+Lamps are display only, except MASTER WARNING and MASTER CAUTION.
+
+MASTER WARNING and MASTER CAUTION are lighted pushbuttons as in the cockpit: tapping the lamp presses `PLT_INTL_MWARN_BTN` / `PLT_INTL_MCAUTION_BTN` (0.3 s).
 
 ### Controls
 
@@ -53,6 +55,12 @@ Lamps are display only. Master caution and warning have no DCS-BIOS input, so th
 | RTR BRK | `PLT_ROTOR_BRK` | 2 = OFF, 1 = BRK, 0 = LOCK | DCS-BIOS | BRK greyed |
 | PARK BRAKE | `PLT_PARK_BRAKE` | 0 = IN, 1 = PULLED | DCS-BIOS | |
 | TAIL WHEEL | `PLT_T_WHEEL_UNLOCK_BTN` | push button | DCS-BIOS | press = 1, released to 0 after 0.3 s; locks / unlocks the tail wheel |
+| NAV | `PLT_EXTL_NAV_L_SW` | 2 = BRT, 1 = OFF, 0 = DIM | DCS-BIOS | EXT LT panel |
+| ANTI COL | `PLT_EXTL_ACOL_L_SW` | 2 = WHT, 1 = OFF, 0 = RED | DCS-BIOS | EXT LT panel |
+| MPD L, MPD R | `PLT_MPD_L_MODE`, `PLT_MPD_R_MODE` | 2 = DAY, 1 = NT, 0 = MONO | DCS-BIOS | if the position is not reached in 0.5 s the bridge turns the knob with INC / DEC steps (NT did not take a direct command in Stage 2) |
+| CANOPY | readback `PLT_CANOPY` | 0 = CLOSED, 1 = OPEN | key `canopy` (LCtrl+C) | DCS-BIOS cannot move the canopy; state mapping to be checked in the test run |
+
+The view is laid out in three rows; buttons are at least 44 px here.
 
 A selector shows one button per position, the current position highlighted. Tapping a position sends it. Tapping a greyed position does nothing.
 
@@ -82,7 +90,9 @@ Follows the current seat (`"seats": [0, 1]`). Ids written as `{seat}_...` are ex
 | SAFE | `{seat}_MASTER_ARM_SAFE_L` | green (check against the cockpit in the test run) |
 | GND ORIDE | `{seat}_GROUND_OVERRIDE_L` | amber (check against the cockpit in the test run) |
 
-The ARM, SAFE and GND ORIDE colours are not confirmed yet. Lamps are display only.
+The ARM, SAFE and GND ORIDE colours are not confirmed yet. Lamps are display only, except MASTER WARNING and MASTER CAUTION.
+
+MASTER WARNING and MASTER CAUTION are tappable here too ({seat}_INTL_MWARN_BTN / {seat}_INTL_MCAUTION_BTN).
 
 ### Controls
 
@@ -102,6 +112,24 @@ The ARM, SAFE and GND ORIDE colours are not confirmed yet. Lamps are display onl
 A hat is drawn as a cross of four buttons. A tap sets the axis (`_UD` or `_LR`) to 2 (up, right) or 0 (down, left) and holds it for 0.3 s. Then the bridge returns the axis to the centre, 1. The highlighted direction comes from the readback of the two axes.
 
 The TEDAC grip hats of the CP/G (LHG WAS, RHG sight select) are left out on purpose: they do the same as the cyclic WAS and the collective sight select. If the cyclic WAS does not act in the CP/G seat in DCS, swap to the TEDAC ones (both passed in Stage 2).
+
+## MPD view
+
+Both MPD bezels side by side, laid out like the cockpit, following the current seat (`"layout": "mpd"`). The screen in the middle stays empty.
+
+- Frame of 8 columns × 11 rows; rows are 0.78 of the column width, as on the real bezel.
+- Top: VID knob, T1–T6, MODE knob with DAY / NT / MONO labels (tap a label). Left: BRT knob, L1–L6, FCR, WPN, TSD. Right: \*, R1–R6, VID, COM, A/C. Bottom: TSD, M (B1), B2–B6, A/C.
+- Variable action buttons are light grey squares without text; fixed action buttons are black keys with white text.
+- Knobs: tap the left half for down, the right half for up (`{seat}_MPD_<L|R>_BRT` / `_VIDEO`, step 3200); the pointer shows the readback.
+- Buttons are pressed for 0.15 s. In the CP/G seat the left MPD's L1–L6 did not respond in Stage 2.
+
+## KU view
+
+The keyboard unit, laid out like the cockpit (`"layout": "ku"`), following the current seat.
+
+- Top: the scratchpad (`{seat}_KU_DISPLAY`) in green.
+- Rows: A–F | 1 2 3, G–L | 4 5 6, M–R | 7 8 9, S–X | . 0 +/-, then Y Z / BKS SPC \* ÷ + −, then the BRT knob, CLR, ←, →, ENTER. E, N, S and W are boxed; the white guide lines of the panel are drawn.
+- Keys are pressed for 0.15 s.
 
 ## Seat
 
@@ -138,6 +166,7 @@ Tablet browser  --GET /            -->  dashboard.py  (serves web/index.html)
 - **Seat placeholder.** Ids in a view may contain `{seat}`. `/layout` serves them unexpanded and the page sends them unexpanded; the bridge expands them from the current seat (`PLT_` or `CPG_`) before it reads or sends.
 - **Only listed controls.** `/command` accepts only controls and positions from the view lists, refuses greyed positions, refuses the push button while its cover is closed, refuses commands of a view outside its seats (for example Aircraft in the CP/G seat), and refuses displays (display only). Each refusal returns an error message the page shows briefly.
 - **Local network only, no login** (as in SPEC.md). The server listens on `[dashboard] host` and `port` from `config.toml` (default `0.0.0.0:8080`).
+- New control types: `knob` (value "up" / "down", sends ±step), `key` (a keypress from `[keys]`, e.g. the canopy), lamps with a `button`, and selectors with `step_fallback`.
 
 ### Requests
 
@@ -216,6 +245,7 @@ Each step is verified before the next one starts.
 6. Page: tabs AIRCRAFT / FIGHT, hat cross, count displays. Check: in a browser at 1180 × 820 and 1024 × 768 and in both seats.
 7. Docs (this update).
 8. Settings page, page lock, app icon, `start_dashboard.bat`, Saved Games detection and the logging switch. Check: in a browser against the fake DCS-BIOS at 1024 × 768 and 1180 × 820 (no control under the gear, nothing clipped), logging off writes nothing and survives a restart, the portrait hint covers the screen, the icon is served as PNG.
+9. MPD and KU views, NAV / ANTI COL / MPD mode / canopy on AIRCRAFT, tappable master lamps, `knob` and `key` types. Check: against the fake DCS-BIOS (commands, step fallback, canopy key simulated) and in a browser at 1024 × 768 and 1180 × 820 (no overlap, nothing under the gear).
 
 ## Open points
 
@@ -225,3 +255,7 @@ Each step is verified before the next one starts.
 - Flare and chaff counts: only checked against the fake DCS-BIOS, which has no text values.
 - If the cyclic WAS does not act in the CP/G seat, swap to the TEDAC grip hats (LHG WAS, RHG sight select).
 - Refusal log lines show the unexpanded `{seat}_...` id (cosmetic).
+- MPD MODE NT and the INC / DEC fallback: check in DCS.
+- CANOPY state mapping (0 = CLOSED, 1 = OPEN): check in DCS.
+- CP/G left MPD L1–L6 did not respond in Stage 2.
+- The layout is made for 1024 × 768 and larger; smaller screens overlap.
