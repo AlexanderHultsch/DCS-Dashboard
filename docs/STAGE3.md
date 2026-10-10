@@ -151,7 +151,7 @@ The Fight view uses the same fixed 3 × 7 grid as Startup and Flight.
 
 ## MPD view
 
-One MPD at a time, following the current seat (`"layout": "mpd"`). A `LEFT MPD | RIGHT MPD` switch at the top selects which one (remembered on the tablet).
+One display at a time, following the current seat (`"layout": "mpd"`). A `LEFT MPD | TEDAC | RIGHT MPD` switch at the top selects which one (remembered on the tablet); TEDAC appears only in the CP/G seat. The display sits flush left, the cursor group uses the rest of the width (pad about 450 px on the iPad Air).
 
 - Laid out 1:1 after a photo of the real MPD: every button, knob and print is placed at its measured position (square spacing, about 100 px pitch on the photo). VID knob on the raised top-left corner, BRT below it, MODE top right with DAY / NT / MONO; \* above R1; FCR / WPN below L6, VID / COM below R6; TSD and A/C offset in the bottom corners next to M and B2–B6.
 - Variable action buttons are light grey with a green dot; fixed action buttons are black keys with green text. Buttons are drawn at true size (about 33 px on the iPad Air) but have a larger invisible touch area (56 px where neighbours allow).
@@ -164,13 +164,22 @@ One MPD at a time, following the current seat (`"layout": "mpd"`). A `LEFT MPD |
 - The page sends `{"x", "y"}` (−1..1) at most every 66 ms; the bridge sends only changed axes and does not wait behind slow commands. `CURSOR_Y_SIGN` at the top of the page script flips up / down if needed.
 - Below the pad: CURSOR SWITCH DISPLAY (`{seat}_COLLECTIVE_CURSOR_DISPLAY`, moves the cursor to the other MPD) and ENTER (`{seat}_COLLECTIVE_CURSOR_ENTER`).
 
+### TEDAC (CP/G seat)
+
+The CP/G's TEDAC display unit, laid out 1:1 after a photo like the MPD. All controls are `CPG_TEDAC_…`, `"side": "T"`, `"seats": [1]` (passed Stage 2):
+
+- Top: TAD, FCR, PNV, G/S video select buttons; MODE knob DAY / NT / OFF (2 / 1 / 0, knob bar).
+- Left: LEV and GAIN knobs (knob bar), R/F and EL rockers. Right: SYM, BRT, CON rockers and \*.
+- Bottom: ◀AZ▶ rocker, then four buttons AZ/EL, ACM, FREEZE, FILTER with their names in green on the screen.
+- Rockers are spring-loaded: tap the upper / lower half (AZ: left / right half); the bridge holds the position until confirmed and returns it to the centre.
+
 ### Knob bar
 
 Tapping a knob (MPD BRT / VID / MODE, KU BRT) opens a bar over the dashboard. BRT / VID / KU BRT: drag or tap the track; the bridge sets the absolute knob position (`{"value": 0..65535}`, at most every 100 ms while dragging). MODE: three stops DAY / NT / MONO. Tap outside or ✕ to close.
 
 ## KU view
 
-The keyboard unit, laid out like the cockpit (`"layout": "ku"`), following the current seat.
+The keyboard unit, drawn 1:1 after a photo in the same technique as the MPD (`"layout": "ku"`), following the current seat: round number keys, boxed E / N / S / W, the white guide lines, BRT knob in its recess (knob bar), wide ENTER.
 
 - Top: the scratchpad (`{seat}_KU_DISPLAY`) in green.
 - Rows: A–F | 1 2 3, G–L | 4 5 6, M–R | 7 8 9, S–X | . 0 +/-, then Y Z / BKS SPC \* ÷ + −, then the BRT knob, CLR, ←, →, ENTER. E, N, S and W are boxed; the white guide lines of the panel are drawn.
@@ -316,5 +325,7 @@ Each step is verified before the next one starts.
 - MPD labels: check page changes in DCS; which labels are boxed (selected) is not shown yet; long labels can overlap their neighbours.
 - Cursor pad: check the speed and the up / down direction in DCS.
 - Flares / chaff: test with the CMWS set up, in the air; note which presses show "not confirmed".
+- TEDAC and the redrawn KU: test in the CP/G seat.
+- Aircraft data lives in `aircraft/ah64d.py`; the page drawings and the export script are still AH-64D-specific.
 - The export port can be used by either dashboard.py or stage1_read.py, not both at once.
 - Symbology keys are not needed: the switch is set through DCS-BIOS.

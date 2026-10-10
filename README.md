@@ -4,6 +4,14 @@ A simple tablet dashboard for the **AH-64D Apache** in DCS World. A small Python
 
 **Status:** Stage 1 (read data) is built and tested on Windows. Results: [docs/STAGE1.md](docs/STAGE1.md#results). Stage 2 (control) is tested on Windows. Results: [docs/STAGE2.md](docs/STAGE2.md#results). Stage 3 (dashboard): the Startup view is tested on Windows, the Flight, Fight, MPD and KU views are built and ready for their first test run.
 
+## Aircraft
+
+**For the AH-64D only, for now.** Other aircraft may follow later, so the basic structure is kept reusable:
+
+- Aircraft-independent: the bridge (`dashboard.py`, `bridge/`), settings, logging, the command and readback logic, and the page engine (tabs, controls, knob bar, cursor pad).
+- AH-64D-specific: `aircraft/ah64d.py` (the views and their controls, seat prefixes, MPD indication numbers, trim data), the MPD / TEDAC / KU drawings in `web/index.html`, the control positions in `lua/DCS-Dashboard-Export.lua` and the `[keys]` in `config.toml`.
+- The aircraft is chosen with `aircraft = "AH-64D"` in `config.toml`; a second aircraft would be a second module in `aircraft/` plus its own drawings.
+
 ## Plan
 
 1. **Read** – test which data we can read from DCS (both seats, in flight). Details: [docs/STAGE1.md](docs/STAGE1.md)
