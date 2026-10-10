@@ -342,6 +342,65 @@ def jettison_pages() -> list[dict]:
     return panel_pages("STORES JETT", {0: [6, 1, 1, 3], 1: [7, 1, 1, 3]}, [621, 370], placard, art, controls)
 
 
+def video_knob(name: str, label: str, at: list, group: str | None = None, mark: list | None = None, dot: list | None = None) -> dict:
+    knob = {"id": f"PLT_VIDEO_{name}", "label": label, "type": "knob", "step": KNOB_STEP, "sweep": [-130, 130], "at": at}
+    if group:
+        knob.update({"group": group, "mark": mark, "dot": dot})
+    return knob
+
+
+def armament_pages() -> list[dict]:
+    controls = [
+        {
+            "id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": MPD_BUTTON_HOLD,
+            "lamps": [
+                {"id": "{seat}_MASTER_ARM_ARM_L", "color": "amber", "legend": "ARM"},
+                {"id": "{seat}_MASTER_ARM_SAFE_L", "color": "green", "legend": "SAFE"},
+            ],
+            "at": [81, 63, 60, 60],
+        },
+        {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_GROUND_OVERRIDE_L", "color": "amber", "at": [175.5, 63, 60, 60]},
+        {"id": "{seat}_INST_MZERO_SW", "label": "MASTER ZEROIZE", "type": "selector", "guard": True, "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}], "at": [376, 74, 60, 76]},
+    ]
+    placard = [
+        ["ARMAMENT", 156.4, 25.5, 20, 111], ["A/S", 111.5, 53, 16, 34], ["GND ORIDE", 203, 53.2, 16, 91], ["+", 158.7, 130.5, 11],
+        ["MASTER", 406, 30, 16, 64], ["ZEROIZE", 406, 50, 16, 76], ["ON", 459, 96, 12, 18], ["OFF", 460, 128, 12, 26],
+    ]
+    art = [
+        {"shape": "plate", "at": [10, 2, 302, 162]}, {"shape": "plate", "at": [331, 2, 150, 163]},
+        {"shape": "screw", "at": [32, 30, 9]}, {"shape": "screw", "at": [284, 31, 9]},
+        {"shape": "screw", "at": [66, 89, 8]}, {"shape": "screw", "at": [251, 89, 8]},
+        {"shape": "screw", "at": [34, 140, 9]}, {"shape": "screw", "at": [284, 140, 9]},
+        {"shape": "screw", "at": [345, 152, 6]}, {"shape": "screw", "at": [467, 152, 6]},
+        {"shape": "line", "at": [77.5, 63, 0, 63]}, {"shape": "line", "at": [77.5, 126, 67, 0]}, {"shape": "line", "at": [144.5, 63, 0, 63]},
+        {"shape": "line", "at": [172, 63, 0, 63]}, {"shape": "line", "at": [172, 126, 66, 0]}, {"shape": "line", "at": [238, 63, 0, 63]},
+    ]
+    video_controls = [
+        video_knob("IHADSS_BRT", "IHADSS BRT", [65, 212, 60, 60], "IHADSS", [24, 213, 38, 36], [57.2, 242.5, 10]),
+        video_knob("IHADSS_CON", "IHADSS CON", [65, 212, 60, 60], "IHADSS", [24, 249, 38, 36], [57.2, 255.5, 10]),
+        video_knob("SYM_BRT", "SYM BRT", [237.5, 223, 44, 44]),
+        {"id": "PLT_VIDEO_AUTO_CON", "label": "ACM", "type": "selector", "style": "cap", "positions": [{"value": 0, "label": "OFF"}, {"value": 1, "label": "ACM"}], "at": [132.5, 307.5, 47, 47]},
+        video_knob("FLIR_LVL", "FLIR LVL", [228.5, 315.5, 60, 60], "FLIR", [185.2, 313, 38, 35], [221.2, 344, 10]),
+        video_knob("FLIR_GAIN", "FLIR GAIN", [228.5, 315.5, 60, 60], "FLIR", [185.2, 348, 38, 36], [221.2, 356.3, 10]),
+    ]
+    video_placard = [
+        ["VIDEO", 160, 184.5, 18, 55], ["IHADSS", 111.3, 204.7, 16.5, 58], ["BRT", 35, 243.3, 11, 21], ["CON", 36.6, 255.7, 11, 24],
+        ["MIN", 68.5, 273, 11.5, 20.5], ["MAX", 122.4, 273, 11.5, 25], ["+", 155.3, 265.5, 11],
+        ["SYM BRT", 263.5, 210.8, 16, 69], ["MIN", 239.6, 268.8, 11.5, 20], ["MAX", 279.7, 268.3, 11.5, 24],
+        ["ACM", 154.3, 301, 16, 34], ["FLIR", 259, 301, 16, 34], ["LVL", 201.5, 344.5, 11, 20], ["GAIN", 200.2, 356.4, 11, 27],
+        ["MIN", 232, 374, 11.5, 20], ["MAX", 285, 374, 11.5, 24],
+    ]
+    video_art = [
+        {"shape": "plate", "at": [12, 168, 300, 213]},
+        {"shape": "screw", "at": [64, 187, 8]}, {"shape": "screw", "at": [249, 187, 8]},
+        {"shape": "screw", "at": [60, 292, 8]}, {"shape": "screw", "at": [292, 291, 8]},
+    ]
+    return (
+        panel_pages("ARMAMENT", {0: [2, 4, 1, 3]}, [481, 384], placard + video_placard, art + video_art, controls + video_controls)
+        + panel_pages("ARMAMENT", {1: [1, 6, 1, 2]}, [481, 168], placard, art, controls)
+    )
+
+
 VIEWS = [
     {
         "name": "COCKPIT",
@@ -366,6 +425,7 @@ VIEWS = [
     *light_pages(),
     *fire_pages(),
     *jettison_pages(),
+    *armament_pages(),
     {
         "name": "Startup",
         "seats": [0],
