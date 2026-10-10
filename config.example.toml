@@ -29,6 +29,8 @@ power_left_down = "RAlt+PageDown"
 power_right_down = "RShift+PageDown"
 power_left_off = "RAlt+End"
 power_right_off = "RShift+End"
+# Opens / closes the canopy (DCS "Open/Close Cockpit Door").
+canopy = "LCtrl+C"
 george_show_hide = "LCtrl+V"
 george_up = "W"
 george_down = "S"

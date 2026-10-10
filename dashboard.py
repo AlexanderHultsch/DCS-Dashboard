@@ -18,14 +18,52 @@ ENGINE_START_POSITIONS = [
     {"value": 1, "label": "OFF"},
     {"value": 0, "label": "IGN ORIDE", "momentary": True},
 ]
+MODE_POSITIONS = [
+    {"value": 2, "label": "DAY"},
+    {"value": 1, "label": "NT"},
+    {"value": 0, "label": "MONO"},
+]
+KNOB_STEP = 3200
+MPD_BUTTON_HOLD = 0.15
+MPD_LABELS = {"B1": "M", "AC": "A/C", "AST": "*"}
+KU_LABELS = {
+    "DOT": ".", "SIGN": "+/-", "SLASH": "/", "DIV": "\u00f7", "MULTI": "*", "PLUS": "+",
+    "MINUS": "\u2212", "BKS": "BKS", "SPC": "SPC", "CLR": "CLR", "ENT": "ENTER", "LEFT": "\u2190", "RIGHT": "\u2192",
+}
+
+
+def mpd_controls(side: str) -> list[dict]:
+    slots = [f"{row}{n}" for row in "TLRB" for n in range(1, 7)] + ["FCR", "WPN", "TSD", "VID", "COM", "AC", "AST"]
+    controls = [
+        {"id": f"{{seat}}_MPD_{side}_{slot}", "label": MPD_LABELS.get(slot, slot), "type": "button", "hold": MPD_BUTTON_HOLD, "side": side, "slot": slot}
+        for slot in slots
+    ]
+    controls += [
+        {"id": f"{{seat}}_MPD_{side}_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "side": side, "slot": "BRT"},
+        {"id": f"{{seat}}_MPD_{side}_VIDEO", "label": "VID", "type": "knob", "step": KNOB_STEP, "side": side, "slot": "VIDEO"},
+        {"id": f"{{seat}}_MPD_{side}_MODE", "label": "MODE", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS, "side": side, "slot": "MODE"},
+    ]
+    return controls
+
+
+def ku_controls() -> list[dict]:
+    slots = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") + list(KU_LABELS)
+    controls = [{"id": "{seat}_KU_DISPLAY", "label": "SCRATCHPAD", "type": "display", "slot": "DISPLAY"}]
+    controls += [
+        {"id": f"{{seat}}_KU_{slot}", "label": KU_LABELS.get(slot, slot), "type": "button", "hold": MPD_BUTTON_HOLD, "slot": slot}
+        for slot in slots
+    ]
+    controls.append({"id": "{seat}_KU_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "slot": "BRT"})
+    return controls
+
 
 VIEWS = [
     {
         "name": "Aircraft",
         "seats": [0],
         "lamps": [
-            {"id": "PLT_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red"},
-            {"id": "PLT_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber"},
+            {"id": "PLT_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "PLT_INTL_MWARN_BTN"},
+            {"id": "PLT_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "PLT_INTL_MCAUTION_BTN"},
             {"id": "PLT_ENG_1_FIRE_L", "label": "ENG 1 FIRE", "color": "red"},
             {"id": "PLT_APU_FIRE_L", "label": "APU FIRE", "color": "red"},
             {"id": "PLT_ENG_2_FIRE_L", "label": "ENG 2 FIRE", "color": "red"},
@@ -42,14 +80,19 @@ VIEWS = [
             {"id": "PLT_ROTOR_BRK", "label": "RTR BRK", "type": "selector", "positions": [{"value": 2, "label": "OFF"}, {"value": 1, "label": "BRK", "disabled": True}, {"value": 0, "label": "LOCK"}]},
             {"id": "PLT_PARK_BRAKE", "label": "PARK BRAKE", "type": "selector", "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "PULLED"}]},
             {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": 0.3},
+            {"id": "PLT_EXTL_NAV_L_SW", "label": "NAV", "type": "selector", "positions": [{"value": 2, "label": "BRT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "DIM"}]},
+            {"id": "PLT_EXTL_ACOL_L_SW", "label": "ANTI COL", "type": "selector", "positions": [{"value": 2, "label": "WHT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "RED"}]},
+            {"id": "PLT_MPD_L_MODE", "label": "MPD L", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS},
+            {"id": "PLT_MPD_R_MODE", "label": "MPD R", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS},
+            {"id": "canopy", "label": "CANOPY", "type": "key", "key": "canopy", "readback": "PLT_CANOPY", "states": {"0": "CLOSED", "1": "OPEN"}},
         ],
     },
     {
         "name": "Fight",
         "seats": [0, 1],
         "lamps": [
-            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red"},
-            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber"},
+            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
+            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
             {"id": "{seat}_MASTER_ARM_ARM_L", "label": "ARM", "color": "amber"},
             {"id": "{seat}_MASTER_ARM_SAFE_L", "label": "SAFE", "color": "green"},
             {"id": "{seat}_GROUND_OVERRIDE_L", "label": "GND ORIDE", "color": "amber"},
@@ -65,10 +108,14 @@ VIEWS = [
             {"id": "PLT_CMWS_CHAFF_COUNT", "label": "CHAFF COUNT", "type": "display"},
         ],
     },
+    {"name": "MPD", "seats": [0, 1], "layout": "mpd", "lamps": [], "controls": mpd_controls("L") + mpd_controls("R")},
+    {"name": "KU", "seats": [0, 1], "layout": "ku", "lamps": [], "controls": ku_controls()},
 ]
 
 LEVER_KEYS = {(0, 1): "idle", (1, 2): "up", (2, 1): "down", (1, 0): "off"}
 LEVER_WAIT = 1.0
+STEP_WAIT = 0.5
+STEP_TRIES = 2
 
 SEAT = "SEAT_POSITION"
 SEAT_NAMES = {0: "PLT", 1: "CPG"}
@@ -103,6 +150,8 @@ def read_names() -> list[str]:
             names += expand_all(lamp["id"])
         for control in view["controls"]:
             if control["type"] == "lever":
+                names += expand_all(control["readback"])
+            elif control["type"] == "key":
                 names += expand_all(control["readback"])
             elif control["type"] == "hat":
                 names += expand_all(control["ud"]) + expand_all(control["lr"])
@@ -183,6 +232,9 @@ def find_control(identifier):
         for control in view["controls"]:
             if control["id"] == identifier:
                 return control, view
+        for lamp in view["lamps"]:
+            if lamp.get("button") == identifier:
+                return {"id": identifier, "type": "button", "hold": 0.3}, view
     return None, None
 
 
@@ -228,6 +280,33 @@ def move_lever(control: dict, value, target: dict) -> tuple[bool, str]:
     return True, ""
 
 
+def wait_readback(name: str, done) -> tuple[object, bool]:
+    deadline = time.monotonic() + STEP_WAIT
+    while True:
+        with lock:
+            current = read(name)
+        if done(current):
+            return current, True
+        if time.monotonic() >= deadline:
+            return current, False
+        time.sleep(0.05)
+
+
+def reach_by_steps(name: str, value: int) -> tuple[bool, bool]:
+    current, reached = wait_readback(name, lambda c: c == value)
+    if reached:
+        return True, False
+    for _ in range(STEP_TRIES):
+        if current is None:
+            return False, False
+        before = current
+        send(name, "INC" if value > before else "DEC")
+        current, _ = wait_readback(name, lambda c: c is not None and c != before)
+        if current == value:
+            return True, True
+    return False, False
+
+
 def command(body: dict) -> tuple[bool, str]:
     identifier = body.get("id")
     value = body.get("value", "")
@@ -268,6 +347,20 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str]:
             send(name, 0)
         log.line("dash", name, "pressed")
         return True, ""
+    if control["type"] == "knob":
+        if value not in ("up", "down"):
+            return False, "position not available"
+        with command_lock:
+            send(name, f"+{control['step']}" if value == "up" else f"-{control['step']}")
+        log.line("dash", name, f"{value} sent")
+        return True, ""
+    if control["type"] == "key":
+        with command_lock:
+            if not keys.focus(cfg["dcs"]["window_title"]):
+                return False, "DCS not in front"
+            keys.press(cfg["keys"][control["key"]], 0.1)
+        log.line("dash", name, "pressed")
+        return True, ""
     if control["type"] == "hat":
         axes = {"up": ("ud", 2), "down": ("ud", 0), "left": ("lr", 0), "right": ("lr", 2)}
         if not isinstance(value, str) or value not in axes:
@@ -283,12 +376,19 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str]:
     position = next((p for p in control["positions"] if p["value"] == value and not isinstance(value, bool)), None)
     if position is None or position.get("disabled"):
         return False, "position not available"
+    how = "sent"
     with command_lock:
         send(name, value)
         if position.get("momentary"):
             time.sleep(control["hold"])
             send(name, control["rest"])
-    log.line("dash", name, f"{value} sent")
+        if control.get("step_fallback"):
+            reached, by_steps = reach_by_steps(name, value)
+            if not reached:
+                return False, "position not reached"
+            if by_steps:
+                how = "sent by steps"
+    log.line("dash", name, f"{value} {how}")
     return True, ""
 
 
@@ -378,6 +478,13 @@ def main() -> None:
         cfg["dcs"]["window_title"]
     except (KeyError, ValueError):
         raise SystemExit("config.toml needs [dcs] window_title and the power_* keys, see config.example.toml.")
+    for view in VIEWS:
+        for control in view["controls"]:
+            if control["type"] == "key":
+                try:
+                    keys.parse(key_map[control["key"]])
+                except (KeyError, ValueError):
+                    raise SystemExit(f"config.toml needs [keys] {control['key']}, see config.example.toml.")
     names = read_names()
     outputs, missing = dcsbios.load_outputs(dcsbios.json_path(cfg["dcs"]["saved_games"]), names)
     if missing:
