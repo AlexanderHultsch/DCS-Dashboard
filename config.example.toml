@@ -7,6 +7,8 @@
 saved_games = "auto"
 # Part of the DCS window title, used to bring DCS to the front before a keypress (Stage 2).
 window_title = "Digital Combat Simulator"
+# Aircraft profile, a module in aircraft/ (only "AH-64D" so far).
+aircraft = "AH-64D"
 
 [dcs_bios]
 # DCS-BIOS defaults

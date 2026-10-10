@@ -6,8 +6,8 @@ from pathlib import Path
 SYNC = b"\x55\x55\x55\x55"
 
 
-def json_path(saved_games: str) -> Path:
-    return Path(saved_games) / "Scripts" / "DCS-BIOS" / "doc" / "json" / "AH-64D.json"
+def json_path(saved_games: str, module: str = "AH-64D") -> Path:
+    return Path(saved_games) / "Scripts" / "DCS-BIOS" / "doc" / "json" / f"{module}.json"
 
 
 def load_json(path) -> dict:

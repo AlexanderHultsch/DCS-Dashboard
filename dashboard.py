@@ -1,3 +1,4 @@
+import importlib
 import json
 import math
 import re
@@ -9,144 +10,6 @@ from pathlib import Path
 
 from bridge import config, dcsbios, export, keys, log
 
-POWER_POSITIONS = [
-    {"value": 0, "label": "OFF"},
-    {"value": 16383, "label": "IDLE"},
-    {"value": 58981, "label": "FLY"},
-    {"value": 65535, "label": "LOCKOUT", "disabled": True},
-]
-ENGINE_START_POSITIONS = [
-    {"value": 2, "label": "START", "momentary": True},
-    {"value": 1, "label": "OFF"},
-    {"value": 0, "label": "IGN ORIDE", "momentary": True},
-]
-MODE_POSITIONS = [
-    {"value": 2, "label": "DAY"},
-    {"value": 1, "label": "NT"},
-    {"value": 0, "label": "MONO"},
-]
-KNOB_STEP = 3200
-MPD_BUTTON_HOLD = 0.3
-MPD_LABELS = {"B1": "M", "AC": "A/C", "AST": "*"}
-KU_LABELS = {
-    "DOT": ".", "SIGN": "+/-", "SLASH": "/", "DIV": "\u00f7", "MULTI": "*", "PLUS": "+",
-    "MINUS": "\u2212", "BKS": "BKS", "SPC": "SPC", "CLR": "CLR", "ENT": "ENTER", "LEFT": "\u2190", "RIGHT": "\u2192",
-}
-
-
-def mpd_controls(side: str) -> list[dict]:
-    slots = [f"{row}{n}" for row in "TLRB" for n in range(1, 7)] + ["FCR", "WPN", "TSD", "VID", "COM", "AC", "AST"]
-    controls = [
-        {"id": f"{{seat}}_MPD_{side}_{slot}", "label": MPD_LABELS.get(slot, slot), "type": "button", "hold": MPD_BUTTON_HOLD, "side": side, "slot": slot}
-        for slot in slots
-    ]
-    controls += [
-        {"id": f"{{seat}}_MPD_{side}_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "side": side, "slot": "BRT"},
-        {"id": f"{{seat}}_MPD_{side}_VIDEO", "label": "VID", "type": "knob", "step": KNOB_STEP, "side": side, "slot": "VIDEO"},
-        {"id": f"{{seat}}_MPD_{side}_MODE", "label": "MODE", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS, "side": side, "slot": "MODE"},
-    ]
-    return controls
-
-
-def ku_controls() -> list[dict]:
-    slots = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") + list(KU_LABELS)
-    controls = [{"id": "{seat}_KU_DISPLAY", "label": "SCRATCHPAD", "type": "display", "slot": "DISPLAY"}]
-    controls += [
-        {"id": f"{{seat}}_KU_{slot}", "label": KU_LABELS.get(slot, slot), "type": "button", "hold": MPD_BUTTON_HOLD, "slot": slot}
-        for slot in slots
-    ]
-    controls.append({"id": "{seat}_KU_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "slot": "BRT"})
-    return controls
-
-
-def cursor_controls() -> list[dict]:
-    return [
-        {"id": "{seat}_CURSOR", "label": "CURSOR", "type": "stick", "x": "{seat}_COLLECTIVE_CURSOR_LR", "y": "{seat}_COLLECTIVE_CURSOR_UD", "slot": "CURSOR"},
-        {"id": "{seat}_COLLECTIVE_CURSOR_DISPLAY", "label": "CURSOR SWITCH DISPLAY", "type": "button", "hold": MPD_BUTTON_HOLD, "slot": "CURSOR_DISPLAY"},
-        {"id": "{seat}_COLLECTIVE_CURSOR_ENTER", "label": "ENTER", "type": "button", "hold": MPD_BUTTON_HOLD, "slot": "CURSOR_ENTER"},
-    ]
-
-
-VIEWS = [
-    {
-        "name": "Startup",
-        "seats": [0],
-        "lamps": [
-            {"id": "PLT_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "PLT_INTL_MWARN_BTN"},
-            {"id": "PLT_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "PLT_INTL_MCAUTION_BTN"},
-            {"id": "PLT_ENG_1_FIRE_L", "label": "ENG 1 FIRE", "color": "red"},
-            {"id": "PLT_APU_FIRE_L", "label": "APU FIRE", "color": "red"},
-            {"id": "PLT_ENG_2_FIRE_L", "label": "ENG 2 FIRE", "color": "red"},
-            {"id": "PLT_APU_L", "label": "APU ON", "color": "green"},
-        ],
-        "controls": [
-            {"id": "PLT_MASTER_IGN_SW", "label": "MSTR IGN", "type": "selector", "positions": [{"value": 0, "label": "OFF"}, {"value": 1, "label": "BATT"}, {"value": 2, "label": "EXT PWR", "disabled": True}], "grid": [1, 1, 1, 1]},
-            {"id": "PLT_APU_BTN_CVR", "label": "APU COVER", "type": "selector", "positions": [{"value": 0, "label": "CLOSED"}, {"value": 1, "label": "OPEN"}], "grid": [1, 2, 1, 1]},
-            {"id": "PLT_APU_BTN", "label": "APU", "type": "button", "hold": 0.3, "requires": {"id": "PLT_APU_BTN_CVR", "value": 1}, "grid": [1, 3, 1, 1]},
-            {"id": "PLT_ENG1_START", "label": "ENG 1 START", "type": "selector", "rest": 1, "hold": 0.5, "positions": ENGINE_START_POSITIONS, "grid": [1, 4, 1, 1]},
-            {"id": "PLT_ENG2_START", "label": "ENG 2 START", "type": "selector", "rest": 1, "hold": 0.5, "positions": ENGINE_START_POSITIONS, "grid": [1, 5, 1, 1]},
-            {"id": "power_left", "label": "PWR LVR 1", "type": "lever", "readback": "PLT_ENG_L_PW_LVR", "side": "left", "positions": POWER_POSITIONS, "grid": [1, 6, 3, 1]},
-            {"id": "power_right", "label": "PWR LVR 2", "type": "lever", "readback": "PLT_ENG_R_PW_LVR", "side": "right", "positions": POWER_POSITIONS, "grid": [1, 7, 3, 1]},
-            {"id": "PLT_ROTOR_BRK", "label": "RTR BRK", "type": "selector", "positions": [{"value": 2, "label": "OFF"}, {"value": 1, "label": "BRK", "disabled": True}, {"value": 0, "label": "LOCK"}], "grid": [2, 1, 1, 1]},
-            {"id": "PLT_PARK_BRAKE", "label": "PARK BRAKE", "type": "selector", "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "PULLED"}], "grid": [2, 2, 1, 1]},
-            {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": 0.3, "lamp": "PLT_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "seats": [0], "grid": [2, 5, 1, 1]},
-            {"id": "PLT_EXTL_NAV_L_SW", "label": "NAV", "type": "selector", "positions": [{"value": 2, "label": "BRT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "DIM"}], "grid": [2, 3, 1, 1]},
-            {"id": "PLT_EXTL_ACOL_L_SW", "label": "ANTI COL", "type": "selector", "positions": [{"value": 2, "label": "WHT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "RED"}], "grid": [2, 4, 1, 1]},
-            {"id": "PLT_MPD_L_MODE", "label": "MPD L", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS, "grid": [3, 1, 1, 1]},
-            {"id": "PLT_MPD_R_MODE", "label": "MPD R", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS, "grid": [3, 2, 1, 1]},
-            {"id": "canopy", "label": "CANOPY", "type": "key", "key": "canopy", "readback": "PLT_CANOPY", "states": {"0": "CLOSED", "1": "OPEN"}, "grid": [3, 3, 1, 3]},
-        ],
-    },
-    {
-        "name": "Flight",
-        "seats": [0, 1],
-        "lamps": [
-            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
-            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
-            {"id": "PLT_ENG_1_FIRE_L", "label": "ENG 1 FIRE", "color": "red"},
-            {"id": "PLT_APU_FIRE_L", "label": "APU FIRE", "color": "red"},
-            {"id": "PLT_ENG_2_FIRE_L", "label": "ENG 2 FIRE", "color": "red"},
-            {"id": "PLT_APU_L", "label": "APU ON", "color": "green"},
-        ],
-        "controls": [
-            {"id": "controls", "label": "CONTROLS", "type": "controls", "trim_switch": "{seat}_CYCLIC_TRIM_UD", "grid": [1, 1, 2, 2]},
-            {"id": "controls_overlay", "label": "CTRL IND", "type": "key", "key": "controls_overlay", "grid": [3, 1, 1, 1]},
-            {"id": "{seat}_CYCLIC_SYMBOLOGY", "label": "SYMBOLOGY", "type": "hat", "ud": "{seat}_CYCLIC_SYMBOLOGY", "hold": 0.3, "positions": {"up": "T/C", "down": "H/B"}, "grid": [1, 4, 2, 1]},
-            {"id": "monocle", "label": "MONOCLE", "type": "key", "key": "monocle", "grid": [1, 5, 1, 1]},
-            {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": 0.3, "lamp": "PLT_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "seats": [0], "grid": [2, 5, 1, 1]},
-            {"id": "flight_power_left", "label": "PWR LVR 1", "type": "lever", "readback": "{seat}_ENG_L_PW_LVR", "side": "left", "positions": POWER_POSITIONS, "grid": [1, 6, 3, 1]},
-            {"id": "flight_power_right", "label": "PWR LVR 2", "type": "lever", "readback": "{seat}_ENG_R_PW_LVR", "side": "right", "positions": POWER_POSITIONS, "grid": [1, 7, 3, 1]},
-        ],
-    },
-    {
-        "name": "Fight",
-        "seats": [0, 1],
-        "lamps": [
-            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
-            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
-            {"id": "{seat}_MASTER_ARM_ARM_L", "label": "ARM", "color": "amber"},
-            {"id": "{seat}_MASTER_ARM_SAFE_L", "label": "SAFE", "color": "green"},
-            {"id": "{seat}_GROUND_OVERRIDE_L", "label": "GND ORIDE", "color": "amber"},
-        ],
-        "controls": [
-            {"id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": 0.3, "grid": [1, 1, 1, 1]},
-            {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": 0.3, "grid": [1, 2, 1, 1]},
-            {"id": "{seat}_WAS", "label": "WAS", "type": "hat", "ud": "{seat}_CYCLIC_WEAPON_UD", "lr": "{seat}_CYCLIC_WEAPON_LR", "hold": 0.3, "positions": {"up": "G", "down": "A", "left": "R", "right": "M"}, "grid": [1, 3, 1, 2]},
-            {"id": "{seat}_SIGHT_SEL", "label": "SIGHT SEL", "type": "hat", "ud": "{seat}_COLLECTIVE_SIGHT_SELECT_UD", "lr": "{seat}_COLLECTIVE_SIGHT_SELECT_LR", "hold": 0.3, "positions": {"up": "HMD", "down": "LINK", "left": "FCR", "right": "TADS"}, "grid": [2, 3, 1, 2]},
-            {"id": "{seat}_CYCLIC_FLARE", "label": "FLARE", "type": "button", "hold": 0.3, "grid": [2, 1, 1, 1]},
-            {"id": "{seat}_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": 0.3, "grid": [2, 2, 1, 1]},
-            {"id": "PLT_CMWS_FLARE_COUNT", "label": "FLARE COUNT", "type": "display", "grid": [3, 1, 1, 1]},
-            {"id": "PLT_CMWS_CHAFF_COUNT", "label": "CHAFF COUNT", "type": "display", "grid": [3, 2, 1, 1]},
-            {"id": "PLT_CMWS_PW", "label": "CMWS PWR", "type": "selector", "rest": 1, "hold": 0.5, "positions": [{"value": 2, "label": "TEST", "momentary": True}, {"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}], "seats": [0], "grid": [1, 5, 1, 1]},
-            {"id": "PLT_CMWS_ARM", "label": "FLARE SQUIBS", "type": "selector", "positions": [{"value": 1, "label": "ARM"}, {"value": 0, "label": "SAFE"}], "seats": [0], "grid": [1, 6, 1, 1]},
-            {"id": "PLT_CMWS_MODE", "label": "CMWS MODE", "type": "selector", "positions": [{"value": 1, "label": "CMWS"}, {"value": 0, "label": "NAV"}], "seats": [0], "grid": [2, 5, 1, 1]},
-            {"id": "PLT_CMWS_BYPASS", "label": "CMWS OPER", "type": "selector", "positions": [{"value": 1, "label": "BYPASS"}, {"value": 0, "label": "AUTO"}], "seats": [0], "grid": [2, 6, 1, 1]},
-        ],
-    },
-    {"name": "MPD", "seats": [0, 1], "layout": "mpd", "lamps": [], "controls": mpd_controls("L") + mpd_controls("R") + cursor_controls()},
-    {"name": "KU", "seats": [0, 1], "layout": "ku", "lamps": [], "controls": ku_controls()},
-]
-
 LEVER_KEYS = {(0, 1): "idle", (1, 2): "up", (2, 1): "down", (1, 0): "off"}
 LEVER_WAIT = 1.0
 STEP_WAIT = 0.5
@@ -156,10 +19,6 @@ PRESS_MAX = 1.0
 CONFIRM_WAIT = 0.5
 CONFIRM_POLL = 0.02
 
-CONTROL_NAMES = [f"{seat}_{axis}" for seat in ("plt", "cpg") for axis in ("cyc_pitch", "cyc_roll", "coll", "pedals")]
-
-MPD_INDICATIONS = (7, 9, 11, 13)
-MPD_SEATS = {0: (7, 9), 1: (11, 13)}
 MPD_SEPARATOR = "-" * 41
 MPD_BUTTON = re.compile(r"^PB(\d+)_(?:bold_)?(\d+)$")
 MPD_SKIP_LINES = ("children are {", "}")
@@ -168,14 +27,13 @@ STICK_CENTRE = 0.02
 
 CONTROLS_STALE = 3
 TRIM_POLL = 0.05
-TRIM_RELEASED = 2
 
 SEAT = "SEAT_POSITION"
-SEAT_NAMES = {0: "PLT", 1: "CPG"}
 INDEX = Path(__file__).resolve().parent / "web" / "index.html"
 ICON = Path(__file__).resolve().parent / "web" / "apple-touch-icon.png"
 SETTINGS_FILE = Path(__file__).resolve().parent / "settings.json"
 
+ac = None
 cfg = {}
 settings = {}
 outputs = {}
@@ -195,18 +53,18 @@ cmd_sock = None
 
 
 def expand(name: str, seat: int) -> str:
-    return name.replace("{seat}", SEAT_NAMES[seat])
+    return name.replace("{seat}", ac.SEAT_NAMES[seat])
 
 
 def expand_all(name: str) -> list[str]:
     if "{seat}" in name:
-        return [expand(name, seat) for seat in SEAT_NAMES]
+        return [expand(name, seat) for seat in ac.SEAT_NAMES]
     return [name]
 
 
 def read_names() -> list[str]:
     names = [SEAT]
-    for view in VIEWS:
+    for view in ac.VIEWS:
         for lamp in view["lamps"]:
             names += expand_all(lamp["id"])
             if "button" in lamp:
@@ -218,7 +76,8 @@ def read_names() -> list[str]:
                 if "readback" in control:
                     names += expand_all(control["readback"])
             elif control["type"] == "hat":
-                names += expand_all(control["ud"])
+                if "ud" in control:
+                    names += expand_all(control["ud"])
                 if "lr" in control:
                     names += expand_all(control["lr"])
             elif control["type"] == "controls":
@@ -250,13 +109,13 @@ def reader(sock: socket.socket) -> None:
 def track_trim() -> None:
     now = time.monotonic()
     fresh = control_packet is not None and now - control_packet <= CONTROLS_STALE
-    for prefix in SEAT_NAMES.values():
+    for prefix in ac.SEAT_NAMES.values():
         current = read(f"{prefix}_CYCLIC_TRIM_UD")
         if current is None:
             continue
         before = trim_switch.get(prefix)
         trim_switch[prefix] = current
-        if before != TRIM_RELEASED or current == TRIM_RELEASED:
+        if before != ac.TRIM_RELEASED or current == ac.TRIM_RELEASED:
             continue
         axes = [control_values.get(f"{prefix.lower()}_{axis}") for axis in ("cyc_pitch", "cyc_roll", "pedals")]
         if not fresh or None in axes:
@@ -276,8 +135,8 @@ def trim_reset_watcher() -> None:
         if pressed and not was_pressed:
             with lock:
                 seat = read(SEAT)
-                if seat in SEAT_NAMES:
-                    prefix = SEAT_NAMES[seat]
+                if seat in ac.SEAT_NAMES:
+                    prefix = ac.SEAT_NAMES[seat]
                     trim[prefix] = {"pitch": 0.0, "roll": 0.0, "pedals": 0.0, "reset": True, "time": time.monotonic()}
                     log.line("dash", "trim", f"{prefix} reset")
         was_pressed = pressed
@@ -320,14 +179,14 @@ def export_reader(sock: socket.socket) -> None:
             continue
         with lock:
             now = time.monotonic()
-            for name in CONTROL_NAMES:
+            for name in ac.CONTROL_NAMES:
                 try:
                     number = float(values[name])
                 except (KeyError, ValueError):
                     continue
                 if math.isfinite(number):
                     control_values[name] = number
-            for number in MPD_INDICATIONS:
+            for number in ac.MPD_INDICATIONS:
                 text = values.get(f"ind{number}")
                 if text is not None:
                     mpd_labels[number] = parse_mpd_labels(text)
@@ -385,7 +244,7 @@ def snapshot() -> dict:
         age = None if last_packet is None else round(now - last_packet, 1)
         controls_age = None if control_packet is None else round(now - control_packet, 1)
         seat = read(SEAT)
-        left, right = MPD_SEATS.get(seat, (None, None))
+        left, right = ac.MPD_SEATS.get(seat, (None, None))
         received = [mpd_times[n] for n in (left, right) if n in mpd_times]
         return {
             "seat": seat,
@@ -409,7 +268,7 @@ def snapshot() -> dict:
 
 
 def find_control(identifier):
-    for view in VIEWS:
+    for view in ac.VIEWS:
         for control in view["controls"]:
             if control["id"] == identifier:
                 return control, view
@@ -658,7 +517,7 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self.reply(200, "image/png", ICON.read_bytes())
         elif self.path == "/layout":
-            self.reply_json(200, {"views": VIEWS})
+            self.reply_json(200, {"views": ac.VIEWS})
         elif self.path == "/state":
             self.reply_json(200, snapshot())
         elif self.path == "/settings":
@@ -702,9 +561,18 @@ def lan_ip() -> str:
         sock.close()
 
 
+def load_aircraft(value: str):
+    name = re.sub(r"[^a-z0-9]", "", str(value).lower())
+    try:
+        return importlib.import_module("aircraft." + name)
+    except ImportError:
+        raise SystemExit(f"Unknown aircraft: {value}")
+
+
 def main() -> None:
-    global cfg, settings, outputs, cmd_sock
+    global ac, cfg, settings, outputs, cmd_sock
     cfg = config.load()
+    ac = load_aircraft(cfg["dcs"].get("aircraft", "AH-64D"))
     log.setup(cfg["log"])
     settings = load_settings()
     log.set_file_logging(settings["logging"])
@@ -720,7 +588,7 @@ def main() -> None:
         keys.parse(key_map["trim_reset"])
     except (KeyError, ValueError):
         raise SystemExit("config.toml needs [keys] trim_reset, see config.example.toml.")
-    for view in VIEWS:
+    for view in ac.VIEWS:
         for control in view["controls"]:
             if control["type"] == "key":
                 try:
@@ -728,7 +596,7 @@ def main() -> None:
                 except (KeyError, ValueError):
                     raise SystemExit(f"config.toml needs [keys] {control['key']}, see config.example.toml.")
     names = read_names()
-    outputs, missing = dcsbios.load_outputs(dcsbios.json_path(cfg["dcs"]["saved_games"]), names)
+    outputs, missing = dcsbios.load_outputs(dcsbios.json_path(cfg["dcs"]["saved_games"], ac.DCSBIOS_MODULE), names)
     if missing:
         raise SystemExit("Not in DCS-BIOS: " + ", ".join(missing))
     group, export_port = cfg["dcs_bios"]["export_multicast"], cfg["dcs_bios"]["export_port"]
