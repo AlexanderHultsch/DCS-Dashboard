@@ -21,7 +21,8 @@ ENGINE_START_POSITIONS = [
 
 VIEWS = [
     {
-        "name": "Startup",
+        "name": "Aircraft",
+        "seats": [0],
         "lamps": [
             {"id": "PLT_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red"},
             {"id": "PLT_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber"},
@@ -40,14 +41,37 @@ VIEWS = [
             {"id": "power_right", "label": "PWR LVR 2", "type": "lever", "readback": "PLT_ENG_R_PW_LVR", "side": "right", "positions": POWER_POSITIONS},
             {"id": "PLT_ROTOR_BRK", "label": "RTR BRK", "type": "selector", "positions": [{"value": 2, "label": "OFF"}, {"value": 1, "label": "BRK", "disabled": True}, {"value": 0, "label": "LOCK"}]},
             {"id": "PLT_PARK_BRAKE", "label": "PARK BRAKE", "type": "selector", "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "PULLED"}]},
+            {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": 0.3},
         ],
-    }
+    },
+    {
+        "name": "Fight",
+        "seats": [0, 1],
+        "lamps": [
+            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red"},
+            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber"},
+            {"id": "{seat}_MASTER_ARM_ARM_L", "label": "ARM", "color": "amber"},
+            {"id": "{seat}_MASTER_ARM_SAFE_L", "label": "SAFE", "color": "green"},
+            {"id": "{seat}_GROUND_OVERRIDE_L", "label": "GND ORIDE", "color": "amber"},
+        ],
+        "controls": [
+            {"id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": 0.3},
+            {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": 0.3},
+            {"id": "{seat}_WAS", "label": "WAS", "type": "hat", "ud": "{seat}_CYCLIC_WEAPON_UD", "lr": "{seat}_CYCLIC_WEAPON_LR", "hold": 0.3, "positions": {"up": "G", "down": "A", "left": "R", "right": "M"}},
+            {"id": "{seat}_SIGHT_SEL", "label": "SIGHT SEL", "type": "hat", "ud": "{seat}_COLLECTIVE_SIGHT_SELECT_UD", "lr": "{seat}_COLLECTIVE_SIGHT_SELECT_LR", "hold": 0.3, "positions": {"up": "HMD", "down": "LINK", "left": "FCR", "right": "TADS"}},
+            {"id": "{seat}_CYCLIC_FLARE", "label": "FLARE", "type": "button", "hold": 0.3},
+            {"id": "{seat}_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": 0.3},
+            {"id": "PLT_CMWS_FLARE_COUNT", "label": "FLARE COUNT", "type": "display"},
+            {"id": "PLT_CMWS_CHAFF_COUNT", "label": "CHAFF COUNT", "type": "display"},
+        ],
+    },
 ]
 
 LEVER_KEYS = {(0, 1): "idle", (1, 2): "up", (2, 1): "down", (1, 0): "off"}
 LEVER_WAIT = 1.0
 
 SEAT = "SEAT_POSITION"
+SEAT_NAMES = {0: "PLT", 1: "CPG"}
 INDEX = Path(__file__).resolve().parent / "web" / "index.html"
 
 cfg = {}
@@ -59,13 +83,29 @@ last_packet = None
 cmd_sock = None
 
 
+def expand(name: str, seat: int) -> str:
+    return name.replace("{seat}", SEAT_NAMES[seat])
+
+
+def expand_all(name: str) -> list[str]:
+    if "{seat}" in name:
+        return [expand(name, seat) for seat in SEAT_NAMES]
+    return [name]
+
+
 def read_names() -> list[str]:
     names = [SEAT]
     for view in VIEWS:
-        names += [lamp["id"] for lamp in view["lamps"]]
+        for lamp in view["lamps"]:
+            names += expand_all(lamp["id"])
         for control in view["controls"]:
-            names.append(control["readback"] if control["type"] == "lever" else control["id"])
-    return names
+            if control["type"] == "lever":
+                names += expand_all(control["readback"])
+            elif control["type"] == "hat":
+                names += expand_all(control["ud"]) + expand_all(control["lr"])
+            else:
+                names += expand_all(control["id"])
+    return list(dict.fromkeys(names))
 
 
 def reader(sock: socket.socket) -> None:
@@ -99,8 +139,8 @@ def find_control(identifier):
     for view in VIEWS:
         for control in view["controls"]:
             if control["id"] == identifier:
-                return control
-    return None
+                return control, view
+    return None, None
 
 
 def send(identifier: str, value) -> None:
@@ -155,41 +195,57 @@ def command(body: dict) -> tuple[bool, str]:
 
 
 def check_and_send(identifier, value, body: dict) -> tuple[bool, str]:
-    control = find_control(identifier)
+    control, view = find_control(identifier)
     if control is None:
         return False, "unknown control"
     with lock:
         seat = read(SEAT)
     if seat is None:
         return False, "no DCS data"
-    if seat != 0:
-        return False, "CP/G seat: read only"
+    if seat not in view["seats"]:
+        return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only"
+    name = expand(identifier, seat)
+    if control["type"] == "display":
+        return False, "display only"
     if control["type"] == "lever":
         target = next((p for p in control["positions"] if p["label"] == value), None)
         if target is None or target.get("disabled"):
             return False, "position not available"
         return move_lever(control, value, target)
     if control["type"] == "button":
-        requires = control["requires"]
-        with lock:
-            current = read(requires["id"])
-        if current != requires["value"]:
-            return False, "locked: open the cover first"
+        requires = control.get("requires")
+        if requires:
+            with lock:
+                current = read(expand(requires["id"], seat))
+            if current != requires["value"]:
+                return False, "locked: open the cover first"
         with command_lock:
-            send(identifier, 1)
-            time.sleep(control["hold"])
-            send(identifier, 0)
-        log.line("dash", identifier, "pressed")
+            send(name, 1)
+            time.sleep(control.get("hold", 0.3))
+            send(name, 0)
+        log.line("dash", name, "pressed")
+        return True, ""
+    if control["type"] == "hat":
+        axes = {"up": ("ud", 2), "down": ("ud", 0), "left": ("lr", 0), "right": ("lr", 2)}
+        if not isinstance(value, str) or value not in axes:
+            return False, "position not available"
+        axis, level = axes[value]
+        target = expand(control[axis], seat)
+        with command_lock:
+            send(target, level)
+            time.sleep(control.get("hold", 0.3))
+            send(target, 1)
+        log.line("dash", name, f"{value} ({control['positions'][value]}) sent")
         return True, ""
     position = next((p for p in control["positions"] if p["value"] == value and not isinstance(value, bool)), None)
     if position is None or position.get("disabled"):
         return False, "position not available"
     with command_lock:
-        send(identifier, value)
+        send(name, value)
         if position.get("momentary"):
             time.sleep(control["hold"])
-            send(identifier, control["rest"])
-    log.line("dash", identifier, f"{value} sent")
+            send(name, control["rest"])
+    log.line("dash", name, f"{value} sent")
     return True, ""
 
 
