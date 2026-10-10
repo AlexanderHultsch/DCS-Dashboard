@@ -22,6 +22,14 @@ port = 7790
 [keys]
 # DCS keybinds sent as keypresses (Stage 2). Modifiers and key joined by "+".
 # Defaults from the DCS install; change them if you rebound them in DCS.
+power_left_idle = "RAlt+Home"
+power_right_idle = "RShift+Home"
+power_left_up = "RAlt+PageUp"
+power_right_up = "RShift+PageUp"
+power_left_down = "RAlt+PageDown"
+power_right_down = "RShift+PageDown"
+power_left_off = "RAlt+End"
+power_right_off = "RShift+End"
 george_show_hide = "LCtrl+V"
 george_up = "W"
 george_down = "S"

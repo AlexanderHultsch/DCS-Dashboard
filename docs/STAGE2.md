@@ -2,7 +2,7 @@
 
 Detailed spec for Stage 2 of [SPEC.md](SPEC.md). Goal: a pass / fail list of every control we can set from outside, for both seats.
 
-Status: tested on Windows. Open: power levers.
+Status: tested on Windows.
 
 ## What Stage 1 tells us
 
@@ -52,6 +52,14 @@ window_title = "Digital Combat Simulator"
 [keys]
 # DCS keybinds sent as keypresses. Modifiers and key joined by "+".
 # Defaults from the DCS install; change them if you rebound them in DCS.
+power_left_idle = "RAlt+Home"
+power_right_idle = "RShift+Home"
+power_left_up = "RAlt+PageUp"
+power_right_up = "RShift+PageUp"
+power_left_down = "RAlt+PageDown"
+power_right_down = "RShift+PageDown"
+power_left_off = "RAlt+End"
+power_right_off = "RShift+End"
 george_show_hide = "LCtrl+V"
 george_up = "W"
 george_down = "S"
@@ -59,7 +67,7 @@ george_left = "A"
 george_right = "D"
 ```
 
-For now only the George keys are tested. Keyboard combinations for cockpit commands without a DCS-BIOS entry can be added to `[keys]` later the same way. Supported: modifiers `LCtrl` `RCtrl` `LShift` `RShift` `LAlt` `RAlt` `LWin`; keys `A`–`Z`, `0`–`9`, `F1`–`F12`, `Home` `End` `PageUp` `PageDown` `Insert` `Delete`, arrow keys `Up` `Down` `Left` `Right`, `Space`, `Enter`.
+For now the power lever keys and the George keys are tested. Keyboard combinations for cockpit commands without a DCS-BIOS entry can be added to `[keys]` later the same way. Supported: modifiers `LCtrl` `RCtrl` `LShift` `RShift` `LAlt` `RAlt` `LWin`; keys `A`–`Z`, `0`–`9`, `F1`–`F12`, `Home` `End` `PageUp` `PageDown` `Insert` `Delete`, arrow keys `Up` `Down` `Left` `Right`, `Space`, `Enter`.
 
 ## Route 1 – DCS-BIOS sweep
 
@@ -106,7 +114,7 @@ For each entry in `[keys]`:
 3. It presses the modifiers, presses the key, holds it, releases everything in reverse order.
 4. The user looks at DCS, clicks back into the console and answers `y` (worked), `n` (did not work) or `s` (skip).
 
-George hat directions are sent twice: a short press (0.1 s) and a long press (1 s), because George treats them differently. `george_show_hide` is sent once. That makes 9 tests per seat with the default config.
+George hat directions are sent twice: a short press (0.1 s) and a long press (1 s), because George treats them differently. `george_show_hide` is sent once. Every other entry, such as the power lever keys, is sent once. That makes 17 tests per seat with the default config.
 
 The log records whether bringing DCS to the front worked. That answers the focus question for the tablet: in Stage 3 the keypress comes from the bridge while the user flies with DCS in front.
 
@@ -159,7 +167,7 @@ From the test run on Windows, cold and dark: one sweep per seat (about 1.5 minut
 | Pilot | 227 | 12 | 29 | 5 |
 | CP/G | 238 | 18 | 27 | 1 |
 
-Keypresses: George 9 / 9 pass in both seats. Bringing DCS to the front worked every time, so the bridge can send keys while DCS is in front. George needs electrical power; with the battery off it answers "no power".
+Keypresses: George 9 / 9 pass in both seats, power levers 8 / 8 pass in the pilot seat. Bringing DCS to the front worked every time, so the bridge can send keys while DCS is in front. George needs electrical power; with the battery off it answers "no power".
 
 Reviewed failures:
 
@@ -167,9 +175,9 @@ Reviewed failures:
 - Passed with a 3 s wait instead of 0.5 s: ICS mode, M4 safety.
 - Spring-loaded, always back to centre: CP/G manual tracker (2).
 - Not reached, also not with a 3 s wait: canopy (both seats), CP/G stick fold, MPD mode knobs (both seats), processor select, TADS select, SAI cage, SAI pitch trim, CP/G left MPD L1–L6. Probably missing preconditions. Not followed up, the dashboard does not need them.
-- Power levers: not controllable yet. DCS-BIOS does not move them past the OFF detent, and PageUp / PageDown did not move them in the cold cockpit.
+- Power levers: not controllable by DCS-BIOS (it does not move them past the OFF detent), and the keys for both levers together (PageUp / PageDown) do not work. Controllable by keypress, one key per lever: RAlt (left) or RShift (right) with Home = IDLE, PageUp = one step up, PageDown = one step down, End = OFF. All 8 passed, and DCS-BIOS read back 0 OFF, 16383 IDLE, 58981 FLY after each key.
 
-Everything the Fighting and Navigation views need passed: master arm, ground override, weapons action switch, sight select, flare, chaff, force trim, KU keys and MPD buttons (except CP/G left MPD L1–L6). For the Startup view, master ignition, APU cover, engine start switches and parking brake passed; the APU button works once the cover is open.
+Everything the Fighting and Navigation views need passed: master arm, ground override, weapons action switch, sight select, flare, chaff, force trim, KU keys and MPD buttons (except CP/G left MPD L1–L6). For the Startup view, master ignition, APU cover, engine start switches and parking brake passed; the APU button works once the cover is open; the power levers work by keypress.
 
 Conclusion: a single command works for most controls, but some only work after other steps (cover open, power on, finger lift). Stage 3 uses only controls that passed, in the order a pilot would use them.
 
@@ -188,5 +196,4 @@ Each step is checked by compiling the code and reading the diff. The real check 
 
 - Does a DCS-BIOS command reach the controls of the other seat? Not tested, the dashboard follows the current seat.
 - Do the George W / S / A / D keys only act while the George menu is shown, or also as other DCS commands? Watch during the keypress test.
-- Keyboard combinations for cockpit commands: none for now, only George. A later combination goes into `[keys]` and becomes a dashboard button.
-- Power levers: find a way to move them from outside (keybinds, finger lift, DCS-BIOS IDLE / LIFT controls). Needed for the Startup view.
+- Keyboard combinations for cockpit commands: the power levers and George for now. A later combination goes into `[keys]` and becomes a dashboard button.
