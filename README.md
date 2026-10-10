@@ -2,7 +2,7 @@
 
 A simple tablet dashboard for the **AH-64D Apache** in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Big touch buttons replace keyboard combinations for cockpit commands and George, the AI copilot.
 
-**Status:** Stage 1 (read data) is being built. Nothing is usable yet.
+**Status:** Stage 1 (read data) is built and ready for its first test run on Windows.
 
 ## Plan
 
@@ -42,9 +42,9 @@ Download it with **Code → Download ZIP** on GitHub and unzip it, or clone it w
    dofile(lfs.writedir() .. [[Scripts\DCS-BIOS\BIOS.lua]])
    ```
 
-4. Start DCS, load any AH-64D mission, then quit. Check that `<Saved Games>\Scripts\DCS-BIOS\doc\json\AH-64D.json` now exists.
+4. Check that `<Saved Games>\Scripts\DCS-BIOS\doc\json\AH-64D.json` exists. It comes with the DCS-BIOS zip.
 
-### 4. Export script (coming with Stage 1)
+### 4. Export script
 
 1. Copy `lua\DCS-Dashboard-Export.lua` from this repo into `<Saved Games>\Scripts\`.
 2. Add this line at the end of `<Saved Games>\Scripts\Export.lua`, after the DCS-BIOS line:
@@ -57,7 +57,7 @@ Download it with **Code → Download ZIP** on GitHub and unzip it, or clone it w
 
 Copy `config.example.toml` to `config.toml` in the repo folder and check `saved_games`. `config.toml` stays on your machine and is never committed.
 
-### 6. Run Stage 1 (coming with Stage 1)
+### 6. Run Stage 1
 
 1. In the repo folder run `python stage1_read.py`. If Windows asks to allow Python on the network, allow it for private networks.
 2. Start DCS and an AH-64D mission. Changed values appear in the console.

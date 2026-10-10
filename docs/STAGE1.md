@@ -51,7 +51,7 @@ port = 7790
 
 Changed key: `[log] backups = 2`, so the active file plus 2 backups = 3 files of 5 MB, about 15 MB in total.
 
-The DCS-BIOS control list is read from `<saved_games>/Scripts/DCS-BIOS/doc/json/AH-64D.json`. DCS-BIOS writes this file when DCS starts. If the file is not there, the script stops and names the path it tried.
+The DCS-BIOS control list is read from `<saved_games>/Scripts/DCS-BIOS/doc/json/AH-64D.json`, which comes with the DCS-BIOS zip. If the file is not there, the script stops and names the path it tried.
 
 ## Values we log
 
@@ -221,5 +221,4 @@ Each step is checked in the dev container by compiling the code, a short smoke r
 
 ## Open points to verify on the first run
 
-- `AH-64D.json` is at the expected path after DCS has started once with DCS-BIOS.
 - The MPD indication indices for the Apache, if `list_indication` works at all.
