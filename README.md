@@ -2,13 +2,13 @@
 
 A simple tablet dashboard for the **AH-64D Apache** in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Big touch buttons replace keyboard combinations for cockpit commands and George, the AI copilot.
 
-**Status:** Stage 1 (read data) is built and tested on Windows. Results: [docs/STAGE1.md](docs/STAGE1.md#results). Stage 2 (control) is tested on Windows. Results: [docs/STAGE2.md](docs/STAGE2.md#results). Stage 3 (dashboard) has its first view, Startup, built and ready for its first test run.
+**Status:** Stage 1 (read data) is built and tested on Windows. Results: [docs/STAGE1.md](docs/STAGE1.md#results). Stage 2 (control) is tested on Windows. Results: [docs/STAGE2.md](docs/STAGE2.md#results). Stage 3 (dashboard): the Aircraft view is tested on Windows, the Fight view is built and ready for its first test run.
 
 ## Plan
 
 1. **Read** – test which data we can read from DCS (both seats, in flight). Details: [docs/STAGE1.md](docs/STAGE1.md)
 2. **Control** – test which cockpit controls we can set from outside. Details: [docs/STAGE2.md](docs/STAGE2.md)
-3. **Dashboard** – HTML page with preset views: Startup, Navigation, Fighting, George. Details: [docs/STAGE3.md](docs/STAGE3.md)
+3. **Dashboard** – HTML page with views: Aircraft and Fight (built), Navigation and George (later). Details: [docs/STAGE3.md](docs/STAGE3.md)
 
 Overview: [docs/SPEC.md](docs/SPEC.md)
 
@@ -80,7 +80,7 @@ Results are in `logs\stage2_results.csv`. The test procedure is in [docs/STAGE2.
 1. Start DCS in windowed or borderless mode. The tablet and the PC must be on the same network.
 2. In the repo folder run `python dashboard.py`. It prints the address to open, for example `http://<PC address>:8080`. If Windows asks to allow Python on the network, allow it for private networks.
 3. Open that address in the tablet's browser. On an iPad: Share → Add to Home Screen for full screen.
-4. Load an AH-64D mission. The Startup view controls the pilot seat; in the CP/G seat it is read only.
+4. Load an AH-64D mission. The AIRCRAFT tab controls the pilot seat (read only in the CP/G seat); the FIGHT tab follows the seat you are in.
 5. Stop with Ctrl+C.
 
 The power levers are moved by keypresses, so DCS must be the active window on the PC; the dashboard brings it to the front itself. The test procedure is in [docs/STAGE3.md](docs/STAGE3.md#test-run-windows-manual).

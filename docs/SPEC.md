@@ -124,9 +124,9 @@ Preset views, switched by tabs at the top:
 
 | View | Buttons | Displays |
 | --- | --- | --- |
-| Startup | Master ignition, APU cover and button, engine 1 and 2 start, power levers, rotor brake, parking brake | APU and engine ready and fire lamps, master caution and warning |
+| Aircraft | Master ignition, APU cover and button, engine 1 and 2 start, power levers, rotor brake, parking brake, tail wheel | APU and engine ready and fire lamps, master caution and warning |
 | Navigation | MPD bezel buttons incl. TSD, KU keyboard, force trim and hold mode switch | KU scratchpad, EUFD lines, radar altitude, airspeed, heading, vertical speed |
-| Fighting | Master arm / safe, ground override, weapons action switch, sight select, flare, chaff | Arm / safe lamps, flare and chaff counts, master caution and warning |
+| Fight | Master arm / safe, ground override, weapons action switch, sight select, flare, chaff | Arm / safe lamps, flare and chaff counts, master caution and warning |
 | George | George command buttons | None planned |
 
 Keyboard combinations for cockpit commands each get a button on the view where they belong. The MPD buttons are a plain grid without page labels; the MPD itself is read in the game.
