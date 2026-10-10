@@ -4,6 +4,8 @@ NAMES = [
     "lat", "lon", "alt", "hdg", "pitch", "bank", "ias", "tas", "ralt", "vs", "g",
     "eng_rpm_l", "eng_rpm_r", "eng_temp_l", "eng_temp_r",
     "fuel_int", "fuel_ext", "fuel_flow_l", "fuel_flow_r",
+    "plt_cyc_pitch", "plt_cyc_roll", "plt_coll", "plt_pedals",
+    "cpg_cyc_pitch", "cpg_cyc_roll", "cpg_coll", "cpg_pedals",
 ]
 
 

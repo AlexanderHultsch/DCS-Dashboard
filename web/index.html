@@ -151,6 +151,10 @@ body.ro .panel { opacity: 0.6; }
 .trim .axis { stroke: #3a3d40; stroke-width: 2; }
 .trim text { fill: #ddd; font-size: 15px; text-anchor: middle; }
 .trim text.dim { fill: #666; font-size: 20px; paint-order: stroke; stroke: #0b0c0d; stroke-width: 6px; }
+.trim text.val { fill: #bbb; font-size: 13px; }
+.trim text.nodata { fill: #999; font-size: 13px; }
+.trim .fill { fill: #e53935; }
+.trim .mk { fill: none; stroke: #e53935; stroke-width: 3; stroke-linecap: round; }
 
 .keybtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-stretch: condensed; }
 .keybtn .kl { font-size: 20px; }
@@ -378,6 +382,11 @@ const BADGES = {
 };
 const HAT_CELLS = [null, 'up', null, 'left', 'hub', 'right', null, 'down', null];
 const HAT_AXES = { up: ['ud', 2], down: ['ud', 0], left: ['lr', 0], right: ['lr', 2] };
+const CTRL_PITCH_SIGN = 1;
+const CTRL_ROLL_SIGN = 1;
+const CTRL_PEDAL_SIGN = 1;
+const CTRL_COLL_MIN = -1;
+const CTRL_COLL_MAX = 1;
 const KNOB_MAX = 65535;
 const MODE_BASE = 90;
 const MODE_STEP = 45;
@@ -405,7 +414,7 @@ let views = [];
 let activeIndex = 0;
 let lamps = [];
 let controls = [];
-let current = { status: 'offline', seat: null, values: {} };
+let current = { status: 'offline', seat: null, values: {}, controls: {}, controlsAge: null };
 let toastTimer = null;
 let serverSettings = null;
 let loggingPending = null;
@@ -657,20 +666,93 @@ function buildDisplay(def) {
 const TRIM_SVG = '<svg class="trim" viewBox="0 0 330 360" aria-hidden="true">'
   + '<rect class="edge" x="10" y="10" width="250" height="250"/>'
   + '<line class="axis" x1="135" y1="10" x2="135" y2="260"/><line class="axis" x1="10" y1="135" x2="260" y2="135"/>'
-  + '<text class="dim" x="135" y="142">—</text><text x="135" y="286">CYCLIC</text>'
+  + '<text class="dim cd" x="135" y="142">—</text><text class="nodata" x="135" y="176">NO CONTROL DATA</text>'
+  + '<g class="mk cm"><line x1="-10" y1="0" x2="10" y2="0"/><line x1="0" y1="-10" x2="0" y2="10"/></g>'
+  + '<text x="135" y="278">CYCLIC</text><text class="val cr" x="135" y="294"></text>'
   + '<rect class="edge" x="10" y="302" width="250" height="22"/>'
   + '<line class="axis" x1="135" y1="302" x2="135" y2="324"/>'
-  + '<text class="dim" x="135" y="320">—</text><text x="135" y="349">PEDALS</text>'
+  + '<text class="dim pd" x="135" y="320">—</text>'
+  + '<line class="mk pm" x1="0" y1="304" x2="0" y2="322"/>'
+  + '<text class="val pr" x="135" y="338"></text><text x="135" y="355">PEDALS</text>'
   + '<rect class="edge" x="276" y="10" width="22" height="250"/>'
+  + '<rect class="fill cf" x="277" y="260" width="20" height="0"/>'
   + '<line class="axis" x1="276" y1="135" x2="298" y2="135"/>'
-  + '<text class="dim" x="287" y="142">—</text><text transform="translate(318 135) rotate(90)">COLLECTIVE</text>'
+  + '<text class="dim kd" x="287" y="142">—</text>'
+  + '<line class="mk kl" x1="270" y1="0" x2="304" y2="0"/>'
+  + '<text class="val kr" x="287" y="280"></text>'
+  + '<text transform="translate(318 135) rotate(90)">COLLECTIVE</text>'
   + '</svg>';
+const TRIM_CENTER = 135;
+const TRIM_HALF = 125;
+const TRIM_BOTTOM = 260;
+const TRIM_HEIGHT = 250;
+
+function clampUnit(v) {
+  return Math.min(Math.max(v, -1), 1);
+}
+
+function formatControl(v, signed) {
+  const text = Math.abs(v).toFixed(2);
+  if (v < 0) return '−' + text;
+  return (signed ? '+' : '') + text;
+}
 
 function buildTrim(def) {
   const panel = make('div', 'panel');
   panel.append(make('div', 'title', def.label));
   panel.insertAdjacentHTML('beforeend', TRIM_SVG);
-  return { def, el: panel, update() {} };
+  const q = (selector) => panel.querySelector(selector);
+  const el = {
+    none: q('.nodata'), cyc: q('.cm'), cycDim: q('.cd'), cycVal: q('.cr'),
+    ped: q('.pm'), pedDim: q('.pd'), pedVal: q('.pr'),
+    colFill: q('.cf'), colLine: q('.kl'), colDim: q('.kd'), colVal: q('.kr'),
+  };
+  const show = (e, on) => { e.style.display = on ? '' : 'none'; };
+  const c = { def, el: panel };
+  c.update = () => {
+    const prefix = (SEAT_PREFIX[current.seat] || SEAT_PREFIX[0]).toLowerCase() + '_';
+    const live = typeof current.controlsAge === 'number' && current.controlsAge <= STALE_S;
+    const get = (name) => {
+      const v = live ? current.controls[prefix + name] : undefined;
+      return typeof v === 'number' ? v : null;
+    };
+    const pitch = get('cyc_pitch');
+    const roll = get('cyc_roll');
+    const pedals = get('pedals');
+    const coll = get('coll');
+    show(el.none, !live);
+
+    const cyclic = pitch !== null && roll !== null;
+    show(el.cyc, cyclic);
+    show(el.cycDim, !cyclic);
+    if (cyclic) {
+      const x = TRIM_CENTER + clampUnit(roll * CTRL_ROLL_SIGN) * TRIM_HALF;
+      const y = TRIM_CENTER - clampUnit(pitch * CTRL_PITCH_SIGN) * TRIM_HALF;
+      el.cyc.setAttribute('transform', 'translate(' + x + ' ' + y + ')');
+    }
+    el.cycVal.textContent = cyclic ? 'P ' + formatControl(pitch, true) + '  R ' + formatControl(roll, true) : '';
+
+    show(el.ped, pedals !== null);
+    show(el.pedDim, pedals === null);
+    if (pedals !== null) {
+      el.ped.setAttribute('transform', 'translate(' + (TRIM_CENTER + clampUnit(pedals * CTRL_PEDAL_SIGN) * TRIM_HALF) + ' 0)');
+    }
+    el.pedVal.textContent = pedals !== null ? formatControl(pedals, true) : '';
+
+    show(el.colFill, coll !== null);
+    show(el.colLine, coll !== null);
+    show(el.colDim, coll === null);
+    if (coll !== null) {
+      const f = Math.min(Math.max((coll - CTRL_COLL_MIN) / (CTRL_COLL_MAX - CTRL_COLL_MIN), 0), 1);
+      const y = TRIM_BOTTOM - f * TRIM_HEIGHT;
+      el.colFill.setAttribute('y', y);
+      el.colFill.setAttribute('height', TRIM_BOTTOM - y);
+      el.colLine.setAttribute('y1', y);
+      el.colLine.setAttribute('y2', y);
+    }
+    el.colVal.textContent = coll !== null ? formatControl(coll, false) : '';
+  };
+  return c;
 }
 
 function leverIndex(def, raw) {
@@ -1098,9 +1180,9 @@ function closeSettings() {
 async function poll() {
   try {
     const s = await getJson('/state');
-    current = { status: statusOf(s), seat: s.seat, values: s.values || {} };
+    current = { status: statusOf(s), seat: s.seat, values: s.values || {}, controls: s.controls || {}, controlsAge: s.controls_age };
   } catch (e) {
-    current = { status: 'offline', seat: current.seat, values: current.values };
+    current = { status: 'offline', seat: current.seat, values: current.values, controls: {}, controlsAge: null };
   }
   render();
   setTimeout(poll, POLL_MS);

@@ -1,11 +1,12 @@
 import json
+import math
 import socket
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from bridge import config, dcsbios, keys, log
+from bridge import config, dcsbios, export, keys, log
 
 POWER_POSITIONS = [
     {"value": 0, "label": "OFF"},
@@ -137,6 +138,8 @@ LEVER_WAIT = 1.0
 STEP_WAIT = 0.5
 STEP_TRIES = 2
 
+CONTROL_NAMES = [f"{seat}_{axis}" for seat in ("plt", "cpg") for axis in ("cyc_pitch", "cyc_roll", "coll", "pedals")]
+
 SEAT = "SEAT_POSITION"
 SEAT_NAMES = {0: "PLT", 1: "CPG"}
 INDEX = Path(__file__).resolve().parent / "web" / "index.html"
@@ -150,6 +153,8 @@ state = dcsbios.new_state()
 lock = threading.Lock()
 command_lock = threading.Lock()
 last_packet = None
+control_values = {}
+control_packet = None
 cmd_sock = None
 
 
@@ -198,6 +203,25 @@ def reader(sock: socket.socket) -> None:
             last_packet = time.monotonic()
 
 
+def export_reader(sock: socket.socket) -> None:
+    global control_packet
+    while True:
+        data = sock.recv(65536)
+        try:
+            values = export.parse(data)
+        except ValueError:
+            continue
+        with lock:
+            for name in CONTROL_NAMES:
+                try:
+                    number = float(values[name])
+                except (KeyError, ValueError):
+                    continue
+                if math.isfinite(number):
+                    control_values[name] = number
+            control_packet = time.monotonic()
+
+
 def read(name: str):
     return dcsbios.read_value(state, outputs[name])
 
@@ -244,11 +268,15 @@ def change_settings(body: dict) -> bool:
 
 def snapshot() -> dict:
     with lock:
-        age = None if last_packet is None else round(time.monotonic() - last_packet, 1)
+        now = time.monotonic()
+        age = None if last_packet is None else round(now - last_packet, 1)
+        controls_age = None if control_packet is None else round(now - control_packet, 1)
         return {
             "seat": read(SEAT),
             "age": age,
             "values": {name: read(name) for name in outputs if name != SEAT},
+            "controls": dict(control_values),
+            "controls_age": controls_age,
         }
 
 
@@ -522,8 +550,15 @@ def main() -> None:
     host, port = cfg["dashboard"]["host"], cfg["dashboard"]["port"]
     bios_sock = dcsbios.open_socket(group, export_port)
     cmd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        export_sock = export.open_socket(cfg["export"]["port"])
+    except OSError:
+        export_sock = None
+        log.line("bridge", "export port busy", "no control positions")
     server = ThreadingHTTPServer((host, port), Handler)
     threading.Thread(target=reader, args=(bios_sock,), daemon=True).start()
+    if export_sock:
+        threading.Thread(target=export_reader, args=(export_sock,), daemon=True).start()
     log.line("bridge", "start", f"dashboard on port {port}, DCS-BIOS {group}:{export_port}, commands to port {command_port}")
     print(f"Open http://{lan_ip()}:{port} on the tablet")
     try:
@@ -533,6 +568,8 @@ def main() -> None:
     finally:
         server.server_close()
         bios_sock.close()
+        if export_sock:
+            export_sock.close()
         cmd_sock.close()
 
 

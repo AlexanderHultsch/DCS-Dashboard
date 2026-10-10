@@ -36,6 +36,8 @@ local function flight_packet()
     if not ok then self_data = nil end
     local ok2, engine = pcall(LoGetEngineInfo)
     if not ok2 then engine = nil end
+    local ok3, panel = pcall(GetDevice, 0)
+    if not ok3 then panel = nil end
 
     local lines = {}
     add(lines, "lat", "%.5f", function() return self_data.LatLongAlt.Lat end)
@@ -57,6 +59,14 @@ local function flight_packet()
     add(lines, "fuel_ext", "%.3f", function() return engine.fuel_external end)
     add(lines, "fuel_flow_l", "%.3f", function() return engine.FuelConsumption.left end)
     add(lines, "fuel_flow_r", "%.3f", function() return engine.FuelConsumption.right end)
+    add(lines, "plt_cyc_pitch", "%.3f", function() return panel:get_argument_value(470) end)
+    add(lines, "plt_cyc_roll", "%.3f", function() return panel:get_argument_value(471) end)
+    add(lines, "plt_coll", "%.3f", function() return panel:get_argument_value(474) end)
+    add(lines, "plt_pedals", "%.3f", function() return panel:get_argument_value(476) end)
+    add(lines, "cpg_cyc_pitch", "%.3f", function() return panel:get_argument_value(472) end)
+    add(lines, "cpg_cyc_roll", "%.3f", function() return panel:get_argument_value(473) end)
+    add(lines, "cpg_coll", "%.3f", function() return panel:get_argument_value(475) end)
+    add(lines, "cpg_pedals", "%.3f", function() return panel:get_argument_value(478) end)
     return table.concat(lines, "\n")
 end
 

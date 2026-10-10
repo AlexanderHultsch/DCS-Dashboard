@@ -97,6 +97,7 @@ Names are the DCS-BIOS identifiers of the AH-64D module ([DCS-Skunkworks](https:
 | `eng_temp_l`, `eng_temp_r` | `LoGetEngineInfo().Temperature` | as delivered | `%.0f` |
 | `fuel_int`, `fuel_ext` | `LoGetEngineInfo().fuel_internal`, `.fuel_external` | as delivered | `%.3f` |
 | `fuel_flow_l`, `fuel_flow_r` | `LoGetEngineInfo().FuelConsumption` | as delivered | `%.3f` |
+| `plt_cyc_pitch`, `plt_cyc_roll`, `plt_coll`, `plt_pedals`, `cpg_cyc_pitch`, `cpg_cyc_roll`, `cpg_coll`, `cpg_pedals` | `GetDevice(0):get_argument_value(470/471/474/476, CP/G 472/473/475/478)` | as delivered | `%.3f` |
 | `ind0` … `ind30` | `list_indication(n)`, try only | text | newlines as `\n` |
 
 Conversion in Lua: m to ft × 3.28084, m/s to kt × 1.94384, m/s to ft/min × 196.85, radians to degrees. Engine and fuel values are sent unconverted, because their units for the Apache are part of what Stage 1 finds out. Only non-empty `ind<n>` values are sent.
