@@ -5,7 +5,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from bridge import config, dcsbios, log
+from bridge import config, dcsbios, keys, log
 
 POWER_POSITIONS = [
     {"value": 0, "label": "OFF"},
@@ -43,6 +43,9 @@ VIEWS = [
         ],
     }
 ]
+
+LEVER_KEYS = {(0, 1): "idle", (1, 2): "up", (2, 1): "down", (1, 0): "off"}
+LEVER_WAIT = 1.0
 
 SEAT = "SEAT_POSITION"
 INDEX = Path(__file__).resolve().parent / "web" / "index.html"
@@ -104,6 +107,44 @@ def send(identifier: str, value) -> None:
     dcsbios.send(cmd_sock, cfg["dcs_bios"]["command_port"], identifier, value)
 
 
+def lever_index(control: dict, raw: int) -> int:
+    positions = control["positions"]
+    return min(range(len(positions)), key=lambda i: abs(positions[i]["value"] - raw))
+
+
+def move_lever(control: dict, value, target: dict) -> tuple[bool, str]:
+    with lock:
+        raw = read(control["readback"])
+    if raw is None:
+        return False, "no readback"
+    current = lever_index(control, raw)
+    goal = control["positions"].index(target)
+    if current == goal:
+        log.line("dash", control["id"], f"{value}: already there")
+        return True, ""
+    if current == 3:
+        return False, "position not available"
+    direction = 1 if goal > current else -1
+    steps = [(i, i + direction) for i in range(current, goal, direction)]
+    names = [LEVER_KEYS[step] for step in steps]
+    with command_lock:
+        for (a, b), name in zip(steps, names):
+            if not keys.focus(cfg["dcs"]["window_title"]):
+                return False, "DCS not in front"
+            keys.press(cfg["keys"][f"power_{control['side']}_{name}"], 0.1)
+            deadline = time.monotonic() + LEVER_WAIT
+            while True:
+                with lock:
+                    raw = read(control["readback"])
+                if raw is not None and lever_index(control, raw) == b:
+                    break
+                if time.monotonic() >= deadline:
+                    return False, f"no readback after {name}"
+                time.sleep(0.05)
+    log.line("dash", control["id"], f"{value}: keys {', '.join(names)}")
+    return True, ""
+
+
 def command(body: dict) -> tuple[bool, str]:
     identifier = body.get("id")
     value = body.get("value", "")
@@ -124,7 +165,10 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str]:
     if seat != 0:
         return False, "CP/G seat: read only"
     if control["type"] == "lever":
-        return False, "power levers not built yet"
+        target = next((p for p in control["positions"] if p["label"] == value), None)
+        if target is None or target.get("disabled"):
+            return False, "position not available"
+        return move_lever(control, value, target)
     if control["type"] == "button":
         requires = control["requires"]
         with lock:
@@ -212,6 +256,14 @@ def main() -> None:
     global cfg, outputs, cmd_sock
     cfg = config.load()
     log.setup(cfg["log"])
+    key_map = cfg.get("keys", {})
+    try:
+        for side in ("left", "right"):
+            for step in LEVER_KEYS.values():
+                keys.parse(key_map[f"power_{side}_{step}"])
+        cfg["dcs"]["window_title"]
+    except (KeyError, ValueError):
+        raise SystemExit("config.toml needs [dcs] window_title and the power_* keys, see config.example.toml.")
     names = read_names()
     outputs, missing = dcsbios.load_outputs(dcsbios.json_path(cfg["dcs"]["saved_games"]), names)
     if missing:
