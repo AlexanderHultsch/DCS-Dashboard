@@ -13,6 +13,10 @@ export_multicast = "239.255.50.10"
 export_port = 5010
 command_port = 7778
 
+[export]
+# UDP port the export script sends to. Must match PORT in lua/DCS-Dashboard-Export.lua.
+port = 7790
+
 [dashboard]
 # Web server for the tablet. 0.0.0.0 = reachable from the local network.
 host = "0.0.0.0"
@@ -21,4 +25,5 @@ port = 8080
 [log]
 file = "logs/dcs-dashboard.log"
 max_mb = 5
-backups = 3
+# Active file plus 2 backups = 3 files of max_mb, about 15 MB in total.
+backups = 2
