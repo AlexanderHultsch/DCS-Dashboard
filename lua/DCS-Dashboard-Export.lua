@@ -2,8 +2,10 @@
 -- Load it with this line at the end of Export.lua, after the DCS-BIOS line:
 --   dofile(lfs.writedir() .. [[Scripts\DCS-Dashboard-Export.lua]])
 -- PORT must match [export] port in config.toml.
+-- Once per minute of model time it writes one "export timing" line to the DCS log (dcs.log, source DCS-Dashboard).
 
 local PORT = 7790
+local TIMING_INTERVAL = 60
 local FLIGHT_INTERVAL = 0.1
 local MPD_INTERVAL = 1.0
 local MPD_FAST_INTERVAL = 0.25
@@ -102,6 +104,54 @@ local function send_mpd_fast()
     end
 end
 
+-- Without os.clock or log the timing stays off and the export works as before.
+local timing_on = pcall(function() assert(os.clock() and log.write and log.INFO) end)
+local timing_work = 0
+local timing_busy = 0
+local timing_max = 0
+local timing_frames = 0
+local timing_start = nil
+local timing_last = nil
+
+local function timing_reset(t)
+    timing_work = 0
+    timing_busy = 0
+    timing_max = 0
+    timing_frames = 0
+    timing_start = t
+end
+
+local function timing_report(t)
+    pcall(function()
+        local elapsed = t - timing_start
+        if elapsed > 0 then
+            local per_second = timing_work * 1000 / elapsed
+            log.write("DCS-Dashboard", log.INFO, string.format(
+                "export timing: %.2f ms per second of model time (%.2f %% of one core's time), %d busy frames, max frame %.2f ms, %d frames, clock resolution about 1 ms",
+                per_second, per_second / 10, timing_busy, timing_max * 1000, timing_frames))
+        end
+    end)
+end
+
+-- Called after the work of one frame; only frames that sent something count as busy.
+local function timing_frame(t, started, busy)
+    if not t then return end
+    local cost = os.clock() - started
+    timing_last = t
+    timing_frames = timing_frames + 1
+    if busy then
+        timing_work = timing_work + cost
+        timing_busy = timing_busy + 1
+        if cost > timing_max then timing_max = cost end
+    end
+    if not timing_start then
+        timing_start = t
+    elseif t - timing_start >= TIMING_INTERVAL then
+        timing_report(t)
+        timing_reset(t)
+    end
+end
+
 LuaExportStart = function()
     if prev_start then pcall(prev_start) end
     pcall(function()
@@ -111,29 +161,40 @@ LuaExportStart = function()
     next_flight = 0
     next_mpd = 0
     next_mpd_fast = 0
+    timing_reset(nil)
+    timing_last = nil
 end
 
 LuaExportAfterNextFrame = function()
     if prev_after then pcall(prev_after) end
     pcall(function()
         local t = LoGetModelTime()
+        local started = timing_on and os.clock()
+        local busy = false
         if t >= next_flight then
             next_flight = t + FLIGHT_INTERVAL
             send(flight_packet())
+            busy = true
         end
         if t >= next_mpd then
             next_mpd = t + MPD_INTERVAL
             send_mpd()
+            busy = true
         end
         if t >= next_mpd_fast then
             next_mpd_fast = t + MPD_FAST_INTERVAL
             send_mpd_fast()
+            busy = true
         end
+        if timing_on then pcall(timing_frame, t, started, busy) end
     end)
 end
 
 LuaExportStop = function()
     if prev_stop then pcall(prev_stop) end
+    if timing_on and timing_start and timing_last and timing_last - timing_start >= 5 then
+        timing_report(timing_last)
+    end
     if udp then
         pcall(function() udp:close() end)
         udp = nil
