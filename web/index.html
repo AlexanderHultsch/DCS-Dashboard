@@ -79,6 +79,20 @@ body.ro .panel { opacity: 0.6; }
 .push.locked { opacity: 0.35; border-style: dashed; }
 .push.pressed { background: #ffb300; color: #111; border-color: #ffb300; transform: scale(0.97); }
 
+.panel.hat { grid-column: span 2; }
+.cross {
+  flex: 1; min-height: 0; display: grid; gap: 6px;
+  grid-template-columns: repeat(3, minmax(56px, 1fr)); grid-template-rows: repeat(3, minmax(56px, 1fr));
+}
+.hub { display: flex; align-items: center; justify-content: center; font-size: 22px; color: #777; }
+
+.readout {
+  flex: 1; min-height: 56px; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; background: #0b0c0d; border: 1px solid #000; border-radius: 6px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.9); color: #f2f2f2;
+  font-family: "Courier New", Consolas, monospace; font-size: 36px;
+}
+
 .zone { position: relative; flex: 1; min-height: 270px; touch-action: none; }
 .rail { position: absolute; top: 28px; bottom: 28px; left: 0; right: 0; }
 .track { position: absolute; left: 28px; top: 0; bottom: 0; width: 8px; margin-left: -4px; background: #3a3d40; border-radius: 4px; }
@@ -125,17 +139,21 @@ const STALE_S = 3;
 const TOAST_MS = 3000;
 const CONFIRM_MS = 1500;
 
+const TAB_KEY = 'dcs-dashboard-tab';
+const SEAT_PREFIX = ['PLT', 'CPG'];
+const SEAT_LABEL = ['PILOT', 'CP/G'];
 const BADGES = {
-  pilot: { text: 'PILOT', cls: 'ok' },
-  cpg: { text: 'CP/G – READ ONLY', cls: 'ro' },
   nodata: { text: 'NO DCS DATA', cls: 'bad' },
   offline: { text: 'BRIDGE OFFLINE', cls: 'bad' },
 };
+const HAT_CELLS = [null, 'up', null, 'left', 'hub', 'right', null, 'down', null];
+const HAT_AXES = { up: ['ud', 2], down: ['ud', 0], left: ['lr', 0], right: ['lr', 2] };
 
 let views = [];
+let activeIndex = 0;
 let lamps = [];
 let controls = [];
-let current = { status: 'offline', values: {} };
+let current = { status: 'offline', seat: null, values: {} };
 let toastTimer = null;
 
 function make(tag, cls, text) {
@@ -149,8 +167,32 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isPilot() {
-  return current.status === 'pilot';
+function resolve(name) {
+  const prefix = SEAT_PREFIX[current.seat] || SEAT_PREFIX[0];
+  return name.replace(/\{seat\}/g, prefix);
+}
+
+function usable() {
+  const view = views[activeIndex];
+  return current.status === 'live' && !!view && view.seats.includes(current.seat);
+}
+
+function readValue(name) {
+  return current.values[resolve(name)];
+}
+
+function loadTab() {
+  try {
+    const i = views.findIndex((v) => v.name === localStorage.getItem(TAB_KEY));
+    if (i >= 0) return i;
+  } catch (e) { /* storage not available, use the first view */ }
+  return 0;
+}
+
+function saveTab(name) {
+  try {
+    localStorage.setItem(TAB_KEY, name);
+  } catch (e) { /* storage not available, the choice is not remembered */ }
 }
 
 function toast(message) {
@@ -191,7 +233,7 @@ async function send(body) {
 }
 
 async function run(c, body, target) {
-  if (c.busy || !isPilot()) return;
+  if (c.busy || !usable()) return;
   c.busy = true;
   c.pending = target;
   c.update();
@@ -204,17 +246,20 @@ async function run(c, body, target) {
 
 function statusOf(s) {
   if (s.seat === null || s.age === null || s.age > STALE_S) return 'nodata';
-  if (s.seat === 0) return 'pilot';
-  if (s.seat === 1) return 'cpg';
+  if (s.seat === 0 || s.seat === 1) return 'live';
   return 'nodata';
 }
 
 function renderBadge() {
-  const b = BADGES[current.status];
+  let b = BADGES[current.status];
+  if (!b) {
+    const seat = SEAT_LABEL[current.seat];
+    b = usable() ? { text: seat, cls: 'ok' } : { text: seat + ' – READ ONLY', cls: 'ro' };
+  }
   const el = document.getElementById('seat');
   el.textContent = b.text;
   el.className = 'badge ' + b.cls;
-  document.body.classList.toggle('ro', !isPilot());
+  document.body.classList.toggle('ro', !usable());
 }
 
 function render() {
@@ -225,7 +270,7 @@ function render() {
 
 function buildLamp(def) {
   const el = make('div', 'lamp ' + def.color, def.label);
-  return { el, update: () => el.classList.toggle('lit', current.values[def.id] > 0) };
+  return { el, update: () => el.classList.toggle('lit', readValue(def.id) > 0) };
 }
 
 function buildSelector(def) {
@@ -237,7 +282,7 @@ function buildSelector(def) {
     const btn = make('button', 'pos', p.label);
     btn.type = 'button';
     btn.addEventListener('click', () => {
-      if (!isPilot() || c.busy || p.disabled || current.values[def.id] === p.value) return;
+      if (!usable() || c.busy || p.disabled || readValue(def.id) === p.value) return;
       run(c, { id: def.id, value: p.value }, p.value);
     });
     stack.append(btn);
@@ -247,10 +292,10 @@ function buildSelector(def) {
     panel.classList.toggle('busy', c.busy);
     def.positions.forEach((p, i) => {
       const btn = c.buttons[i];
-      btn.classList.toggle('cur', current.values[def.id] === p.value);
+      btn.classList.toggle('cur', readValue(def.id) === p.value);
       btn.classList.toggle('pending', c.pending === p.value);
       btn.classList.toggle('dis', !!p.disabled);
-      btn.setAttribute('aria-disabled', String(!!p.disabled || !isPilot() || c.busy));
+      btn.setAttribute('aria-disabled', String(!!p.disabled || !usable() || c.busy));
     });
   };
   return c;
@@ -262,15 +307,62 @@ function buildButton(def) {
   btn.type = 'button';
   panel.append(btn);
   const c = { def, el: panel, busy: false, pending: null };
-  const locked = () => current.values[def.requires.id] !== def.requires.value;
+  const locked = () => !!def.requires && readValue(def.requires.id) !== def.requires.value;
   btn.addEventListener('click', () => {
-    if (!isPilot() || c.busy || locked()) return;
+    if (!usable() || c.busy || locked()) return;
     run(c, { id: def.id }, null);
   });
   c.update = () => {
     btn.classList.toggle('locked', locked());
     btn.classList.toggle('pressed', c.busy);
-    btn.setAttribute('aria-disabled', String(locked() || !isPilot() || c.busy));
+    btn.setAttribute('aria-disabled', String(locked() || !usable() || c.busy));
+  };
+  return c;
+}
+
+function buildHat(def) {
+  const panel = make('div', 'panel hat');
+  const cross = make('div', 'cross');
+  panel.append(make('div', 'title', def.label), cross);
+  const c = { def, el: panel, busy: false, pending: null, buttons: {} };
+  HAT_CELLS.forEach((dir) => {
+    if (dir === null) {
+      cross.append(make('div'));
+    } else if (dir === 'hub') {
+      cross.append(make('div', 'hub', '•'));
+    } else {
+      const btn = make('button', 'pos', def.positions[dir]);
+      btn.type = 'button';
+      btn.addEventListener('click', () => {
+        if (!usable() || c.busy) return;
+        run(c, { id: def.id, value: dir }, dir);
+      });
+      cross.append(btn);
+      c.buttons[dir] = btn;
+    }
+  });
+  c.update = () => {
+    panel.classList.toggle('busy', c.busy);
+    Object.keys(HAT_AXES).forEach((dir) => {
+      const [axis, level] = HAT_AXES[dir];
+      const btn = c.buttons[dir];
+      btn.classList.toggle('cur', readValue(def[axis]) === level);
+      btn.classList.toggle('pending', c.pending === dir);
+      btn.setAttribute('aria-disabled', String(!usable() || c.busy));
+    });
+  };
+  return c;
+}
+
+function buildDisplay(def) {
+  const panel = make('div', 'panel');
+  const box = make('div', 'readout');
+  panel.append(make('div', 'title', def.label), box);
+  const c = { def, el: panel };
+  c.update = () => {
+    const v = readValue(def.id);
+    const text = v === null || v === undefined ? '' : String(v).trim();
+    box.textContent = text === '' ? '—' : text;
   };
   return c;
 }
@@ -321,7 +413,7 @@ function buildLever(def) {
     return Math.min(Math.max((r.bottom - e.clientY) / r.height, 0), topEnabled);
   };
   zone.addEventListener('pointerdown', (e) => {
-    if (!isPilot() || c.busy) return;
+    if (!usable() || c.busy) return;
     zone.setPointerCapture(e.pointerId);
     c.dragFrac = fractionAt(e);
     c.update();
@@ -335,7 +427,7 @@ function buildLever(def) {
     if (c.dragFrac === null) return;
     const idx = nearestEnabled(def, fractionAt(e));
     c.dragFrac = null;
-    if (idx !== leverIndex(def, current.values[def.readback]) && isPilot() && !c.busy) {
+    if (idx !== leverIndex(def, readValue(def.readback)) && usable() && !c.busy) {
       run(c, { id: def.id, value: def.positions[idx].label }, idx);
     } else {
       c.update();
@@ -347,7 +439,7 @@ function buildLever(def) {
   });
 
   c.update = () => {
-    const idx = leverIndex(def, current.values[def.readback]);
+    const idx = leverIndex(def, readValue(def.readback));
     if (c.pending !== null && !c.busy && (idx === c.pending || Date.now() - c.doneAt > CONFIRM_MS)) c.pending = null;
     const shown = c.pending !== null ? c.pending : idx;
     let f = null;
@@ -367,11 +459,15 @@ function buildControl(def) {
   if (def.type === 'selector') return buildSelector(def);
   if (def.type === 'button') return buildButton(def);
   if (def.type === 'lever') return buildLever(def);
+  if (def.type === 'hat') return buildHat(def);
+  if (def.type === 'display') return buildDisplay(def);
   return null;
 }
 
 function showView(index) {
+  activeIndex = index;
   const view = views[index];
+  saveTab(view.name);
   const lampBox = document.getElementById('lamps');
   const controlBox = document.getElementById('controls');
   lampBox.replaceChildren();
@@ -387,7 +483,7 @@ function showView(index) {
 function buildTabs() {
   const nav = document.getElementById('tabs');
   views.forEach((v, i) => {
-    const tab = make('button', 'tab', v.name);
+    const tab = make('button', 'tab', v.name.toUpperCase());
     tab.type = 'button';
     tab.addEventListener('click', () => showView(i));
     nav.append(tab);
@@ -397,9 +493,9 @@ function buildTabs() {
 async function poll() {
   try {
     const s = await getJson('/state');
-    current = { status: statusOf(s), values: s.values || {} };
+    current = { status: statusOf(s), seat: s.seat, values: s.values || {} };
   } catch (e) {
-    current = { status: 'offline', values: current.values };
+    current = { status: 'offline', seat: current.seat, values: current.values };
   }
   render();
   setTimeout(poll, POLL_MS);
@@ -416,7 +512,7 @@ async function init() {
     }
   }
   buildTabs();
-  showView(0);
+  showView(loadTab());
   poll();
 }
 
