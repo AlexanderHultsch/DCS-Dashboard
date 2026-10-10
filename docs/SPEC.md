@@ -84,6 +84,8 @@ Done when: the log covers both seats and the flight, and each value group is mar
 
 Goal: a pass / fail list of every control we can set from outside, for both seats.
 
+Detailed spec, routes and build steps: [STAGE2.md](STAGE2.md) (draft). It takes precedence over this section.
+
 Routes:
 
 - DCS-BIOS commands for all cockpit controls; preferred wherever an entry exists.
@@ -153,8 +155,8 @@ Assumptions:
 Open questions:
 
 - [ ] Radios on the dashboard in version 1, or later?
-- [ ] Are the generic engine values plausible for the Apache? Stage 1 answers this.
-- [ ] Can the MPD page text be read? Stage 1 answers this.
+- [x] Are the generic engine values plausible for the Apache? Partly: RPM is NG %, temperature is always 0. TGT, torque, NP and NR come from the MPD page text. See [STAGE1.md](STAGE1.md#results).
+- [x] Can the MPD page text be read? Yes, for the displays of the occupied seat. See [STAGE1.md](STAGE1.md#results).
 - [ ] Keypresses need the DCS window in focus. Is that fine when triggered from the tablet? Stage 2 answers this.
 - [ ] Which keyboard combinations for cockpit commands are used today? Each one becomes a dashboard button.
 

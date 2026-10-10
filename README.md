@@ -7,7 +7,7 @@ A simple tablet dashboard for the **AH-64D Apache** in DCS World. A small Python
 ## Plan
 
 1. **Read** – test which data we can read from DCS (both seats, in flight). Details: [docs/STAGE1.md](docs/STAGE1.md)
-2. **Control** – test which cockpit controls we can set from outside.
+2. **Control** – test which cockpit controls we can set from outside. Details: [docs/STAGE2.md](docs/STAGE2.md) (draft)
 3. **Dashboard** – HTML page with preset views: Startup, Navigation, Fighting, George.
 
 Overview: [docs/SPEC.md](docs/SPEC.md)
