@@ -136,15 +136,25 @@ A hat is drawn as a cross of four buttons. A tap sets the axis (`_UD` or `_LR`) 
 
 The TEDAC grip hats of the CP/G (LHG WAS, RHG sight select) are left out on purpose: they do the same as the cyclic WAS and the collective sight select. If the cyclic WAS does not act in the CP/G seat in DCS, swap to the TEDAC ones (both passed in Stage 2).
 
+### Cursor
+
+- CURSOR pad (rows 1–3, columns 5–7) for the collective cursor controller `{seat}_COLLECTIVE_CURSOR_LR` / `_UD` (analog, centre 32768). Put a finger anywhere on the pad and push: the distance from the touch point (up to 30 % of the pad) is the deflection, i.e. the cursor speed, like the real force-sensing controller. Lifting the finger sends centre.
+- The page sends `{"x", "y"}` (−1..1) at most every 66 ms; the bridge sends only changed axes and does not wait behind slow commands. `CURSOR_Y_SIGN` at the top of the page script flips up / down if needed.
+- ENTER (`{seat}_COLLECTIVE_CURSOR_ENTER`) and DISPLAY (`{seat}_COLLECTIVE_CURSOR_DISPLAY`, moves the cursor to the other MPD) are separate buttons.
+- The Fight view uses the same fixed 3 × 7 grid as Startup and Flight.
+
 ## MPD view
 
-Both MPD bezels side by side, laid out like the cockpit, following the current seat (`"layout": "mpd"`). The screen in the middle stays empty.
+One MPD at a time, following the current seat (`"layout": "mpd"`). A `LEFT MPD | RIGHT MPD` switch at the top selects which one (remembered on the tablet).
 
-- Frame of 8 columns × 11 rows; rows are 0.78 of the column width, as on the real bezel.
-- Top: VID knob, T1–T6, MODE knob with DAY / NT / MONO labels (tap a label). Left: BRT knob, L1–L6, FCR, WPN, TSD. Right: \*, R1–R6, VID, COM, A/C. Bottom: TSD, M (B1), B2–B6, A/C.
-- Variable action buttons are light grey squares without text; fixed action buttons are black keys with white text.
-- Knobs: tap the left half for down, the right half for up (`{seat}_MPD_<L|R>_BRT` / `_VIDEO`, step 3200); the pointer shows the readback.
+- Laid out 1:1 after a photo of the real MPD: every button, knob and print is placed at its measured position (square spacing, about 100 px pitch on the photo). VID knob on the raised top-left corner, BRT below it, MODE top right with DAY / NT / MONO; \* above R1; FCR / WPN below L6, VID / COM below R6; TSD and A/C offset in the bottom corners next to M and B2–B6.
+- Variable action buttons are light grey with a green dot; fixed action buttons are black keys with green text. Buttons are drawn at true size (about 33 px on the iPad Air) but have a larger invisible touch area (56 px where neighbours allow).
+- **Live labels:** the export script sends the pilot's MPD texts (`ind7` left, `ind9` right; CP/G `ind11` / `ind13`) 4 times per second. The bridge reads the `PB<n>` fields and serves them as `mpd_labels` in `/state`; the page writes each label in MPD green next to its button. Mapping: PB1–6 = T1–T6, PB7–12 = R1–R6, PB13–18 = B6…B1 (PB18 = M), PB19–24 = L6…L1. No labels when no MPD text arrived for 3 s.
 - Buttons are pressed for 0.15 s. In the CP/G seat the left MPD's L1–L6 did not respond in Stage 2.
+
+### Knob bar
+
+Tapping a knob (MPD BRT / VID / MODE, KU BRT) opens a bar over the dashboard. BRT / VID / KU BRT: drag or tap the track; the bridge sets the absolute knob position (`{"value": 0..65535}`, at most every 100 ms while dragging). MODE: three stops DAY / NT / MONO. Tap outside or ✕ to close.
 
 ## KU view
 
@@ -285,5 +295,7 @@ Each step is verified before the next one starts.
 - CP/G left MPD L1–L6 did not respond in Stage 2.
 - The layout is made for 1024 × 768 and larger; smaller screens overlap.
 - Trim display: confirm the ring and tick directions in DCS after a few trims.
+- MPD labels: check page changes in DCS; which labels are boxed (selected) is not shown yet; long labels can overlap their neighbours.
+- Cursor pad: check the speed and the up / down direction in DCS.
 - The export port can be used by either dashboard.py or stage1_read.py, not both at once.
 - Symbology keys are not needed: the switch is set through DCS-BIOS.
