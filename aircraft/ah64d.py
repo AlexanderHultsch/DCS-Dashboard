@@ -273,6 +273,75 @@ def light_pages() -> list[dict]:
     )
 
 
+def fire_button(label: str, name: str, lamp: str, at: list) -> dict:
+    return {
+        "id": f"{{seat}}_FIRE_{name}_BTN", "label": label, "type": "button", "guard": True, "hold": MPD_BUTTON_HOLD,
+        "lamps": [
+            {"id": f"{{seat}}_{lamp}_FIRE_L", "color": "amber", "legend": "FIRE"},
+            {"id": f"{{seat}}_{lamp}_READY_L", "color": "green", "legend": "RDY"},
+        ],
+        "at": at,
+    }
+
+
+def fire_pages() -> list[dict]:
+    controls = [
+        fire_button("ENG 1", "ENG1", "ENG_1", [55, 52, 35, 40]),
+        fire_button("APU", "APU", "APU", [138, 52, 35, 40]),
+        fire_button("ENG 2", "ENG2", "ENG_2", [221, 52, 35, 40]),
+        {"id": "{seat}_FIRE_PRIME_EXT", "label": "PRI", "type": "button", "guard": True, "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_FIRE_EXT_DISCH_PRI_L", "legend": "DISCH", "color": "amber", "at": [66, 117, 38, 38]},
+        {"id": "{seat}_FIRE_RES_EXT", "label": "RES", "type": "button", "guard": True, "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_FIRE_EXT_DISCH_RES_L", "legend": "DISCH", "color": "amber", "at": [211, 117, 38, 38]},
+        {
+            "id": "{seat}_FIRE_DETECT_TEST", "label": "TEST", "type": "selector", "orient": "h", "rest": 1, "hold": 0.5,
+            "positions": [{"value": 0, "label": "1", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 2, "label": "2", "momentary": True}],
+            "at": [124, 118, 65, 37],
+        },
+    ]
+    placard = [
+        ["ENG 1", 70.5, 27, 11, 31], ["APU", 153.5, 27, 11, 21], ["ENG 2", 237.5, 27, 11, 33],
+        ["+", 113, 74, 8], ["PRI", 83, 106, 11, 17], ["TEST", 156, 113, 11, 26], ["RES", 228.5, 106.5, 11, 21],
+        ["1", 129, 136, 7], ["2", 183, 136, 7], ["FIRE DET/EXTG", 157, 168.5, 13, 108],
+    ]
+    art = [
+        {"shape": "plate", "at": [2, 2, 315, 177]},
+        {"shape": "slot", "at": [45, 41, 55, 59]}, {"shape": "slot", "at": [129, 41, 54, 59]}, {"shape": "slot", "at": [212, 41, 53, 59]},
+        {"shape": "hazard", "at": [37, 50, 8, 47], "period": 17}, {"shape": "hazard", "at": [101, 50, 26, 47], "period": 17},
+        {"shape": "hazard", "at": [185, 50, 26, 47], "period": 17}, {"shape": "hazard", "at": [268, 50, 10, 47], "period": 17},
+        {"shape": "outline", "at": [61, 113, 47, 45]}, {"shape": "outline", "at": [205, 113, 49, 45]},
+    ]
+    return panel_pages("FIRE DET/EXTG", {0: [1, 4, 1, 3], 1: [1, 4, 1, 2]}, [319, 181], placard, art, controls)
+
+
+def jettison_pages() -> list[dict]:
+    stations = [
+        ("L OUTBD", "LO", "L_OUTBOARD", [121, 70, 81, 83]), ("L INBD", "LI", "L_INBOARD", [219, 70, 81, 83]),
+        ("R INBD", "RI", "R_INBOARD", [317, 70, 81, 83]), ("R OUTBD", "RO", "R_OUTBOARD", [414, 70, 81, 83]),
+        ("L TIP", "LW", "L_TIP", [70, 209, 85, 83]), ("R TIP", "RW", "R_TIP", [450, 209, 85, 83]),
+    ]
+    controls = [
+        {"id": f"{{seat}}_JETT_STORE_{name}", "label": label, "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": f"{{seat}}_JETT_{lamp}_L", "color": "amber", "at": at}
+        for label, name, lamp, at in stations
+    ]
+    controls.append({"id": "{seat}_JETT_BTN", "label": "JETT", "type": "button", "shape": "round", "style": "plunger", "guard": True, "hold": MPD_BUTTON_HOLD, "at": [237, 208, 124, 124]})
+    placard = [
+        ["STORES JETTISON", 307, 24, 28, 274], ["L OUTBD", 151, 53.5, 24, 90], ["L INBD", 258.5, 53, 23, 73],
+        ["R INBD", 357.5, 52.5, 24, 75], ["R OUTBD", 465, 52.5, 24, 92], ["L TIP", 113.5, 192, 24, 63], ["R TIP", 489.5, 191.5, 24, 65],
+        ["JETT", 397, 265, 24, 56],
+    ]
+    art = [
+        {"shape": "plate", "at": [3, 2, 615, 355]},
+        {"shape": "bracket", "at": [8, 2, 44, 82]}, {"shape": "bracket", "at": [570, 2, 45, 80]},
+        {"shape": "bracket", "at": [3, 276, 52, 80]}, {"shape": "bracket", "at": [566, 276, 52, 80]},
+        {"shape": "screw", "at": [24, 59, 17]}, {"shape": "screw", "at": [594, 59, 17]},
+        {"shape": "screw", "at": [22, 298, 17]}, {"shape": "screw", "at": [592, 298, 17]},
+        {"shape": "screw", "at": [66, 115, 14]}, {"shape": "screw", "at": [546, 115, 14]},
+        {"shape": "screw", "at": [108, 332, 14]}, {"shape": "screw", "at": [500, 331, 14]},
+        {"shape": "hazard", "at": [185, 198, 242, 136]},
+        {"shape": "slot", "at": [367, 252, 62, 26]},
+    ]
+    return panel_pages("STORES JETT", {0: [6, 1, 1, 3], 1: [7, 1, 1, 3]}, [621, 370], placard, art, controls)
+
+
 VIEWS = [
     {
         "name": "COCKPIT",
@@ -295,6 +364,8 @@ VIEWS = [
     *emergency_pages(),
     *power_pages(),
     *light_pages(),
+    *fire_pages(),
+    *jettison_pages(),
     {
         "name": "Startup",
         "seats": [0],

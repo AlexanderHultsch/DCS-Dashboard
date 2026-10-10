@@ -330,10 +330,21 @@ body.ro .pbox { opacity: 0.6; }
   left: 12%; top: 12%; right: 12%; bottom: 12%; border-radius: 50%;
   background: radial-gradient(circle at 40% 35%, #f2f4f5, #a9b0b5); box-shadow: inset 0 0 0 1px #000;
 }
+.pbtn.plunger { background: #08090b; border-color: #3b3550; }
+.pbtn.plunger::after { left: 31%; top: 31%; right: 31%; bottom: 31%; background: radial-gradient(circle at 40% 35%, #cfe3f6, #8db3d6); }
 .pbtn:active { transform: scale(0.97); }
 .pbtn.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
 .pbtn.lit.c-green::after { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8), inset 0 0 0 1px #000; }
 .pbtn.lit.c-amber::after { background: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8), inset 0 0 0 1px #000; }
+.plamp {
+  position: absolute; left: 13%; right: 13%; z-index: 1; display: flex; align-items: center; justify-content: center;
+  font-size: calc(var(--bh) * 0.04); letter-spacing: 0.02em; color: #7d858c; pointer-events: none;
+}
+.plamp.up { top: 13%; bottom: 51%; }
+.plamp.low { top: 51%; bottom: 13%; }
+.plamp.lit { color: #111; }
+.plamp.lit.c-green { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8); }
+.plamp.lit.c-amber { background: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8); }
 .plegend { position: relative; z-index: 1; font-size: calc(var(--bh) * 0.045); letter-spacing: 0.02em; color: #7d858c; pointer-events: none; }
 .pbtn.lit.c-amber .plegend, .pbtn.lit.c-green .plegend { color: #111; }
 .ppos { position: absolute; left: 0; width: 100%; margin: 0; padding: 0; background: none; border: 0; }
@@ -360,6 +371,7 @@ body.ro .pbox { opacity: 0.6; }
   border: 2px solid #7f1414; border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
   transform-origin: 50% 0; transition: transform 0.25s, opacity 0.25s;
 }
+.gcover.round { border-radius: 50%; }
 .gcover:active { filter: brightness(1.15); }
 .gcover.open { transform: perspective(400px) rotateX(100deg); opacity: 0; pointer-events: none; }
 .glock {
@@ -1431,18 +1443,28 @@ function addGuard(c, items, round) {
 }
 
 function buildPlateButton(def) {
-  const c = buildButton(def, 'pbtn' + (def.shape === 'round' ? ' round' : '') + (def.color ? ' c-' + def.color : ''), '');
+  const round = def.shape === 'round';
+  const c = buildButton(def, 'pbtn' + (round ? ' round' : '') + (def.style ? ' ' + def.style : '') + (def.color ? ' c-' + def.color : ''), '');
   const btn = c.el;
   c.el = make('div', 'pctl');
   c.el.append(btn);
   if (def.legend) btn.append(make('span', 'plegend', def.legend));
+  const halves = (def.lamps || []).map((l, i) => {
+    const half = make('span', 'plamp ' + (i ? 'low' : 'up') + ' c-' + l.color, l.legend);
+    btn.append(half);
+    return half;
+  });
   const update = c.update;
   c.update = () => {
     update();
     btn.classList.toggle('lit', !!def.lamp && readValue(def.lamp) === 1);
+    halves.forEach((half, i) => half.classList.toggle('lit', readValue(def.lamps[i].id) === 1));
   };
   c.touchAt = ([x, y, w, h]) => [{ el: btn, cx: x + w / 2, cy: y + h / 2, w, h }];
-  if (def.guard) addGuard(c, [{ el: btn, ready: () => true, fire: () => run(c, { id: def.id }, null) }], false);
+  if (def.guard) {
+    addGuard(c, [{ el: btn, ready: () => true, fire: () => run(c, { id: def.id }, null) }], round);
+    if (round) c.cover.classList.add('round');
+  }
   return c;
 }
 
@@ -1462,21 +1484,29 @@ function rotaryArt(x, y, r) {
 }
 
 function positionEdges(def) {
-  const [, y, , h] = def.at;
+  const [x, y, w, h] = def.at;
+  const [start, size, key] = def.orient === 'h' ? [x, w, 'x'] : [y, h, 'y'];
   const p = def.positions;
-  if (p[0].y === undefined) return p.map((q, i) => [y + h * i / p.length, y + h * (i + 1) / p.length]);
-  const order = p.map((q, i) => i).sort((a, b) => p[a].y - p[b].y);
+  if (p[0][key] === undefined) return p.map((q, i) => [start + size * i / p.length, start + size * (i + 1) / p.length]);
+  const order = p.map((q, i) => i).sort((a, b) => p[a][key] - p[b][key]);
   const edges = [];
   order.forEach((i, k) => {
-    edges[i] = [k > 0 ? (p[i].y + p[order[k - 1]].y) / 2 : y, k < p.length - 1 ? (p[i].y + p[order[k + 1]].y) / 2 : y + h];
+    edges[i] = [k > 0 ? (p[i][key] + p[order[k - 1]][key]) / 2 : start, k < p.length - 1 ? (p[i][key] + p[order[k + 1]][key]) / 2 : start + size];
   });
   return edges;
 }
 
-function placeBand(btn, def, [top, bottom]) {
-  const [, y, , h] = def.at;
-  btn.style.top = (top - y) / h * 100 + '%';
-  btn.style.height = (bottom - top) / h * 100 + '%';
+function placeBand(btn, def, [from, to]) {
+  const [x, y, w, h] = def.at;
+  if (def.orient === 'h') {
+    btn.style.left = (from - x) / w * 100 + '%';
+    btn.style.width = (to - from) / w * 100 + '%';
+    btn.style.top = '0';
+    btn.style.height = '100%';
+    return;
+  }
+  btn.style.top = (from - y) / h * 100 + '%';
+  btn.style.height = (to - from) / h * 100 + '%';
 }
 
 function buildPlateSwitch(def) {
@@ -1486,6 +1516,7 @@ function buildPlateSwitch(def) {
   const cy = h / 2;
   const r = Math.min(w, h) * 0.45;
   const rotary = def.style === 'rotary';
+  const horiz = def.orient === 'h';
   const kx = rotary ? def.knob[0] - ax : 0;
   const ky = rotary ? def.knob[1] - ay : 0;
   const wrap = make('div', 'pctl');
@@ -1516,9 +1547,9 @@ function buildPlateSwitch(def) {
       pointer.setAttribute('transform', 'rotate(' + (idx < 0 ? 0 : def.positions[idx].angle) + ' ' + kx + ' ' + ky + ')');
       pointer.style.visibility = idx < 0 ? 'hidden' : '';
     } else {
-      const dy = idx < 0 || n < 2 ? 0 : (idx / (n - 1) * 2 - 1) * r * 0.55;
-      lever.setAttribute('y2', cy + dy);
-      tip.setAttribute('cy', cy + dy);
+      const d = idx < 0 || n < 2 ? 0 : (idx / (n - 1) * 2 - 1) * r * 0.55;
+      lever.setAttribute(horiz ? 'x2' : 'y2', (horiz ? cx : cy) + d);
+      tip.setAttribute(horiz ? 'cx' : 'cy', (horiz ? cx : cy) + d);
       lever.style.visibility = tip.style.visibility = idx < 0 ? 'hidden' : '';
     }
     def.positions.forEach((p, i) => {
@@ -1526,7 +1557,11 @@ function buildPlateSwitch(def) {
       c.buttons[i].setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
     });
   };
-  c.touchAt = ([x, , tw]) => c.buttons.map((el, i) => ({ el, cx: x + tw / 2, cy: (edges[i][0] + edges[i][1]) / 2, w: tw, h: edges[i][1] - edges[i][0] }));
+  c.touchAt = ([x, y, tw, th]) => c.buttons.map((el, i) => {
+    const mid = (edges[i][0] + edges[i][1]) / 2;
+    const len = edges[i][1] - edges[i][0];
+    return horiz ? { el, cx: mid, cy: y + th / 2, w: len, h: th } : { el, cx: x + tw / 2, cy: mid, w: tw, h: len };
+  });
   if (def.guard) addGuard(c, items, true);
   return c;
 }
@@ -2034,9 +2069,8 @@ function plateArt(a) {
       + '" fill="none" stroke="#e8e8e8" stroke-width="3"/>';
   }
   if (a.shape === 'hazard') {
-    const [hx, hy, hw, hh] = a.hole;
     const box = (bx, by, bw, bh) => 'M' + bx + ' ' + by + 'h' + bw + 'v' + bh + 'h' + -bw + 'z';
-    return '<path d="' + box(x, y, w, h) + box(hx, hy, hw, hh) + '" fill="url(#phaz)" fill-rule="evenodd" stroke="#111" stroke-width="2"/>';
+    return '<path d="' + box(x, y, w, h) + (a.hole ? box(...a.hole) : '') + '" fill="url(#phaz)" fill-rule="evenodd" stroke="#111" stroke-width="2"/>';
   }
   return '';
 }
@@ -2048,9 +2082,10 @@ function plateSvg(view) {
     + (width ? ' textLength="' + width + '" lengthAdjust="spacingAndGlyphs"' : '')
     + (rot ? ' transform="rotate(' + rot + ' ' + x + ' ' + y + ')"' : '') + '>' + t + '</text>'
   ));
+  const stripe = ((view.art || []).find((a) => a.shape === 'hazard') || {}).period || 34;
   return '<svg class="part" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">'
-    + '<defs><pattern id="phaz" patternUnits="userSpaceOnUse" width="34" height="34" patternTransform="rotate(45)">'
-    + '<rect width="17" height="34" fill="#e0c21a"/><rect x="17" width="17" height="34" fill="#e4e4e0"/></pattern></defs>'
+    + '<defs><pattern id="phaz" patternUnits="userSpaceOnUse" width="' + stripe + '" height="' + stripe + '" patternTransform="rotate(45)">'
+    + '<rect width="' + stripe / 2 + '" height="' + stripe + '" fill="#e0c21a"/><rect x="' + stripe / 2 + '" width="' + stripe / 2 + '" height="' + stripe + '" fill="#e4e4e0"/></pattern></defs>'
     + (view.art || []).map(plateArt).join('') + text.join('')
     + '</svg>';
 }

@@ -94,6 +94,8 @@ def read_names() -> list[str]:
                 names += expand_all(control["id"])
             if "lamp" in control:
                 names += expand_all(control["lamp"])
+            for lamp in control.get("lamps", []):
+                names += expand_all(lamp["id"])
             if "requires" in control:
                 names += expand_all(control["requires"]["id"])
     return list(dict.fromkeys(names))
