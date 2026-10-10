@@ -33,6 +33,10 @@ power_right_off = "RShift+End"
 canopy = "LCtrl+C"
 # Shows / hides the IHADSS monocle (DCS "IHADSS show").
 monocle = "I"
+# Toggles DCS's controls indicator overlay (DCS "Show controls indicator").
+controls_overlay = "RCtrl+Enter"
+# DCS "Trimmer reset": the dashboard watches this key while DCS is in front and recentres the trim display.
+trim_reset = "LCtrl+T"
 george_show_hide = "LCtrl+V"
 george_up = "W"
 george_down = "S"

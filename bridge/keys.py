@@ -5,6 +5,7 @@ from ctypes import wintypes
 KEYEVENTF_EXTENDEDKEY = 0x0001
 KEYEVENTF_KEYUP = 0x0002
 KEYEVENTF_SCANCODE = 0x0008
+MAPVK_VSC_TO_VK_EX = 3
 INPUT_KEYBOARD = 1
 
 SCAN = {
@@ -75,6 +76,10 @@ user32.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
 user32.IsWindowVisible.argtypes = [wintypes.HWND]
 user32.SetForegroundWindow.argtypes = [wintypes.HWND]
 user32.GetForegroundWindow.restype = wintypes.HWND
+user32.MapVirtualKeyW.argtypes = [wintypes.UINT, wintypes.UINT]
+user32.MapVirtualKeyW.restype = wintypes.UINT
+user32.GetAsyncKeyState.argtypes = [ctypes.c_int]
+user32.GetAsyncKeyState.restype = ctypes.c_short
 
 ENUM_PROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 
@@ -97,6 +102,24 @@ def send_key(name: str, up: bool) -> None:
     event = INPUT(type=INPUT_KEYBOARD)
     event.ki = KEYBDINPUT(0, code, flags, 0, 0)
     user32.SendInput(1, ctypes.byref(event), ctypes.sizeof(INPUT))
+
+
+def is_pressed(combo: str) -> bool:
+    for name in parse(combo):
+        code, extended = SCAN[name]
+        vk = user32.MapVirtualKeyW(code | (0xE000 if extended else 0), MAPVK_VSC_TO_VK_EX)
+        if vk == 0 or not user32.GetAsyncKeyState(vk) & 0x8000:
+            return False
+    return True
+
+
+def foreground_title() -> str:
+    hwnd = user32.GetForegroundWindow()
+    if not hwnd:
+        return ""
+    buffer = ctypes.create_unicode_buffer(256)
+    user32.GetWindowTextW(hwnd, buffer, 256)
+    return buffer.value
 
 
 def find_window(title: str):

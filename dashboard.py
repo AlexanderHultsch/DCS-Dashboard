@@ -100,7 +100,8 @@ VIEWS = [
             {"id": "PLT_APU_L", "label": "APU ON", "color": "green"},
         ],
         "controls": [
-            {"id": "controls", "label": "CONTROLS", "type": "controls", "grid": [1, 1, 3, 3]},
+            {"id": "controls", "label": "CONTROLS", "type": "controls", "trim_switch": "{seat}_CYCLIC_TRIM_UD", "grid": [1, 1, 2, 2]},
+            {"id": "controls_overlay", "label": "CTRL IND", "type": "key", "key": "controls_overlay", "grid": [3, 1, 1, 1]},
             {"id": "{seat}_CYCLIC_SYMBOLOGY", "label": "SYMBOLOGY", "type": "hat", "ud": "{seat}_CYCLIC_SYMBOLOGY", "hold": 0.3, "positions": {"up": "T/C", "down": "H/B"}, "grid": [1, 4, 2, 1]},
             {"id": "monocle", "label": "MONOCLE", "type": "key", "key": "monocle", "grid": [1, 5, 1, 1]},
             {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": 0.3, "lamp": "PLT_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "seats": [0], "grid": [2, 5, 1, 1]},
@@ -140,6 +141,10 @@ STEP_TRIES = 2
 
 CONTROL_NAMES = [f"{seat}_{axis}" for seat in ("plt", "cpg") for axis in ("cyc_pitch", "cyc_roll", "coll", "pedals")]
 
+CONTROLS_STALE = 3
+TRIM_POLL = 0.05
+TRIM_RELEASED = 2
+
 SEAT = "SEAT_POSITION"
 SEAT_NAMES = {0: "PLT", 1: "CPG"}
 INDEX = Path(__file__).resolve().parent / "web" / "index.html"
@@ -155,6 +160,8 @@ command_lock = threading.Lock()
 last_packet = None
 control_values = {}
 control_packet = None
+trim = {}
+trim_switch = {}
 cmd_sock = None
 
 
@@ -183,7 +190,10 @@ def read_names() -> list[str]:
                 names += expand_all(control["ud"])
                 if "lr" in control:
                     names += expand_all(control["lr"])
-            elif control["type"] != "controls":
+            elif control["type"] == "controls":
+                if "trim_switch" in control:
+                    names += expand_all(control["trim_switch"])
+            else:
                 names += expand_all(control["id"])
             if "lamp" in control:
                 names += expand_all(control["lamp"])
@@ -201,6 +211,43 @@ def reader(sock: socket.socket) -> None:
                 log.line("bridge", "dcsbios packet skipped", e)
                 continue
             last_packet = time.monotonic()
+            track_trim()
+
+
+def track_trim() -> None:
+    now = time.monotonic()
+    fresh = control_packet is not None and now - control_packet <= CONTROLS_STALE
+    for prefix in SEAT_NAMES.values():
+        current = read(f"{prefix}_CYCLIC_TRIM_UD")
+        if current is None:
+            continue
+        before = trim_switch.get(prefix)
+        trim_switch[prefix] = current
+        if before != TRIM_RELEASED or current == TRIM_RELEASED:
+            continue
+        axes = [control_values.get(f"{prefix.lower()}_{axis}") for axis in ("cyc_pitch", "cyc_roll", "pedals")]
+        if not fresh or None in axes:
+            log.line("dash", "trim", f"{prefix} set, no control data")
+            continue
+        trim[prefix] = {"pitch": axes[0], "roll": axes[1], "pedals": axes[2], "reset": False, "time": now}
+        log.line("dash", "trim", f"{prefix} set P {axes[0]:+.2f} R {axes[1]:+.2f} Y {axes[2]:+.2f}")
+
+
+def trim_reset_watcher() -> None:
+    combo = cfg["keys"]["trim_reset"]
+    title = cfg["dcs"]["window_title"]
+    was_pressed = False
+    while True:
+        time.sleep(TRIM_POLL)
+        pressed = keys.is_pressed(combo) and title in keys.foreground_title()
+        if pressed and not was_pressed:
+            with lock:
+                seat = read(SEAT)
+                if seat in SEAT_NAMES:
+                    prefix = SEAT_NAMES[seat]
+                    trim[prefix] = {"pitch": 0.0, "roll": 0.0, "pedals": 0.0, "reset": True, "time": time.monotonic()}
+                    log.line("dash", "trim", f"{prefix} reset")
+        was_pressed = pressed
 
 
 def export_reader(sock: socket.socket) -> None:
@@ -277,6 +324,13 @@ def snapshot() -> dict:
             "values": {name: read(name) for name in outputs if name != SEAT},
             "controls": dict(control_values),
             "controls_age": controls_age,
+            "trim": {
+                prefix.lower(): {
+                    "pitch": point["pitch"], "roll": point["roll"], "pedals": point["pedals"],
+                    "reset": point["reset"], "age": round(now - point["time"], 1),
+                }
+                for prefix, point in trim.items()
+            },
         }
 
 
@@ -534,6 +588,10 @@ def main() -> None:
         cfg["dcs"]["window_title"]
     except (KeyError, ValueError):
         raise SystemExit("config.toml needs [dcs] window_title and the power_* keys, see config.example.toml.")
+    try:
+        keys.parse(key_map["trim_reset"])
+    except (KeyError, ValueError):
+        raise SystemExit("config.toml needs [keys] trim_reset, see config.example.toml.")
     for view in VIEWS:
         for control in view["controls"]:
             if control["type"] == "key":
@@ -559,6 +617,7 @@ def main() -> None:
     threading.Thread(target=reader, args=(bios_sock,), daemon=True).start()
     if export_sock:
         threading.Thread(target=export_reader, args=(export_sock,), daemon=True).start()
+    threading.Thread(target=trim_reset_watcher, daemon=True).start()
     log.line("bridge", "start", f"dashboard on port {port}, DCS-BIOS {group}:{export_port}, commands to port {command_port}")
     print(f"Open http://{lan_ip()}:{port} on the tablet")
     try:
