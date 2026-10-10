@@ -133,7 +133,7 @@ Rules for the script:
 
 - Chains the existing export hooks (`LuaExportStart`, `LuaExportAfterNextFrame`, `LuaExportStop`), so DCS-BIOS keeps working.
 - Uses LuaSocket the same way DCS-BIOS does and sends UDP to `127.0.0.1:PORT` (constant at the top of the file).
-- Every 0.1 s of model time (10 Hz): one flight data packet. Every 1 s: one MPD text packet.
+- Every 0.1 s of model time (10 Hz): one flight data packet. Every 1 s: one packet per non-empty MPD indication.
 - Every call is wrapped in `pcall`, so a missing function does not break DCS. A failed value is simply left out.
 
 Wire format: plain text, one value per line, `name=value`. The bridge splits each line at the first `=`. Numbers are formatted in Lua with fixed decimals (see the table above), so the bridge compares plain strings.

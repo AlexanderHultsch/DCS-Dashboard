@@ -1,0 +1,110 @@
+-- DCS-Dashboard export script: sends flight data and MPD text over UDP to the Python bridge.
+-- Load it with this line at the end of Export.lua, after the DCS-BIOS line:
+--   dofile(lfs.writedir() .. [[Scripts\DCS-Dashboard-Export.lua]])
+-- PORT must match [export] port in config.toml.
+
+local PORT = 7790
+local FLIGHT_INTERVAL = 0.1
+local MPD_INTERVAL = 1.0
+
+package.path = package.path .. ";.\\LuaSocket\\?.lua"
+package.cpath = package.cpath .. ";.\\LuaSocket\\?.dll"
+local socket = require("socket")
+
+local udp = nil
+local next_flight = 0
+local next_mpd = 0
+
+local prev_start = LuaExportStart
+local prev_stop = LuaExportStop
+local prev_after = LuaExportAfterNextFrame
+
+local M_TO_FT = 3.28084
+local MS_TO_KT = 1.94384
+local MS_TO_FPM = 196.85
+
+-- A missing function, a nil value or a format error leaves the value out.
+local function add(lines, name, fmt, get)
+    local ok, text = pcall(function() return string.format(fmt, get()) end)
+    if ok then
+        lines[#lines + 1] = name .. "=" .. text
+    end
+end
+
+local function flight_packet()
+    local ok, self_data = pcall(LoGetSelfData)
+    if not ok then self_data = nil end
+    local ok2, engine = pcall(LoGetEngineInfo)
+    if not ok2 then engine = nil end
+
+    local lines = {}
+    add(lines, "lat", "%.5f", function() return self_data.LatLongAlt.Lat end)
+    add(lines, "lon", "%.5f", function() return self_data.LatLongAlt.Long end)
+    add(lines, "alt", "%.0f", function() return self_data.LatLongAlt.Alt * M_TO_FT end)
+    add(lines, "hdg", "%.1f", function() return math.deg(self_data.Heading) end)
+    add(lines, "pitch", "%.1f", function() return math.deg(self_data.Pitch) end)
+    add(lines, "bank", "%.1f", function() return math.deg(self_data.Bank) end)
+    add(lines, "ias", "%.0f", function() return LoGetIndicatedAirSpeed() * MS_TO_KT end)
+    add(lines, "tas", "%.0f", function() return LoGetTrueAirSpeed() * MS_TO_KT end)
+    add(lines, "ralt", "%.0f", function() return LoGetAltitudeAboveGroundLevel() * M_TO_FT end)
+    add(lines, "vs", "%.0f", function() return LoGetVerticalVelocity() * MS_TO_FPM end)
+    add(lines, "g", "%.2f", function() return LoGetAccelerationUnits().y end)
+    add(lines, "eng_rpm_l", "%.1f", function() return engine.RPM.left end)
+    add(lines, "eng_rpm_r", "%.1f", function() return engine.RPM.right end)
+    add(lines, "eng_temp_l", "%.0f", function() return engine.Temperature.left end)
+    add(lines, "eng_temp_r", "%.0f", function() return engine.Temperature.right end)
+    add(lines, "fuel_int", "%.3f", function() return engine.fuel_internal end)
+    add(lines, "fuel_ext", "%.3f", function() return engine.fuel_external end)
+    add(lines, "fuel_flow_l", "%.3f", function() return engine.FuelConsumption.left end)
+    add(lines, "fuel_flow_r", "%.3f", function() return engine.FuelConsumption.right end)
+    return table.concat(lines, "\n")
+end
+
+local function send(packet)
+    if udp and packet ~= "" then
+        udp:send(packet)
+    end
+end
+
+-- One packet per indication keeps each packet small.
+local function send_mpd()
+    for n = 0, 30 do
+        local ok, text = pcall(list_indication, n)
+        if ok and type(text) == "string" and text ~= "" then
+            send("ind" .. n .. "=" .. (text:gsub("\n", "\\n")))
+        end
+    end
+end
+
+LuaExportStart = function()
+    if prev_start then pcall(prev_start) end
+    pcall(function()
+        udp = socket.udp()
+        udp:setpeername("127.0.0.1", PORT)
+    end)
+    next_flight = 0
+    next_mpd = 0
+end
+
+LuaExportAfterNextFrame = function()
+    if prev_after then pcall(prev_after) end
+    pcall(function()
+        local t = LoGetModelTime()
+        if t >= next_flight then
+            next_flight = t + FLIGHT_INTERVAL
+            send(flight_packet())
+        end
+        if t >= next_mpd then
+            next_mpd = t + MPD_INTERVAL
+            send_mpd()
+        end
+    end)
+end
+
+LuaExportStop = function()
+    if prev_stop then pcall(prev_stop) end
+    if udp then
+        pcall(function() udp:close() end)
+        udp = nil
+    end
+end
