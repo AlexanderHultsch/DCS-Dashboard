@@ -10,11 +10,15 @@ def json_path(saved_games: str) -> Path:
     return Path(saved_games) / "Scripts" / "DCS-BIOS" / "doc" / "json" / "AH-64D.json"
 
 
-def load_outputs(path, names: list[str]) -> tuple[dict, list[str]]:
+def load_json(path) -> dict:
     if not Path(path).exists():
         raise SystemExit(f"DCS-BIOS control list not found: {path}")
     with open(path, encoding="utf-8") as f:
-        data = json.load(f)
+        return json.load(f)
+
+
+def load_outputs(path, names: list[str]) -> tuple[dict, list[str]]:
+    data = load_json(path)
     all_outputs = {}
     for category in data.values():
         for control in category.values():
@@ -25,6 +29,16 @@ def load_outputs(path, names: list[str]) -> tuple[dict, list[str]]:
     return found, missing
 
 
+def load_controls(path) -> list[dict]:
+    data = load_json(path)
+    return [
+        control
+        for category in data.values()
+        for control in category.values()
+        if control["inputs"]
+    ]
+
+
 def open_socket(group: str, port: int) -> socket.socket:
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -32,6 +46,10 @@ def open_socket(group: str, port: int) -> socket.socket:
     mreq = struct.pack("4s4s", socket.inet_aton(group), socket.inet_aton("0.0.0.0"))
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
     return sock
+
+
+def send(sock: socket.socket, port: int, identifier: str, value) -> None:
+    sock.sendto(f"{identifier} {value}\n".encode("ascii"), ("127.0.0.1", port))
 
 
 def new_state() -> dict:

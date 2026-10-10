@@ -84,7 +84,7 @@ Done when: the log covers both seats and the flight, and each value group is mar
 
 Goal: a pass / fail list of every control we can set from outside, for both seats.
 
-Detailed spec, routes and build steps: [STAGE2.md](STAGE2.md) (draft). It takes precedence over this section.
+Detailed spec, routes and build steps: [STAGE2.md](STAGE2.md). It takes precedence over this section.
 
 Routes:
 

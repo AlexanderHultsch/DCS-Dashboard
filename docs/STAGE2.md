@@ -2,7 +2,7 @@
 
 Detailed spec for Stage 2 of [SPEC.md](SPEC.md). Goal: a pass / fail list of every control we can set from outside, for both seats.
 
-Status: draft, waiting for review.
+Status: approved, build in progress.
 
 ## What Stage 1 tells us
 
@@ -59,7 +59,7 @@ george_left = "A"
 george_right = "D"
 ```
 
-Keyboard combinations for cockpit commands without a DCS-BIOS entry are added to `[keys]` the same way. Supported: modifiers `LCtrl` `RCtrl` `LShift` `RShift` `LAlt` `RAlt` `LWin`; keys `A`–`Z`, `0`–`9`, `F1`–`F12`, `Home` `End` `PageUp` `PageDown` `Insert` `Delete`, arrow keys `Up` `Down` `Left` `Right`, `Space`, `Enter`.
+For now only the George keys are tested. Keyboard combinations for cockpit commands without a DCS-BIOS entry can be added to `[keys]` later the same way. Supported: modifiers `LCtrl` `RCtrl` `LShift` `RShift` `LAlt` `RAlt` `LWin`; keys `A`–`Z`, `0`–`9`, `F1`–`F12`, `Home` `End` `PageUp` `PageDown` `Insert` `Delete`, arrow keys `Up` `Down` `Left` `Right`, `Space`, `Enter`.
 
 ## Route 1 – DCS-BIOS sweep
 
@@ -136,6 +136,7 @@ The console prints one line per control (result and note) and a progress counter
 ## stage2_sweep.py
 
 - `python stage2_sweep.py`: DCS-BIOS sweep of the current seat.
+- `python stage2_sweep.py <text>`: sweep only the controls of the current seat whose identifier contains `<text>`, for quick checks.
 - `python stage2_sweep.py keys`: keypress test.
 - Single-threaded like Stage 1: the DCS-BIOS socket is read in the wait loops, no extra threads.
 - Reuses `bridge.config`, `bridge.log` and the DCS-BIOS decoding from `bridge.dcsbios`.
@@ -168,4 +169,4 @@ Each step is checked by compiling the code and reading the diff. The real check 
 
 - Does a DCS-BIOS command reach the controls of the other seat? Not tested, the dashboard follows the current seat.
 - Do the George W / S / A / D keys only act while the George menu is shown, or also as other DCS commands? Watch during the keypress test.
-- Which keyboard combinations for cockpit commands are used today? Each one goes into `[keys]` and later becomes a dashboard button.
+- Keyboard combinations for cockpit commands: none for now, only George. A later combination goes into `[keys]` and becomes a dashboard button.
