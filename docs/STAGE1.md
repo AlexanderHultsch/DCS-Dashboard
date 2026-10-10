@@ -180,31 +180,31 @@ Keep the session under about 10 minutes.
 
 ## Results
 
-Filled in by hand after the test run. Result: readable, not readable or implausible.
+From the test runs on Windows: a short flight with the engines already running, and a cold start with auto start, both seats and a short hover. Result: readable, partly readable, not readable, implausible or not tested.
 
 | Value group | Source | Result | Notes |
 | --- | --- | --- | --- |
-| Seat | DCS-BIOS | | |
-| Master caution and warning | DCS-BIOS | | |
-| Engine and APU lamps | DCS-BIOS | | |
-| Startup switches | DCS-BIOS | | |
-| Power levers | DCS-BIOS | | |
-| Armament | DCS-BIOS | | |
-| Weapons action switch | DCS-BIOS | | |
-| Sight select | DCS-BIOS | | |
-| Flare and chaff | DCS-BIOS | | |
-| Force trim / hold | DCS-BIOS | | |
-| KU scratchpad | DCS-BIOS | | |
-| EUFD | DCS-BIOS | | |
-| Radios | DCS-BIOS | | |
-| Standby instruments | DCS-BIOS | | |
-| Position | export | | |
-| Attitude | export | | |
-| Speeds | export | | |
-| Radar altitude, vertical speed, G | export | | |
-| Engine values | export | | Compare with the noted MPD values |
-| Fuel | export | | Compare with the noted MPD values |
-| MPD page text | export | | Try only |
+| Seat | DCS-BIOS | readable | 0 pilot, 1 CP/G; follows seat changes |
+| Master caution and warning | DCS-BIOS | readable | Warning blinks with LOW ROTOR RPM; caution seen in the lamp test |
+| Engine and APU lamps | DCS-BIOS | readable | Lamp test at power-on, fire test, APU ON while the APU runs |
+| Startup switches | DCS-BIOS | readable | APU cover and button, master ignition, ENG 1/2 START (2 = START), rotor brake, parking brake |
+| Power levers | DCS-BIOS | readable | 0 OFF, 16383 IDLE, 58981 FLY; PLT and CPG values identical |
+| Armament | DCS-BIOS | readable | Master arm and ground override buttons and lamps, both seats |
+| Weapons action switch | DCS-BIOS | not tested | HOTAS only, no default key |
+| Sight select | DCS-BIOS | not tested | HOTAS only, no default key |
+| Flare and chaff | DCS-BIOS | partly readable | Counts readable (60 / 30) when CMWS is on, empty after auto start; buttons not tested |
+| Force trim / hold | DCS-BIOS | readable | Pilot only; CP/G not tested |
+| KU scratchpad | DCS-BIOS | readable | Text and cursor `#` |
+| EUFD | DCS-BIOS | readable | Both seats: radios, fuel in lb, transponder, Zulu time, warnings and advisories |
+| Radios | DCS-BIOS | implausible | HF stuck at `134.00` after a cold start (EUFD: `2.0000`); VHF shows +0.001. Use EUFD lines 8–12 |
+| Standby instruments | DCS-BIOS | readable | Raw 0–65535; scale not mapped |
+| Position | export | readable | |
+| Attitude | export | readable | |
+| Speeds | export | partly readable | TAS plausible. IAS shows 8–17 kt standing still and is about 10 kt above TAS in slow flight |
+| Radar altitude, vertical speed, G | export | readable | 5 ft on the ground |
+| Engine values | export | partly readable | `eng_rpm` = NG %, matches the MPD within 0.1. `eng_temp` always 0. No TGT, torque, NP or NR in the export |
+| Fuel | export | readable | `fuel_int` = fraction of full internal fuel (× ≈2510 lb = EUFD fuel). `fuel_ext` 0 (no external tanks). `fuel_flow` plausible, probably kg/s per engine, unit not confirmed |
+| MPD page text | export | readable | `list_indication` works and gives named text fields. Only the displays of the occupied seat update |
 
 Stage 1 is done when the log covers both seats and the flight, and every row above has a result.
 
@@ -219,6 +219,14 @@ Each step is checked in the dev container by compiling the code, a short smoke r
 5. Export script: `lua/DCS-Dashboard-Export.lua`. Check: `luac -p` if available, otherwise diff review only. The real check is the Windows test run.
 6. Docs: README getting started matches the built files, SPEC.md points to this file. Check: read through.
 
-## Open points to verify on the first run
+## Open points from the test runs
 
-- The MPD indication indices for the Apache, if `list_indication` works at all.
+- MPD index map as observed: `ind7` / `ind9` pilot MPD left / right, `ind11` / `ind13` CP/G MPD left / right, `ind15` CP/G KU, `ind18` / `ind19` EUFD pilot / CP/G, `ind20` CP/G helmet display, `ind22` pilot helmet display. Fields are named by position (`LABEL n`) and their meaning depends on the page, so each page needs its own parsing.
+- TGT, torque, NP and NR only come from the MPD ENG page, and only while that page is shown in the occupied seat.
+- `fuel_flow` unit not confirmed (the FUEL page was not opened).
+- IAS is implausible at low speed.
+- Radios: use the EUFD lines instead of the DCS-BIOS radio strings.
+- DCS-BIOS strings arrive in pieces for the first ~15 s, sometimes with NUL bytes inside. The first DCS-BIOS packet of every run is skipped with `truncated block data`, which is harmless.
+- Log size is about 1 MB per minute, 93 % of it MPD text (`ind18` / `ind19` alone about 60 %). A 10 minute session fits the 15 MB limit, but only just. Sending MPD text less often, or leaving out `ind18` / `ind19`, would reduce it.
+- Not explained: in the first run all DCS-BIOS strings went blank at one moment while the engines kept running. It did not happen again in the cold start.
+- Not tested: weapons action switch, sight select, flare and chaff buttons, CP/G force trim (all HOTAS only).
