@@ -9,6 +9,7 @@ from bridge import config, dcsbios, keys, log
 
 BLOCK = ["JETT", "FIRE_ENG", "FIRE_APU", "FIRE_PRIME", "FIRE_RES", "ZERO", "CHOP", "BUCS", "TRIGGER"]
 TIMEOUT = 0.5
+RETEST_TIMEOUT = 3.0
 
 
 def integer_output(control: dict):
@@ -54,7 +55,7 @@ def send(cmd_sock: socket.socket, cmd_port: int, identifier: str, value) -> None
     dcsbios.send(cmd_sock, cmd_port, identifier, value)
 
 
-def sweep(sock: socket.socket, cmd_sock: socket.socket, cmd_port: int, state: dict, control: dict) -> tuple[str, str]:
+def sweep(sock: socket.socket, cmd_sock: socket.socket, cmd_port: int, state: dict, control: dict, timeout: float = TIMEOUT) -> tuple[str, str]:
     identifier = control["identifier"]
     if any(word in identifier for word in BLOCK):
         return "skipped", "blocklist"
@@ -78,13 +79,13 @@ def sweep(sock: socket.socket, cmd_sock: socket.socket, cmd_port: int, state: di
         try:
             for p in steps:
                 send(cmd_sock, cmd_port, identifier, p)
-                v = wait_until(sock, state, output, lambda v: abs(v - p) <= tol)
+                v = wait_until(sock, state, output, lambda v: abs(v - p) <= tol, timeout)
                 log.line("stage2", identifier, f"read {v}")
                 if v is None or abs(v - p) > tol:
                     failed.append(str(p))
         finally:
             send(cmd_sock, cmd_port, identifier, original)
-            v = wait_until(sock, state, output, lambda v: abs(v - original) <= tol)
+            v = wait_until(sock, state, output, lambda v: abs(v - original) <= tol, timeout)
             log.line("stage2", identifier, f"read {v}")
             if v is None or abs(v - original) > tol:
                 failed.append("restore")
@@ -95,24 +96,24 @@ def sweep(sock: socket.socket, cmd_sock: socket.socket, cmd_port: int, state: di
         step = variable_step["suggested_step"]
         tol = output["max_value"] // 100
         send(cmd_sock, cmd_port, identifier, f"+{step}")
-        v = wait_until(sock, state, output, lambda v: v != original)
+        v = wait_until(sock, state, output, lambda v: v != original, timeout)
         log.line("stage2", identifier, f"read {v}")
         if v is None or v == original:
             return "fail", "no change"
         send(cmd_sock, cmd_port, identifier, f"-{step}")
-        v = wait_until(sock, state, output, lambda v: abs(v - original) <= tol)
+        v = wait_until(sock, state, output, lambda v: abs(v - original) <= tol, timeout)
         log.line("stage2", identifier, f"read {v}")
         if v is None or abs(v - original) > tol:
             return "fail", "no return"
         return "pass", ""
     if get_input(control, "action") is not None:
         send(cmd_sock, cmd_port, identifier, "TOGGLE")
-        v = wait_until(sock, state, output, lambda v: v != original)
+        v = wait_until(sock, state, output, lambda v: v != original, timeout)
         log.line("stage2", identifier, f"read {v}")
         if v is None or v == original:
             return "fail", "no change"
         send(cmd_sock, cmd_port, identifier, "TOGGLE")
-        v = wait_until(sock, state, output, lambda v: v == original)
+        v = wait_until(sock, state, output, lambda v: v == original, timeout)
         log.line("stage2", identifier, f"read {v}")
         if v != original:
             return "fail", "no return"
@@ -141,16 +142,31 @@ def write_results(cfg: dict, rows: list) -> Path:
     return results_file
 
 
-def sweep_test(bios_sock: socket.socket, cmd_sock: socket.socket, cmd_port: int, state: dict, controls: list, name: str, text: str) -> tuple[list, dict, int]:
+def failed_controls(cfg: dict, name: str) -> set:
+    results_file = Path(cfg["log"]["file"]).parent / "stage2_results.csv"
+    if not results_file.exists():
+        raise SystemExit("No stage2_results.csv yet. Run the sweep first.")
+    with open(results_file, newline="", encoding="utf-8") as f:
+        return {
+            row["control"]
+            for row in csv.DictReader(f)
+            if row["seat"] == name and row["route"] == "dcsbios" and row["result"] == "fail"
+        }
+
+
+def sweep_test(bios_sock: socket.socket, cmd_sock: socket.socket, cmd_port: int, state: dict, controls: list, name: str, text: str, timeout: float = TIMEOUT, route: str = "dcsbios", only: set | None = None) -> tuple[list, dict, int]:
     prefix = name + "_"
-    selected = [c for c in controls if c["identifier"].startswith(prefix) and text in c["identifier"]]
+    selected = [
+        c for c in controls
+        if c["identifier"].startswith(prefix) and text in c["identifier"] and (only is None or c["identifier"] in only)
+    ]
     deadline = time.monotonic() + 30
     while time.monotonic() < deadline:
         if all(dcsbios.read_value(state, integer_output(c)) is not None for c in selected if integer_output(c)):
             break
         pump(bios_sock, state, deadline - time.monotonic())
 
-    seconds = TIMEOUT * sum(
+    seconds = timeout * sum(
         len(positions(c)) + 1
         for c in selected
         if not any(word in c["identifier"] for word in BLOCK) and integer_output(c) and positions(c)
@@ -162,9 +178,9 @@ def sweep_test(bios_sock: socket.socket, cmd_sock: socket.socket, cmd_port: int,
     try:
         input("Press Enter to start, Ctrl+C to stop. ")
         for i, control in enumerate(selected, 1):
-            result, note = sweep(bios_sock, cmd_sock, cmd_port, state, control)
+            result, note = sweep(bios_sock, cmd_sock, cmd_port, state, control, timeout)
             log.line("stage2", control["identifier"], f"[{i}/{len(selected)}] {result} {note}".strip())
-            rows.append((control["identifier"], name, "dcsbios", result, note))
+            rows.append((control["identifier"], name, route, result, note))
             counts[result] = counts.get(result, 0) + 1
     except KeyboardInterrupt:
         pass
@@ -224,7 +240,8 @@ def keys_test(tests: list, title: str, name: str) -> tuple[list, dict, int]:
 
 def main() -> None:
     keys_mode = sys.argv[1:] == ["keys"]
-    text = sys.argv[1] if len(sys.argv) > 1 else ""
+    retest_mode = sys.argv[1:] == ["retest"]
+    text = sys.argv[1] if len(sys.argv) > 1 and not retest_mode else ""
 
     cfg = config.load()
     log.setup(cfg["log"])
@@ -236,7 +253,7 @@ def main() -> None:
     cmd_port = cfg["dcs_bios"]["command_port"]
     bios_sock = dcsbios.open_socket(group, port)
     cmd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    log.line("bridge", "start", f"stage 2 {'keys' if keys_mode else 'sweep'}, DCS-BIOS {group}:{port}, commands to port {cmd_port}")
+    log.line("bridge", "start", f"stage 2 {'keys' if keys_mode else 'retest' if retest_mode else 'sweep'}, DCS-BIOS {group}:{port}, commands to port {cmd_port}")
 
     state = dcsbios.new_state()
     seat = wait_for_seat(bios_sock, state, seat_output)
@@ -245,6 +262,10 @@ def main() -> None:
     if keys_mode:
         rows, counts, total = keys_test(tests, title, name)
         unit = "key tests"
+    elif retest_mode:
+        only = failed_controls(cfg, name)
+        rows, counts, total = sweep_test(bios_sock, cmd_sock, cmd_port, state, controls, name, "", RETEST_TIMEOUT, "retest", only)
+        unit = "controls"
     else:
         rows, counts, total = sweep_test(bios_sock, cmd_sock, cmd_port, state, controls, name, text)
         unit = "controls"
