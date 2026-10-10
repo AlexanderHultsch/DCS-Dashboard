@@ -188,10 +188,6 @@ body.ro .panel { opacity: 0.6; }
 .arm::after { content: ""; position: absolute; left: 50%; top: 9%; width: 3px; height: 38%; margin-left: -1.5px; background: #17191b; border-radius: 2px; }
 .knob:active .dial { transform: scale(0.95); }
 .knob.pending .dial { box-shadow: 0 0 0 3px #ffb300, 0 2px 4px rgba(0, 0, 0, 0.65); }
-.kn-l {
-  position: absolute; top: 2%; left: 0; right: 0; text-align: center; line-height: 1;
-  font-size: calc(var(--u) * 0.2); letter-spacing: 0.04em; color: #f2f2f2; font-stretch: condensed;
-}
 .kn-m, .kn-p {
   position: absolute; bottom: calc(6% + var(--kd) / 2 - 0.5em); line-height: 1;
   font-size: calc(var(--u) * 0.26); color: #5d656c;
@@ -200,34 +196,27 @@ body.ro .panel { opacity: 0.6; }
 .kn-m { left: 6%; }
 .kn-p { right: 6%; }
 
-#controls.ku {
-  --u: min(5vw, 5.5vh);
-  display: flex; align-items: center; justify-content: center;
-}
-#controls.mpd { display: flex; align-items: center; justify-content: center; gap: 16px; padding-bottom: 12px; }
+#controls.ku { display: flex; align-items: center; justify-content: center; }
+#controls.mpd { display: flex; align-items: stretch; justify-content: flex-start; gap: 16px; padding-bottom: 12px; }
 body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
-.kkey { place-self: center; width: 84%; height: 84%; padding: 0; position: relative; font-stretch: condensed; letter-spacing: 0.02em; }
-.kkey:active { transform: scale(0.95); }
-.kkey.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
-.kkey {
-  background: linear-gradient(#25292c, #111314); border: 1px solid #000; border-top-color: #41474c; border-radius: 14%;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.65); color: #f2f2f2;
-}
 
-.mpdmain { flex: 1; align-self: stretch; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.mpdcur { flex: none; width: 240px; display: flex; flex-direction: column; gap: 8px; }
-.mpdcur .pad { flex: none; width: 100%; aspect-ratio: 1; }
+.mpdmain { flex: none; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.mpdcur { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.curgrp { flex: none; display: flex; flex-direction: column; gap: 8px; }
+.curgrp .pad { flex: none; width: 100%; aspect-ratio: 1; }
 .curbtns { display: flex; gap: 8px; }
 .cbtn { flex: 1; min-width: 0; min-height: 72px; padding: 2px; font-size: 14px; line-height: 1.15; }
-.mpdsw { flex: none; width: 388px; max-width: 100%; }
+.mpdsw { flex: none; width: 100%; max-width: 580px; }
 .mpdsw .pos { flex: 1; min-width: 0; min-height: 44px; height: 48px; font-size: 16px; }
 .mpdstage { position: relative; flex: 1; min-height: 0; width: 100%; }
 .mbezel { position: absolute; }
 .mart { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .mart text { fill: #f2f2f2; font-size: 28px; text-anchor: middle; }
 .mart .lead { stroke: #f2f2f2; stroke-width: 2.2; }
+.mart.ted text { font-size: 14px; }
+.mart.ted .lead { stroke-width: 1.4; }
 .mkey, .mknob { position: absolute; margin: 0; padding: 0; }
-.mkey::before, .mknob::before {
+.mkey::before, .mknob::before, .rhalf::before, .kkey::before {
   content: ""; position: absolute; left: 50%; top: 50%; width: var(--hw, 100%); height: var(--hh, 100%); transform: translate(-50%, -50%);
 }
 .mkey { font-stretch: condensed; letter-spacing: 0.02em; }
@@ -266,36 +255,47 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .mlabel.e-l { text-align: left; transform: translateY(-50%); }
 .mlabel.e-r { text-align: right; transform: translateY(-50%); }
 
-.kupanel {
-  --kd: calc(var(--u) * 0.62);
-  position: relative; flex: none; display: grid;
-  grid-template-columns: repeat(9, var(--u));
-  grid-template-rows: var(--u) calc(var(--u) * 0.3) repeat(6, var(--u));
-  padding: calc(var(--u) * 0.4);
-  background-color: #2c3035;
-  background-image:
-    radial-gradient(circle at calc(var(--u) * 0.2) calc(var(--u) * 0.2), #8a9096 0, #8a9096 calc(var(--u) * 0.06), transparent calc(var(--u) * 0.065)),
-    radial-gradient(circle at calc(100% - var(--u) * 0.2) calc(var(--u) * 0.2), #8a9096 0, #8a9096 calc(var(--u) * 0.06), transparent calc(var(--u) * 0.065)),
-    radial-gradient(circle at calc(var(--u) * 0.2) calc(100% - var(--u) * 0.2), #8a9096 0, #8a9096 calc(var(--u) * 0.06), transparent calc(var(--u) * 0.065)),
-    radial-gradient(circle at calc(100% - var(--u) * 0.2) calc(100% - var(--u) * 0.2), #8a9096 0, #8a9096 calc(var(--u) * 0.06), transparent calc(var(--u) * 0.065));
-  border: 1px solid #40464c; border-radius: calc(var(--u) * 0.3);
-  box-shadow: inset 0 0 calc(var(--u) * 0.3) rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.6);
+.mbezel.ted .mkey.fix { color: #f2f2f2; font-size: calc(var(--bh) * 0.03); }
+.mbezel.ted .mkey.ast { font-size: calc(var(--bh) * 0.06); }
+.mbezel.ted .mlabel { font-size: calc(var(--bh) * 0.022); }
+.rocker::before { display: none; }
+.rhalf {
+  position: absolute; display: flex; margin: 0; padding: 0; background: none; border: 0; border-radius: 14%;
+  font-size: calc(var(--bh) * 0.024); line-height: 1; color: #f2f2f2;
 }
+.rocker.v .rhalf { left: 0; right: 0; justify-content: center; }
+.rocker.v .rhalf.a { top: 0; bottom: 50%; align-items: flex-start; padding-top: 9%; }
+.rocker.v .rhalf.b { top: 50%; bottom: 0; align-items: flex-end; padding-bottom: 9%; }
+.rocker.h .rhalf { top: 0; bottom: 0; align-items: center; }
+.rocker.h .rhalf.a { left: 0; right: 50%; justify-content: flex-start; padding-left: 10%; }
+.rocker.h .rhalf.b { left: 50%; right: 0; justify-content: flex-end; padding-right: 10%; }
+.rhalf:active { background: rgba(255, 255, 255, 0.18); }
+.rhalf.pressed { outline: 2px solid #ffb300; outline-offset: -2px; }
+.rlabel { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; line-height: 1; pointer-events: none; }
+.rocker:active { transform: none; }
+
+.kupanel { position: relative; flex: none; }
+.kart { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.kart .guide { stroke: #e8e8e8; stroke-width: 5; stroke-linecap: butt; }
 .kudisp {
-  grid-area: 1 / 1 / 2 / 10; display: flex; align-items: center; padding: 0 calc(var(--u) * 0.3); overflow: hidden;
-  background: #000; border: 1px solid #000; border-radius: calc(var(--u) * 0.1);
+  position: absolute; display: flex; align-items: center; padding-left: calc(var(--bh) * 0.028); overflow: hidden;
+  background: linear-gradient(90deg, rgba(40, 100, 190, 0) 40%, rgba(40, 100, 190, 0.2)), #000;
+  border: 1px solid #000; border-radius: 2px;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.12);
-  color: #38ff5a; font-family: "Courier New", Consolas, monospace; font-size: calc(var(--u) * 0.5);
+  color: #3cff6a; font-family: "Courier New", Consolas, monospace; font-size: calc(var(--bh) * 0.055);
   letter-spacing: 0.04em; text-transform: none; white-space: pre;
 }
-.kkey { width: 88%; height: 88%; font-size: calc(var(--u) * 0.36); }
-.kkey.sm { font-size: calc(var(--u) * 0.2); }
+.kkey {
+  position: absolute; margin: 0; padding: 0; font-stretch: condensed; letter-spacing: 0.02em; color: #f2f2f2;
+  font-size: calc(var(--bh) * 0.036);
+  background: linear-gradient(#25292c, #0e0f10); border: 1px solid #000; border-top-color: #646b71; border-radius: 14%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 2px 3px rgba(0, 0, 0, 0.65);
+}
+.kkey:active { transform: scale(0.95); }
+.kkey.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
+.kkey.rnd { border-radius: 50%; font-size: calc(var(--bh) * 0.04); }
+.kkey.sm { font-size: calc(var(--bh) * 0.026); }
 .boxed { padding: 0.02em 0.16em; border: 1.5px solid #e8e8e8; border-radius: 2px; line-height: 1; }
-.kline { pointer-events: none; border: 0 solid #e8e8e8; }
-.kv { grid-column: 7; grid-row: 3 / 7; margin-left: -1px; border-left-width: 2px; }
-.kh1 { grid-column: 7 / 10; grid-row: 6; align-self: end; margin: 0 calc(var(--u) * -0.4) -1px -1px; border-top-width: 2px; }
-.kstep { grid-column: 7; grid-row: 7; margin-left: -1px; border-left-width: 2px; }
-.kh2 { grid-column: 3 / 10; grid-row: 7; align-self: end; margin: 0 calc(var(--u) * -0.4) -1px -1px; border-top-width: 2px; }
 
 #kscrim { position: fixed; inset: 0; z-index: 60; display: none; }
 #kbar {
@@ -455,10 +455,12 @@ const MODE_BASE = 90;
 const MODE_STEP = 45;
 const KNOB_TOL = 700;
 const TOUCH_MIN = 56;
-const FIT = { ku: { w: 9.8, h: 8.1, bw: 2, bh: 2 } };
+const GEAR_CLEAR = 64;
+const CUR_MIN = 160;
 const MPD_BOX = { x: 470, y: 25, w: 1060, h: 1065 };
 const MPD_SCREEN = { x: 605, y: 165, w: 790, h: 787 };
 const MPD_SIDES = [['L', 'LEFT MPD'], ['R', 'RIGHT MPD']];
+const DISPLAYS = [['L', 'LEFT MPD'], ['T', 'TEDAC'], ['R', 'RIGHT MPD']];
 const MPD_GEO = {
   B1: [752, 1020, 58, 46], TSD: [650, 1022, 58, 46], AC: [1355, 1017, 58, 46], FCR: [538, 893, 58, 46],
   WPN: [538, 973, 58, 46], VID: [1465, 886, 58, 46], COM: [1465, 966, 58, 46], AST: [1462, 210, 58, 46],
@@ -471,16 +473,46 @@ const MPD_GEO = {
 const MPD_PRINT = [
   ['VID', 577, 88], ['BRT', 525, 152], ['DAY', 1437, 47], ['NT', 1430, 82], ['MONO', 1446, 116],
 ];
-const KU_ROWS = [
-  ['A', 'B', 'C', 'D', 'E', 'F', '1', '2', '3'],
-  ['G', 'H', 'I', 'J', 'K', 'L', '4', '5', '6'],
-  ['M', 'N', 'O', 'P', 'Q', 'R', '7', '8', '9'],
-  ['S', 'T', 'U', 'V', 'W', 'X', 'DOT', '0', 'SIGN'],
-  ['Y', 'Z', 'SLASH', 'BKS', 'SPC', 'MULTI', 'DIV', 'PLUS', 'MINUS'],
-  ['BRT', 'CLR', 'LEFT', 'RIGHT', null, 'ENT'],
+const TED_BOX = { x: -6, y: -4, w: 576, h: 564 };
+const TED_SCREEN = { x: 97, y: 82, w: 396, h: 386 };
+const TED_GEO = {
+  TAD: [122, 32, 62, 36], FCR: [210, 32, 62, 36], PNV: [295, 32, 62, 36], GS: [380, 32, 62, 36],
+  MODE: [460, 22, 46, 46], LEV: [18, 132, 42, 42], GAIN: [18, 238, 42, 42],
+  RF: [40, 340, 40, 72], EL: [40, 430, 40, 72], SYM: [538, 158, 40, 72], BRT: [538, 252, 40, 72], CON: [538, 345, 40, 72],
+  AST: [538, 438, 40, 40], AZ: [140, 520, 62, 36],
+  B1: [230, 520, 40, 40], B2: [298, 520, 40, 40], B3: [370, 520, 40, 40], B4: [438, 520, 40, 40],
+};
+const TED_PRINT = [
+  ['LEV', 45, 98], ['GAIN', 38, 205], ['DAY', 522, 16], ['NT', 518, 32], ['OFF', 518, 47],
 ];
-const KU_SMALL = ['BKS', 'SPC', 'CLR', 'ENT'];
+const DISP_BOX = { L: MPD_BOX, R: MPD_BOX, T: TED_BOX };
+const DISP_GEO = { L: MPD_GEO, R: MPD_GEO, T: TED_GEO };
+const KU_BOX = { x: 16, y: 13, w: 721, h: 599 };
+const KU_ROWS = [
+  [176, ['A', 'B', 'C', 'D', 'E', 'F'], ['1', '2', '3']],
+  [245, ['G', 'H', 'I', 'J', 'K', 'L'], ['4', '5', '6']],
+  [316, ['M', 'N', 'O', 'P', 'Q', 'R'], ['7', '8', '9']],
+  [387, ['S', 'T', 'U', 'V', 'W', 'X'], ['DOT', '0', 'SIGN']],
+];
+const KU_LETTER_X = [85, 155, 225, 295, 365, 435];
+const KU_NUMBER_X = [508, 578, 652];
+const KU_LOW = ['Y', 'Z', 'SLASH', 'BKS', 'SPC', 'MULTI', 'DIV', 'PLUS', 'MINUS'];
+const KU_LOW_X = [85, 155, 225, 293, 362, 435, 505, 578, 650];
+const KU_GEO = {
+  BRT: [95, 548, 55, 55], CLR: [222, 535, 58, 44], LEFT: [291, 535, 58, 44], RIGHT: [362, 535, 58, 44],
+  ENT: [545, 543, 120, 45], DISPLAY: [367.5, 91.5, 585, 73],
+};
+const KU_SLOTS = [];
+KU_ROWS.forEach(([y, letters, numbers]) => {
+  letters.forEach((slot, i) => { KU_GEO[slot] = [KU_LETTER_X[i], y, 58, 44]; KU_SLOTS.push(slot); });
+  numbers.forEach((slot, i) => { KU_GEO[slot] = [KU_NUMBER_X[i], y, 46, 46]; KU_SLOTS.push(slot); });
+});
+KU_LOW.forEach((slot, i) => { KU_GEO[slot] = [KU_LOW_X[i], 462, 58, 44]; });
+const KU_ROUND = KU_ROWS.flatMap((row) => row[2]);
+const KU_SMALL = ['BKS', 'SPC', 'CLR', 'ENT', 'SIGN'];
 const KU_BOXED = ['E', 'N', 'S', 'W'];
+const KU_GUIDES = [[468, 152, 468, 420], [255, 422, 665, 422], [255, 422, 255, 492], [200, 492, 255, 492]];
+const KU_SCREWS = [[42, 60], [706, 60], [42, 522], [706, 522]];
 
 let views = [];
 let activeIndex = 0;
@@ -489,6 +521,7 @@ let controls = [];
 let current = { status: 'offline', seat: null, values: {}, controls: {}, controlsAge: null, trim: {}, mpdLabels: null };
 let toastTimer = null;
 let mpdView = null;
+let kuView = null;
 let bar = null;
 let serverSettings = null;
 let loggingPending = null;
@@ -955,19 +988,15 @@ function buildKey(def) {
   return c;
 }
 
-function buildKnob(def, bare) {
+function buildKnob(def) {
   const arm = make('span', 'arm');
   const dial = make('span', 'dial');
   const btn = make('button', 'knob');
   btn.type = 'button';
   dial.append(arm);
-  if (bare) btn.append(make('span', 'kn-l', def.label));
   btn.append(make('span', 'kn-m', '−'), dial, make('span', 'kn-p', '+'));
-  let el = btn;
-  if (!bare) {
-    el = make('div', 'panel');
-    el.append(make('div', 'title', def.label), btn);
-  }
+  const el = make('div', 'panel');
+  el.append(make('div', 'title', def.label), btn);
   const c = { def, el, busy: false, pending: null };
   btn.addEventListener('click', () => openBar(c));
   c.update = () => {
@@ -993,7 +1022,9 @@ function buildMpdKnob(def) {
     const v = readValue(def.id);
     arm.style.visibility = typeof v === 'number' ? '' : 'hidden';
     if (typeof v === 'number') {
-      arm.style.transform = 'rotate(' + (mode ? MODE_BASE + (1 - v) * MODE_STEP : v / KNOB_MAX * 270 - 135) + 'deg)';
+      let deg = v / KNOB_MAX * 270 - 135;
+      if (mode) deg = def.side === 'T' ? tedModeDeg(v) : MODE_BASE + (1 - v) * MODE_STEP;
+      arm.style.transform = 'rotate(' + deg + 'deg)';
     }
     btn.setAttribute('aria-disabled', String(!can(c)));
   };
@@ -1055,7 +1086,7 @@ function buildStick(def) {
 }
 
 function barTitle(def) {
-  const side = def.side ? MPD_SIDES.find(([s]) => s === def.side)[1] : 'KU';
+  const side = def.side ? DISPLAYS.find(([s]) => s === def.side)[1] : 'KU';
   return side + ' · ' + def.label;
 }
 
@@ -1162,15 +1193,45 @@ function initBar() {
   document.getElementById('kscrim').addEventListener('click', closeBar);
 }
 
+function buildRocker(def) {
+  const vertical = !def.lr;
+  const dirs = vertical ? ['up', 'down'] : ['left', 'right'];
+  const el = make('div', 'mkey fix rocker ' + (vertical ? 'v' : 'h'));
+  const c = { def, el, busy: false, pending: null, vertical, halves: [], dirs };
+  dirs.forEach((dir, i) => {
+    const half = make('button', 'rhalf ' + 'ab'[i], def.positions[dir]);
+    half.type = 'button';
+    half.addEventListener('click', () => {
+      if (!can(c) || c.busy) return;
+      run(c, { id: def.id, value: dir }, dir);
+    });
+    el.append(half);
+    c.halves.push(half);
+  });
+  el.insertBefore(make('span', 'rlabel', def.label), c.halves[1]);
+  c.update = () => {
+    c.halves.forEach((half, i) => {
+      half.classList.toggle('pressed', c.busy && c.pending === dirs[i]);
+      half.setAttribute('aria-disabled', String(!can(c) || c.busy));
+    });
+  };
+  return c;
+}
+
 function buildMpdButton(def) {
   if (!def.side) return buildButton(def, 'push cbtn', def.label);
+  if (def.side === 'T') {
+    if (/^B[1-4]$/.test(def.slot)) return buildButton(def, 'mkey var e-b', '');
+    return buildButton(def, def.slot === 'AST' ? 'mkey fix ast' : 'mkey fix', def.label);
+  }
   const edge = def.slot !== 'B1' && /^[TLRB][1-6]$/.test(def.slot) ? def.slot[0].toLowerCase() : null;
   if (edge) return buildButton(def, 'mkey var e-' + edge, '');
   return buildButton(def, def.slot === 'AST' ? 'mkey fix ast' : 'mkey fix', def.label);
 }
 
 function buildKuButton(def) {
-  const c = buildButton(def, KU_SMALL.includes(def.slot) ? 'kkey sm' : 'kkey', def.label);
+  const cls = 'kkey' + (KU_ROUND.includes(def.slot) ? ' rnd' : '') + (KU_SMALL.includes(def.slot) ? ' sm' : '');
+  const c = buildButton(def, cls, def.label);
   if (KU_BOXED.includes(def.slot)) {
     c.el.textContent = '';
     c.el.append(make('span', 'boxed', def.label));
@@ -1194,11 +1255,11 @@ function buildControl(def, layout) {
     if (layout === 'mpd') return buildMpdButton(def);
     return layout === 'ku' ? buildKuButton(def) : buildButton(def);
   }
-  if (def.type === 'knob') return layout === 'mpd' ? buildMpdKnob(def) : buildKnob(def, !!layout);
+  if (def.type === 'knob') return layout ? buildMpdKnob(def) : buildKnob(def);
   if (def.type === 'stick') return buildStick(def);
   if (def.type === 'key') return buildKey(def);
   if (def.type === 'lever') return buildLever(def);
-  if (def.type === 'hat') return buildHat(def);
+  if (def.type === 'hat') return layout === 'mpd' ? buildRocker(def) : buildHat(def);
   if (def.type === 'controls') return buildTrim(def);
   if (def.type === 'display') return layout === 'ku' ? buildScratch(def) : buildDisplay(def);
   return null;
@@ -1209,15 +1270,25 @@ function place(c, row, col) {
   c.el.style.gridColumn = col;
 }
 
-function mpdRect(el, cx, cy, w, h) {
-  el.style.left = (cx - w / 2 - MPD_BOX.x) / MPD_BOX.w * 100 + '%';
-  el.style.top = (cy - h / 2 - MPD_BOX.y) / MPD_BOX.h * 100 + '%';
-  el.style.width = w / MPD_BOX.w * 100 + '%';
-  el.style.height = h / MPD_BOX.h * 100 + '%';
+function boxRect(el, box, cx, cy, w, h) {
+  el.style.left = (cx - w / 2 - box.x) / box.w * 100 + '%';
+  el.style.top = (cy - h / 2 - box.y) / box.h * 100 + '%';
+  el.style.width = w / box.w * 100 + '%';
+  el.style.height = h / box.h * 100 + '%';
+}
+
+function svgLine(cls, x1, y1, x2, y2) {
+  return '<line class="' + cls + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>';
+}
+
+function tedModeDeg(v) {
+  const [, x, y] = TED_PRINT[2 + Math.min(Math.max(2 - Math.round(v), 0), 2)];
+  const [kx, ky] = TED_GEO.MODE;
+  return Math.atan2(x - kx, ky - y) * 180 / Math.PI;
 }
 
 function mpdSvg() {
-  const line = (x1, y1, x2, y2) => '<line class="lead" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>';
+  const line = (x1, y1, x2, y2) => svgLine('lead', x1, y1, x2, y2);
   const leaders = [];
   Object.keys(MPD_GEO).forEach((slot) => {
     const [x, y] = MPD_GEO[slot];
@@ -1247,6 +1318,54 @@ function mpdSvg() {
     + '<rect x="582" y="142" width="836" height="833" rx="14" fill="url(#mbevel)" stroke="#0e1012" stroke-width="3"/>'
     + '<rect x="' + sc.x + '" y="' + sc.y + '" width="' + sc.w + '" height="' + sc.h + '" rx="6" fill="#0b120d" stroke="#000" stroke-width="3"/>'
     + leaders.join('') + screws.join('') + text.join('')
+    + '</svg>';
+}
+
+function tedSvg() {
+  const sc = TED_SCREEN;
+  const [kx, ky, kd] = TED_GEO.MODE;
+  const leaders = ['B1', 'B2', 'B3', 'B4'].map((slot) => {
+    const [x, y, , h] = TED_GEO[slot];
+    return svgLine('lead', x, y - h / 2, x, sc.y + sc.h);
+  });
+  TED_PRINT.slice(2).forEach(([, x, y]) => {
+    const len = Math.hypot(x - kx, y - ky);
+    const ux = (x - kx) / len;
+    const uy = (y - ky) / len;
+    leaders.push(svgLine('lead', kx + ux * (kd / 2 + 3), ky + uy * (kd / 2 + 3), kx + ux * (kd / 2 + 13), ky + uy * (kd / 2 + 13)));
+  });
+  const text = TED_PRINT.map(([t, x, y]) => '<text x="' + x + '" y="' + y + '" dy="0.35em">' + t + '</text>');
+  return '<svg class="mart ted" viewBox="' + [TED_BOX.x, TED_BOX.y, TED_BOX.w, TED_BOX.h].join(' ') + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<defs><linearGradient id="tbevel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4147"/><stop offset="1" stop-color="#15181a"/></linearGradient></defs>'
+    + '<rect x="5" y="3" width="555" height="552" rx="26" fill="#262829" stroke="#3d4348" stroke-width="3"/>'
+    + '<rect x="85" y="70" width="420" height="410" rx="10" fill="url(#tbevel)" stroke="#0e1012" stroke-width="2"/>'
+    + '<rect x="' + sc.x + '" y="' + sc.y + '" width="' + sc.w + '" height="' + sc.h + '" rx="4" fill="#0d1a17" stroke="#000" stroke-width="2"/>'
+    + leaders.join('') + text.join('')
+    + '</svg>';
+}
+
+function tedLabel(slot, text) {
+  const sc = TED_SCREEN;
+  const el = make('div', 'mlabel e-b', text);
+  el.style.left = (TED_GEO[slot][0] - TED_BOX.x) / TED_BOX.w * 100 + '%';
+  el.style.bottom = (TED_BOX.y + TED_BOX.h - (sc.y + sc.h) + 6) / TED_BOX.h * 100 + '%';
+  return el;
+}
+
+function kuSvg() {
+  const slots = KU_SLOTS.map((slot) => {
+    const [x, y, , h] = KU_GEO[slot];
+    return '<rect x="' + (x - 22.5) + '" y="' + (y + h / 2 + 8) + '" width="45" height="6" rx="2" fill="#121314" stroke="#3a3e42" stroke-width="1"/>';
+  });
+  const screws = KU_SCREWS.map(([x, y], i) => (
+    '<circle cx="' + x + '" cy="' + y + '" r="9" fill="#5b6269" stroke="#1a1c1e" stroke-width="2"/>'
+    + '<line x1="' + (x - 5.5) + '" y1="' + y + '" x2="' + (x + 5.5) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.2" transform="rotate(' + (i * 35 + 20) + ' ' + x + ' ' + y + ')"/>'
+  ));
+  const guides = KU_GUIDES.map(([x1, y1, x2, y2]) => svgLine('guide', x1, y1, x2, y2));
+  return '<svg class="kart" viewBox="' + [KU_BOX.x, KU_BOX.y, KU_BOX.w, KU_BOX.h].join(' ') + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<rect x="18" y="15" width="717" height="595" rx="30" fill="#2a2c2e" stroke="#40454a" stroke-width="3"/>'
+    + '<rect x="52" y="488" width="113" height="104" rx="8" fill="#1c1e20" stroke="#0e0f10" stroke-width="3"/>'
+    + slots.join('') + guides.join('') + screws.join('')
     + '</svg>';
 }
 
@@ -1283,7 +1402,8 @@ function mpdLabel(pb) {
 
 function loadMpdSide() {
   try {
-    return localStorage.getItem(MPD_KEY) === 'R' ? 'R' : 'L';
+    const side = localStorage.getItem(MPD_KEY);
+    if (side === 'R' || side === 'T') return side;
   } catch (e) { /* storage not available, start on the left MPD */ }
   return 'L';
 }
@@ -1294,51 +1414,81 @@ function saveMpdSide(side) {
   } catch (e) { /* storage not available, the choice is not remembered */ }
 }
 
-function setMpdSide(side) {
-  if (!mpdView || mpdView.side === side) return;
+function shownMpdSide() {
+  return mpdView.pref === 'T' && current.seat !== 1 ? 'L' : mpdView.pref;
+}
+
+function showMpdSide(side) {
+  if (mpdView.side === side) return;
   closeBar();
   mpdView.side = side;
-  saveMpdSide(side);
   mpdView.stage.replaceChildren(mpdView.bezels[side]);
-  MPD_SIDES.forEach(([s]) => mpdView.buttons[s].classList.toggle('cur', s === side));
+  DISPLAYS.forEach(([s]) => mpdView.buttons[s].classList.toggle('cur', s === side));
   fit();
+}
+
+function setMpdSide(side) {
+  if (!mpdView) return;
+  mpdView.pref = side;
+  saveMpdSide(side);
+  showMpdSide(shownMpdSide());
   renderMpd();
+}
+
+function halfTouch(c, [cx, cy, w, h]) {
+  return c.halves.map((el, i) => {
+    const sign = i ? 1 : -1;
+    return c.vertical
+      ? { el, cx, cy: cy + sign * h / 4, w, h: h / 2 }
+      : { el, cx: cx + sign * w / 4, cy, w: w / 2, h };
+  });
 }
 
 function placeMpd(box, cs) {
   const main = make('div', 'mpdmain');
   const cur = make('div', 'mpdcur');
+  const grp = make('div', 'curgrp');
   const sw = make('div', 'seg mpdsw');
   const stage = make('div', 'mpdstage');
-  mpdView = { side: loadMpdSide(), stage, bezels: {}, labels: {}, buttons: {}, items: {} };
-  MPD_SIDES.forEach(([side, name]) => {
+  mpdView = { pref: loadMpdSide(), side: null, main, cur, grp, sw, stage, bezels: {}, labels: {}, buttons: {}, touch: {} };
+  mpdView.side = shownMpdSide();
+  DISPLAYS.forEach(([side, name]) => {
     const btn = make('button', 'pos', name);
     btn.type = 'button';
     btn.addEventListener('click', () => setMpdSide(side));
     btn.classList.toggle('cur', side === mpdView.side);
     sw.append(btn);
     mpdView.buttons[side] = btn;
-    const bezel = make('div', 'mbezel');
-    bezel.insertAdjacentHTML('beforeend', mpdSvg());
-    mpdView.labels[side] = {};
-    for (let pb = 1; pb <= 24; pb++) {
-      mpdView.labels[side][pb] = mpdLabel(pb);
-      bezel.append(mpdView.labels[side][pb]);
+    const ted = side === 'T';
+    const bezel = make('div', ted ? 'mbezel ted' : 'mbezel');
+    bezel.insertAdjacentHTML('beforeend', ted ? tedSvg() : mpdSvg());
+    const items = cs.filter((c) => c.def.side === side && DISP_GEO[side][c.def.slot]);
+    if (ted) {
+      items.forEach((c) => { if (/^B[1-4]$/.test(c.def.slot)) bezel.append(tedLabel(c.def.slot, c.def.label)); });
+    } else {
+      mpdView.labels[side] = {};
+      for (let pb = 1; pb <= 24; pb++) {
+        mpdView.labels[side][pb] = mpdLabel(pb);
+        bezel.append(mpdView.labels[side][pb]);
+      }
     }
-    mpdView.items[side] = cs.filter((c) => c.def.side === side && MPD_GEO[c.def.slot]);
-    mpdView.items[side].forEach((c) => {
-      const [cx, cy, w, h] = MPD_GEO[c.def.slot];
-      mpdRect(c.el, cx, cy, w, h);
+    mpdView.touch[side] = [];
+    items.forEach((c) => {
+      const geo = DISP_GEO[side][c.def.slot];
+      boxRect(c.el, DISP_BOX[side], ...geo);
       bezel.append(c.el);
+      if (c.halves) mpdView.touch[side].push(...halfTouch(c, geo));
+      else mpdView.touch[side].push({ el: c.el, cx: geo[0], cy: geo[1], w: geo[2], h: geo[3] });
     });
     mpdView.bezels[side] = bezel;
   });
   const bySlot = {};
   cs.forEach((c) => { if (!c.def.side) bySlot[c.def.slot] = c; });
   const row = make('div', 'curbtns');
-  if (bySlot.CURSOR) cur.append(bySlot.CURSOR.el);
+  if (bySlot.CURSOR) grp.append(bySlot.CURSOR.el);
   ['CURSOR_DISPLAY', 'CURSOR_ENTER'].forEach((slot) => { if (bySlot[slot]) row.append(bySlot[slot].el); });
-  cur.append(row);
+  grp.append(row);
+  cur.append(grp);
   main.append(sw, stage);
   box.append(main, cur);
   stage.append(mpdView.bezels[mpdView.side]);
@@ -1346,6 +1496,9 @@ function placeMpd(box, cs) {
 
 function renderMpd() {
   if (!mpdView) return;
+  const want = shownMpdSide();
+  if (want !== mpdView.side) showMpdSide(want);
+  mpdView.buttons.T.style.display = current.seat === 1 ? '' : 'none';
   const m = current.mpdLabels;
   const live = !!m && typeof m.age === 'number' && m.age <= STALE_S;
   MPD_SIDES.forEach(([side]) => {
@@ -1359,25 +1512,17 @@ function renderMpd() {
   });
 }
 
-function fitMpd() {
-  if (!mpdView) return;
-  const w = mpdView.stage.clientWidth;
-  const h = mpdView.stage.clientHeight;
-  const s = Math.min(w / MPD_BOX.w, h / MPD_BOX.h);
-  if (!(s > 0)) return;
-  const bw = MPD_BOX.w * s;
-  const bh = MPD_BOX.h * s;
-  MPD_SIDES.forEach(([side]) => {
-    const st = mpdView.bezels[side].style;
-    st.left = (w - bw) / 2 + 'px';
-    st.top = (h - bh) / 2 + 'px';
-    st.width = bw + 'px';
-    st.height = bh + 'px';
-    st.setProperty('--bh', bh + 'px');
-  });
-  const items = mpdView.items[mpdView.side].map((c) => {
-    const [cx, cy, w0, h0] = MPD_GEO[c.def.slot];
-    const item = { c, x: cx * s, y: cy * s, vw: w0 * s, vh: h0 * s };
+function innerSize(box) {
+  const cs = getComputedStyle(box);
+  return [
+    box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+    box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom),
+  ];
+}
+
+function spread(touch, s) {
+  const items = touch.map((t) => {
+    const item = { el: t.el, x: t.cx * s, y: t.cy * s, vw: t.w * s, vh: t.h * s };
     item.hw = Math.max(item.vw, TOUCH_MIN) / 2;
     item.hh = Math.max(item.vh, TOUCH_MIN) / 2;
     return item;
@@ -1401,24 +1546,61 @@ function fitMpd() {
     }));
   }
   items.forEach((i) => {
-    i.c.el.style.setProperty('--hw', i.hw * 2 + 'px');
-    i.c.el.style.setProperty('--hh', i.hh * 2 + 'px');
+    i.el.style.setProperty('--hw', i.hw * 2 + 'px');
+    i.el.style.setProperty('--hh', i.hh * 2 + 'px');
   });
+}
+
+function fitMpd() {
+  if (!mpdView) return;
+  const side = mpdView.side;
+  const bx = DISP_BOX[side];
+  const area = document.getElementById('controls');
+  const [areaW, areaH] = innerSize(area);
+  const gap = parseFloat(getComputedStyle(area).columnGap);
+  mpdView.main.style.width = Math.max(0, Math.min(mpdView.stage.clientHeight * bx.w / bx.h, areaW - CUR_MIN - gap)) + 'px';
+  const rowH = mpdView.grp.lastElementChild.offsetHeight;
+  const pad = Math.max(0, Math.floor(Math.min(mpdView.cur.clientWidth, areaH - 2 * GEAR_CLEAR - rowH - 8)));
+  mpdView.grp.style.width = pad + 'px';
+  const w = mpdView.stage.clientWidth;
+  const h = mpdView.stage.clientHeight;
+  const s = Math.min(w / bx.w, h / bx.h);
+  if (!(s > 0)) return;
+  const bw = bx.w * s;
+  const bh = bx.h * s;
+  const st = mpdView.bezels[side].style;
+  st.left = (w - bw) / 2 + 'px';
+  st.top = (h - bh) / 2 + 'px';
+  st.width = bw + 'px';
+  st.height = bh + 'px';
+  st.setProperty('--bh', bh + 'px');
+  spread(mpdView.touch[side], s);
 }
 
 function placeKu(box, cs) {
   const panel = make('div', 'kupanel');
-  const bySlot = {};
-  cs.forEach((c) => { bySlot[c.def.slot] = c; });
-  if (bySlot.DISPLAY) panel.append(bySlot.DISPLAY.el);
-  ['kline kv', 'kline kh1', 'kline kstep', 'kline kh2'].forEach((cls) => panel.append(make('div', cls)));
-  KU_ROWS.forEach((row, r) => row.forEach((slot, col) => {
-    const c = slot && bySlot[slot];
-    if (!c) return;
-    place(c, 3 + r, slot === 'ENT' ? col + 1 + ' / span 2' : col + 1);
+  panel.insertAdjacentHTML('beforeend', kuSvg());
+  kuView = { panel, touch: [] };
+  cs.forEach((c) => {
+    const geo = KU_GEO[c.def.slot];
+    if (!geo) return;
+    boxRect(c.el, KU_BOX, ...geo);
     panel.append(c.el);
-  }));
+    if (c.def.type !== 'display') kuView.touch.push({ el: c.el, cx: geo[0], cy: geo[1], w: geo[2], h: geo[3] });
+  });
   box.append(panel);
+}
+
+function fitKu() {
+  if (!kuView) return;
+  const [w, h] = innerSize(document.getElementById('controls'));
+  const s = Math.min(w / KU_BOX.w, h / KU_BOX.h);
+  if (!(s > 0)) return;
+  const st = kuView.panel.style;
+  st.width = KU_BOX.w * s + 'px';
+  st.height = KU_BOX.h * s + 'px';
+  st.setProperty('--bh', KU_BOX.h * s + 'px');
+  spread(kuView.touch, s);
 }
 
 function placeGrid(box, cs) {
@@ -1432,18 +1614,9 @@ function placeGrid(box, cs) {
 const PLACERS = { mpd: placeMpd, ku: placeKu };
 
 function fit() {
-  const box = document.getElementById('controls');
-  if (box.className === 'mpd') {
-    fitMpd();
-    return;
-  }
-  const m = FIT[box.className];
-  if (!m) return;
-  const cs = getComputedStyle(box);
-  const w = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const h = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-  const u = Math.max(20, Math.floor(Math.min((w - m.bw) / m.w, (h - m.bh) / m.h) * 10) / 10);
-  box.style.setProperty('--u', u + 'px');
+  const name = document.getElementById('controls').className;
+  if (name === 'mpd') fitMpd();
+  else if (name === 'ku') fitKu();
 }
 
 function showView(index) {
@@ -1455,6 +1628,7 @@ function showView(index) {
   const layout = view.layout || null;
   const grid = !layout && view.controls.some((d) => d.grid);
   mpdView = null;
+  kuView = null;
   closeBar();
   lampBox.replaceChildren();
   controlBox.replaceChildren();
