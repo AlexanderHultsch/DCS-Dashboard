@@ -73,6 +73,7 @@ LEVER_WAIT = 1.0
 SEAT = "SEAT_POSITION"
 SEAT_NAMES = {0: "PLT", 1: "CPG"}
 INDEX = Path(__file__).resolve().parent / "web" / "index.html"
+ICON = Path(__file__).resolve().parent / "web" / "apple-touch-icon.png"
 SETTINGS_FILE = Path(__file__).resolve().parent / "settings.json"
 
 cfg = {}
@@ -313,6 +314,11 @@ class Handler(BaseHTTPRequestHandler):
                 self.reply(404, "text/plain; charset=utf-8", b"web/index.html is missing")
             else:
                 self.reply(200, "text/html; charset=utf-8", INDEX.read_bytes())
+        elif self.path == "/apple-touch-icon.png":
+            if not ICON.exists():
+                self.reply(404, "text/plain; charset=utf-8", b"web/apple-touch-icon.png is missing")
+            else:
+                self.reply(200, "image/png", ICON.read_bytes())
         elif self.path == "/layout":
             self.reply_json(200, {"views": VIEWS})
         elif self.path == "/state":

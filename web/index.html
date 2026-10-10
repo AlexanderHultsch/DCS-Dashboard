@@ -2,15 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DCS Dashboard">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>DCS-Dashboard</title>
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; background: #111; color: #fff; }
+html, body {
+  position: fixed; inset: 0; overflow: hidden; overscroll-behavior: none;
+  margin: 0; background: #111; color: #fff;
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+}
 body {
-  min-height: 100vh; min-height: 100dvh;
   display: flex; flex-direction: column;
   font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
@@ -53,7 +59,7 @@ nav { display: flex; gap: 8px; flex: 1; }
 .lamp.lit { background: var(--c); color: var(--t); box-shadow: 0 0 22px 5px var(--g); }
 
 #controls {
-  flex: 1; display: grid; gap: 10px; padding: 12px;
+  flex: 1; display: grid; gap: 10px; padding: 12px 12px 80px;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   grid-auto-rows: minmax(230px, 1fr); grid-auto-flow: dense;
 }
@@ -115,11 +121,54 @@ body.ro .panel { opacity: 0.6; }
 .handle.none { display: none; }
 
 #toast {
-  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  position: fixed; z-index: 70; left: 50%; bottom: 24px; transform: translateX(-50%);
   max-width: 90%; padding: 14px 22px; background: #e53935; color: #fff; border-radius: 6px;
   font-size: 16px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
 #toast.show { opacity: 1; }
+
+#gear {
+  position: fixed; z-index: 40;
+  right: calc(16px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom));
+  width: 56px; height: 56px; padding: 0; display: flex; align-items: center; justify-content: center;
+  background: #1b1d1f; border: 1px solid #3a3d40; border-radius: 50%;
+}
+#gear svg { width: 30px; height: 30px; fill: #fff; }
+body.settings-open #gear { display: none; }
+
+#settings {
+  position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column;
+  background: #111;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#settings.open { display: flex; }
+.back {
+  min-width: 56px; min-height: 56px; padding: 0 20px;
+  background: #26292c; border: 1px solid #555; border-radius: 6px; font-size: 16px;
+}
+.sheading { flex: 1; font-size: 18px; color: #bbb; }
+#setbody {
+  flex: 1; min-height: 0; display: grid; align-content: start; gap: 10px; padding: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+#setbody .panel { gap: 10px; padding: 12px; }
+#setbody .panel.wide { grid-column: span 2; }
+.seg { display: flex; gap: 8px; }
+.help { font-size: 12px; letter-spacing: 0.02em; text-transform: none; color: #999; }
+.row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+.row .key { flex: 0 0 220px; font-size: 12px; color: #999; }
+.row .val {
+  flex: 1; min-width: 0; font-family: "Courier New", Consolas, monospace; font-size: 14px;
+  letter-spacing: 0; text-transform: none; color: #f2f2f2; word-break: break-all;
+}
+
+#portrait {
+  position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center;
+  padding: 24px; background: #111; color: #fff; font-size: 36px; line-height: 1.3; text-align: center;
+}
+@media (orientation: portrait) {
+  #portrait { display: flex; }
+}
 </style>
 </head>
 <body class="ro">
@@ -130,6 +179,34 @@ body.ro .panel { opacity: 0.6; }
 </header>
 <div id="lamps"></div>
 <div id="controls"></div>
+<button id="gear" type="button" aria-label="Settings">
+  <svg viewBox="0 0 24 24" fill-rule="evenodd" aria-hidden="true"><path d="M10.18 4.42 L10.60 1.59 L13.40 1.59 L13.82 4.42 L16.08 5.35 L18.37 3.65 L20.35 5.63 L18.65 7.92 L19.58 10.18 L22.41 10.60 L22.41 13.40 L19.58 13.82 L18.65 16.08 L20.35 18.37 L18.37 20.35 L16.08 18.65 L13.82 19.58 L13.40 22.41 L10.60 22.41 L10.18 19.58 L7.92 18.65 L5.63 20.35 L3.65 18.37 L5.35 16.08 L4.42 13.82 L1.59 13.40 L1.59 10.60 L4.42 10.18 L5.35 7.92 L3.65 5.63 L5.63 3.65 L7.92 5.35Z M12 8.2a3.8 3.8 0 1 0 0 7.6a3.8 3.8 0 1 0 0-7.6Z"/></svg>
+</button>
+<div id="settings">
+  <header>
+    <button id="back" class="back" type="button">BACK</button>
+    <span class="sheading">SETTINGS</span>
+  </header>
+  <div id="setbody">
+    <div class="panel">
+      <div class="title">LOGGING</div>
+      <div class="seg" id="logseg"></div>
+      <div class="help">Writes logs\dcs-dashboard.log on the PC.</div>
+    </div>
+    <div class="panel">
+      <div class="title">KEEP SCREEN ON</div>
+      <div class="seg" id="wakeseg"></div>
+      <div class="help" id="wakehelp">Stops the tablet from dimming and locking.</div>
+    </div>
+    <div class="panel wide">
+      <div class="title">INFO</div>
+      <div class="row"><span class="key">DCS SAVED GAMES</span><span class="val" id="info-saved"></span></div>
+      <div class="row"><span class="key">DCS DATA</span><span class="val" id="info-data"></span></div>
+      <div class="row"><span class="key">OPEN ON ANOTHER TABLET</span><span class="val" id="info-address"></span></div>
+    </div>
+  </div>
+</div>
+<div id="portrait">TURN THE IPAD TO LANDSCAPE</div>
 <div id="toast" role="status"></div>
 <script>
 'use strict';
@@ -140,6 +217,8 @@ const TOAST_MS = 3000;
 const CONFIRM_MS = 1500;
 
 const TAB_KEY = 'dcs-dashboard-tab';
+const WAKE_KEY = 'dcs-dashboard-wake';
+const UNREACHABLE = 'bridge not reachable';
 const SEAT_PREFIX = ['PLT', 'CPG'];
 const SEAT_LABEL = ['PILOT', 'CP/G'];
 const BADGES = {
@@ -155,6 +234,10 @@ let lamps = [];
 let controls = [];
 let current = { status: 'offline', seat: null, values: {} };
 let toastTimer = null;
+let serverSettings = null;
+let loggingPending = null;
+let wakeWanted = false;
+let wakeLock = null;
 
 function make(tag, cls, text) {
   const e = document.createElement(tag);
@@ -259,6 +342,7 @@ function renderBadge() {
   const el = document.getElementById('seat');
   el.textContent = b.text;
   el.className = 'badge ' + b.cls;
+  document.getElementById('info-data').textContent = b.text;
   document.body.classList.toggle('ro', !usable());
 }
 
@@ -490,6 +574,125 @@ function buildTabs() {
   });
 }
 
+function loadWake() {
+  try {
+    return localStorage.getItem(WAKE_KEY) === 'on';
+  } catch (e) { /* storage not available, screen stays as the tablet has it */ }
+  return false;
+}
+
+function saveWake(on) {
+  try {
+    localStorage.setItem(WAKE_KEY, on ? 'on' : 'off');
+  } catch (e) { /* storage not available, the choice is not remembered */ }
+}
+
+async function applyWake(notify) {
+  if (!wakeSupported) return;
+  if (!wakeWanted) {
+    const old = wakeLock;
+    wakeLock = null;
+    if (old) {
+      try { await old.release(); } catch (e) { /* already released */ }
+    }
+    return;
+  }
+  if (wakeLock || document.visibilityState !== 'visible') return;
+  try {
+    const lock = await navigator.wakeLock.request('screen');
+    if (!wakeWanted || wakeLock) {
+      lock.release().catch(() => {});
+      return;
+    }
+    wakeLock = lock;
+    lock.addEventListener('release', () => {
+      if (wakeLock === lock) wakeLock = null;
+    });
+  } catch (e) {
+    if (notify) toast('could not keep the screen on');
+  }
+}
+
+function setWake(on) {
+  if (!wakeSupported || wakeWanted === on) return;
+  wakeWanted = on;
+  saveWake(on);
+  renderSettings();
+  applyWake(true);
+}
+
+function buildSeg(box, onPick) {
+  return [false, true].map((value) => {
+    const btn = make('button', 'pos', value ? 'ON' : 'OFF');
+    btn.type = 'button';
+    btn.addEventListener('click', () => onPick(value));
+    box.append(btn);
+    return [btn, value];
+  });
+}
+
+async function setLogging(on) {
+  if (!serverSettings || loggingPending !== null || serverSettings.logging === on) return;
+  loggingPending = on;
+  renderSettings();
+  try {
+    const r = await fetch('/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ logging: on }),
+    });
+    if (r.ok) {
+      serverSettings = await r.json();
+    } else {
+      let message = 'error ' + r.status;
+      try { message = (await r.json()).error || message; } catch (e) { /* keep the status text */ }
+      toast(message);
+    }
+  } catch (e) {
+    toast(UNREACHABLE);
+  }
+  loggingPending = null;
+  renderSettings();
+}
+
+function renderSettings() {
+  const known = !!serverSettings;
+  logButtons.forEach(([btn, value]) => {
+    btn.classList.toggle('cur', known && serverSettings.logging === value);
+    btn.classList.toggle('pending', loggingPending === value);
+    btn.setAttribute('aria-disabled', String(!known || loggingPending !== null));
+  });
+  wakeButtons.forEach(([btn, value]) => {
+    btn.classList.toggle('cur', wakeSupported && wakeWanted === value);
+    btn.classList.toggle('dis', !wakeSupported);
+    btn.setAttribute('aria-disabled', String(!wakeSupported));
+  });
+  document.getElementById('wakehelp').textContent = wakeSupported
+    ? 'Stops the tablet from dimming and locking.'
+    : 'Not supported on this device.';
+  const none = serverSettings === false ? UNREACHABLE : '';
+  document.getElementById('info-saved').textContent = known ? serverSettings.saved_games : none;
+  document.getElementById('info-address').textContent = known ? serverSettings.address : none;
+}
+
+async function openSettings() {
+  document.body.classList.add('settings-open');
+  document.getElementById('settings').classList.add('open');
+  serverSettings = null;
+  renderSettings();
+  try {
+    serverSettings = await getJson('/settings');
+  } catch (e) {
+    serverSettings = false;
+  }
+  renderSettings();
+}
+
+function closeSettings() {
+  document.body.classList.remove('settings-open');
+  document.getElementById('settings').classList.remove('open');
+}
+
 async function poll() {
   try {
     const s = await getJson('/state');
@@ -503,6 +706,8 @@ async function poll() {
 
 async function init() {
   renderBadge();
+  wakeWanted = wakeSupported && loadWake();
+  applyWake(false);
   for (;;) {
     try {
       views = (await getJson('/layout')).views;
@@ -515,6 +720,21 @@ async function init() {
   showView(loadTab());
   poll();
 }
+
+['gesturestart', 'gesturechange', 'gestureend', 'dblclick', 'contextmenu'].forEach((type) => {
+  document.addEventListener(type, (e) => e.preventDefault());
+});
+document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && wakeWanted) applyWake(false);
+});
+
+const wakeSupported = 'wakeLock' in navigator;
+const logButtons = buildSeg(document.getElementById('logseg'), setLogging);
+const wakeButtons = buildSeg(document.getElementById('wakeseg'), setWake);
+document.getElementById('gear').addEventListener('click', openSettings);
+document.getElementById('back').addEventListener('click', closeSettings);
+renderSettings();
 
 init();
 </script>
