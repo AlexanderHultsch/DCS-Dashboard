@@ -1,8 +1,8 @@
 # Cockpit pages
 
-Spec for the next part of Stage 3 ([STAGE3.md](STAGE3.md)): a **COCKPIT** tab that shows a simplified cockpit map, and one page per cockpit panel with every button, switch, knob and display of that panel, as in the real AH-64D.
+Spec of the COCKPIT part of Stage 3 ([STAGE3.md](STAGE3.md)): a **COCKPIT** tab that shows a simplified cockpit map, and one page per cockpit panel with every button, switch, knob and display of that panel, as in the real AH-64D.
 
-Status: spec only, nothing built yet. AH-64D only; the structure stays reusable for other aircraft.
+Status: built and tested in an isolated setup (simulated DCS-BIOS, no real DCS ports, checked in a browser). The real DCS test run is open. AH-64D only; the structure stays reusable for other aircraft.
 
 Sources used: the DCS AH-64D Flight Manual (cockpit overview, pages 104 to 127), the DCS cockpit definition (`clickabledata.lua`), the DCS-BIOS module (`AH-64D.lua`, value and position tables) and the Stage 2 results. Controls are named by their DCS-BIOS id; `{S}` stands for `PLT` (pilot) or `CPG` (copilot/gunner).
 
@@ -14,19 +14,20 @@ Sources used: the DCS AH-64D Flight Manual (cockpit overview, pages 104 to 127),
 
 ## Navigation
 
-Tabs: **COCKPIT | FLIGHT | FIGHT | MPD | KU**. COCKPIT replaces STARTUP.
+Tabs: **COCKPIT | FLIGHT | FIGHT | MPD | KU**. COCKPIT replaces the old STARTUP tab, which is removed. A STARTUP tab name saved in the browser opens COCKPIT.
 
 - **COCKPIT, tap:** the cockpit map of the current seat. Each box is a panel; tap a box to open its page.
 - **On a panel page** the COCKPIT tab reads `◀ COCKPIT`. One tap goes back to the map. It is always in the same place, so no extra button is needed on the page.
 - **COCKPIT, long hold (0.5 s):** a list of every page of the current seat, for jumping from page to page without the map.
 - The map boxes for the two MPDs, the TEDAC (CP/G only) and the KU open the existing MPD and KU tabs (MPD L, MPD R or TEDAC preselected).
 - A page that does not exist in the current seat is not shown (map and list), it is not greyed out. The map follows the seat badge, as the other views do.
-- The MSTR WARN and MSTR CAUT lamps stay in the top row of every page.
+- When the seat changes while a panel page is open, the page of the same name for the new seat opens (POWER stays POWER, EMERGENCY stays EMERGENCY). If the new seat has no page of that name (for example CMWS, CENTER or EXT / INTR LT), the COCKPIT map of the new seat opens.
+- The MSTR WARN and MSTR CAUT lamps stay in the top row of the map and of every panel page.
 - `CANOPY` stays a small key button, on the map.
 
 ## Cockpit map
 
-A 12 × 7 grid, `[row, col, rows, cols]`, drawn as plain boxes with the panel placard. Heavily simplified: the order of the real cockpit, none of the detail. The exact box sizes are set in build step 1 and checked at 1024 × 768 and 1180 × 820.
+A 12 × 7 grid, `[row, col, rows, cols]`, drawn as plain boxes with the panel placard. Heavily simplified: the order of the real cockpit, none of the detail. The cells are in the tables below.
 
 Pilot (manual page 104 to 121):
 
@@ -63,8 +64,8 @@ CP/G (manual page 123 to 127):
 ```
  1  KU            | FIRE DET/EXTG  ARMAMENT          EUFD         |
  2  EMERGENCY     | ┌───────────┐ ┌──────────┐ ┌───────────┐     | COMM
- 3  POWER         | │   MPD L   │ │  TEDAC   │ │   MPD R   │     | (+ WIPER / DEFOG)
- 4  (levers)      | └───────────┘ └──────────┘ └───────────┘     |
+ 3  POWER         | │   MPD L   │ │  TEDAC   │ │   MPD R   │     |
+ 4  (levers)      | └───────────┘ └──────────┘ └───────────┘     | WIPER / DEFOG
  5  TAIL WHL/NVS  |                                              |
  6  INTR LT       |                                              |
  7  STORES JETT   |                                              |
@@ -83,9 +84,10 @@ CP/G (manual page 123 to 127):
 | ARMAMENT | [1,6,1,2] |
 | EUFD | [1,8,1,3] |
 | MPD L / TEDAC / MPD R | [2,4,3,2] / [2,6,3,2] / [2,8,3,3] |
-| COMM | [2,10,2,3] |
+| COMM | [2,11,2,2] |
+| WIPER / DEFOG | [4,11,1,2] |
 
-The CP/G has no CMWS, no EXT LT, no VIDEO, no CHECK OVERSPEED / GENERATOR RESET panel, no PARK BRAKE, no master ignition, no APU, no engine start, no rotor brake. The CP/G wiper and defog are on the right console (with COMM), the pilot's are on the instrument panel (CENTER page).
+The CP/G has no CMWS, no EXT LT, no VIDEO, no CHECK OVERSPEED / GENERATOR RESET panel, no PARK BRAKE, no master ignition, no APU, no engine start, no rotor brake. The CP/G wiper and defog are on the right console, on their own page WIPER / DEFOG below COMM; the pilot's are on the instrument panel (CENTER page).
 
 ## Naming convention
 
@@ -110,23 +112,42 @@ Every control is a data entry in `aircraft/ah64d.py` (the generic bridge and pag
 | `requires` | another control that must be in a position first (the APU cover) |
 | `seats` | `[0]` pilot, `[1]` CP/G, omitted = both |
 | `guard` (new) | `true` for a [guarded control](#guarded-controls) |
-| `at` (new) | position and size on the panel photo, `[x, y, w, h]` in photo pixels, scaled like the MPD, TEDAC and KU drawings |
-| `lamps` (new, per page) | free lamps on the panel: `{id, label, color, at}` (the FIRE and RDY lights of the fire panel, the CMWS threat lamps) |
-| `ids` (new, `display` only) | a display made of several DCS-BIOS strings (the 14 lines of the EUFD) |
+| `at` (new) | position and size on the panel drawing, `[x, y, w, h]` in the pixels of the reference photo, scaled like the MPD, TEDAC and KU drawings |
+| `lamps` (new, per control) | two lamps on the face of a button, `{id, color, legend}`, upper and lower half (FIRE and RDY on the fire buttons, ARM and SAFE on A/S) |
+| `ids` (new, `display` only) | a display made of several DCS-BIOS strings (the 14 lines of the EUFD, the CMWS status) |
 
-Page definition (new layout `"panel"`):
+Further properties the panel pages use:
+
+| Property | Meaning |
+| --- | --- |
+| `style` | how a control is drawn: `rotary` (round selector knob with a pointer), `cover` (the APU cover), `slider` (FRICT), `cap` (the ACM cap), `chip` (the PULL chips of the COMM knobs), `plunger` (JETT), `flat` (the EUFD keys) |
+| `shape: "round"` | a round button (DEFOG, IDENT, PRESS TO TEST, JETT) |
+| `orient: "h"` | a horizontal selector (FIRE TEST, GEN RST, the wiper switch, PARK BRAKE) |
+| `sweep` | knob: pointer angles in degrees at the minimum and at the maximum value |
+| `angle` | per position of a `rotary` selector: pointer angle |
+| `y` / `x` | per position: where its mark is on the drawing, vertical or horizontal; the touch bands are split halfway between the marks |
+| `group`, `mark`, `dot` | dual-function knobs: members with the same `group` share one knob, and each member has a selector mark (`mark` for the touch area, `dot` for the dot). IHADSS BRT / CON and FLIR LVL / GAIN work this way |
+| `pull` | a knob's pull-to-disable id (the COMM volume knobs); the knob shows as pulled out when it reads 1 |
+| `page`, `pages` | `display` with pages: `page` is the id that holds the page name, `pages` lists the ids shown for each name (CMWS) |
+
+Page definition. Panel pages are `VIEWS` entries flagged `"panel": True`, one entry per seat where the seats differ (built by `panel_pages` in `aircraft/ah64d.py`):
 
 ```
-{"name": "FIRE DET/EXTG", "seats": [0, 1], "layout": "panel", "box": [w, h], "lamps": [...], "controls": [...]}
+{"name": "FIRE DET/EXTG", "seats": [1], "panel": True, "layout": "panel", "map": [row, col, rows, cols], "box": [w, h],
+ "lamps": [...], "print": [...], "art": [...], "controls": [...], "indicators": [...]}
 ```
 
-`box` is the size of the reference photo. Controls are placed with `at`, so the page is a 1:1 drawing of the panel with invisible touch areas of at least 56 px (as on the MPD page) and the knob pop-up bar for knobs. Pages are listed in a `PANELS` table next to `VIEWS`, with the map grid per seat. A new aircraft file defines its own.
+`map` is the cell on the cockpit map. `box` is the size of the drawing in photo pixels. `print` lists the placard text as `[text, x, y, size, width, rotation]`. `art` lists the drawn parts (plate, bracket, screw, slot, glass, line, arrow, path, outline, hazard). `lamps` is the top row with the master lamps. `indicators` (optional, page level) are free lamps drawn on the panel: the CMWS threat sectors and the D and R letters, each with a bright and a dim DCS-BIOS id.
+
+The COCKPIT view (layout `map`) is one entry for both seats. It holds `links` (the map boxes that open the KU, MPD and TEDAC tabs, each with `view`, `side`, `seats` and `map`) and the canopy key. There is no `PANELS` table: the map cell is part of each page. A new aircraft file defines its own.
+
+Controls are placed with `at`, so the page is a 1:1 drawing of the panel with invisible touch areas of at least 56 px (as on the MPD page) and the knob pop-up bar for knobs.
 
 ## Guarded controls
 
 A guarded control can end the flight or cannot be undone in the mission: shut off an engine or the APU (the FIRE buttons stop the fuel flow), discharge an extinguisher bottle (primary and reserve), drop stores (JETT), wipe the radio and crypto data (zeroize), jettison the countermeasure flares. All of them are on the tablet, only on their own panel page (never on FLIGHT or FIGHT), and need two deliberate steps.
 
-1. **Lift the cover.** The control is covered: a red-striped placard with a padlock. Tap it to lift the cover. It closes again after 5 seconds, or after the press. Only one cover can be open at a time.
+1. **Lift the cover.** The control is covered by a red and white hazard-striped frame with a padlock. The middle of the frame is clear, so the lamps and the control underneath stay visible. Tap the cover to lift it. It closes again after 5 seconds, or after the press. Only one cover can be open at a time.
 2. **Press and hold for 1 second.** The button shows a ring filling up. Letting go early cancels; nothing is sent.
 
 The bridge enforces it, so a second tab, a bug in the page or a stale tab cannot bypass it:
@@ -137,6 +158,8 @@ The bridge enforces it, so a second tab, a bug in the page or a stale tab cannot
 - The press itself uses the existing confirmed press: the bridge holds until DCS-BIOS shows the button, and the page shows the amber not-confirmed hint if it did not arrive.
 
 Where the real cockpit has a cover (FIRE ENG 1, APU and ENG 2, master zeroize, CMWS flare jettison), DCS-BIOS has a cover control (`{S}_FIRE_ENG1_CVR`, `_APU_CVR`, `_ENG2_CVR`, `{S}_INST_MZERO_CVR`, `PLT_CMWS_JETT_CVR`). The first version uses the tablet's own cover for all guarded controls. Whether DCS needs its real cover open for the button to react is checked in the test run (see open points), and if so the tablet cover also opens and closes the real one.
+
+The guarded switches ZEROIZE, MASTER ZEROIZE and CMWS JETT list ON on top and OFF at the bottom.
 
 Controls with `guard`: `{S}_FIRE_ENG1_BTN`, `{S}_FIRE_APU_BTN`, `{S}_FIRE_ENG2_BTN`, `{S}_FIRE_PRIME_EXT`, `{S}_FIRE_RES_EXT`, `{S}_JETT_BTN`, `{S}_EMERG_ZERO_SW`, `{S}_INST_MZERO_SW`, `PLT_CMWS_JETT`. The six station select buttons only arm a station and light up; they are normal buttons, and JETT is guarded.
 
@@ -216,6 +239,8 @@ Both seats. The manual describes the lamps: a yellow FIRE and a green RDY light 
 
 ### ARMAMENT (and VIDEO, MASTER ZEROIZE)
 
+The pilot page carries the ARMAMENT panel, the MASTER ZEROIZE placard and the VIDEO panel. The CP/G page has ARMAMENT and MASTER ZEROIZE only. MASTER ZEROIZE is a plain placard drawn without a photo. On the VIDEO panel IHADSS BRT / CON share one knob and FLIR LVL / GAIN share one knob; a small mark next to the knob selects the function.
+
 | Label | Id | Type | Positions | Lamp | Seats | Stage 2 |
 | --- | --- | --- | --- | --- | --- | --- |
 | A/S | `{S}_MASTER_ARM_BTN` | button | press | ARM `{S}_MASTER_ARM_ARM_L`, SAFE `{S}_MASTER_ARM_SAFE_L` | both | ok |
@@ -249,7 +274,7 @@ The master zeroize switch sits on the instrument panel next to the armament pane
 | Label | Id | Type | Positions | Seats | Stage 2 |
 | --- | --- | --- | --- | --- | --- |
 | PWR | `PLT_CMWS_PW` | selector, rest 1 | 0 OFF, 1 ON, 2 TEST (momentary) | PLT | ok |
-| STATUS | `PLT_CMWS_FLARE_LETTER`, `_FLARE_COUNT`, `_CHAFF_LETTER`, `_CHAFF_COUNT`, `_BIT_LINE_1`, `_BIT_LINE_2`, `_PAGE` | display, `ids` | `F 60` / `C 30`, test text | PLT | in use |
+| STATUS | `PLT_CMWS_FLARE_LETTER`, `_FLARE_COUNT`, `_CHAFF_LETTER`, `_CHAFF_COUNT`, `_BIT_LINE_1`, `_BIT_LINE_2`, `_PAGE` | display, `ids`, `pages` | page MAIN `F 60` / `C 30`, page TEST the two test lines, page NONE blank | PLT | in use |
 | THREAT lamps | `PLT_CMWS_FWD_LEFT_BRT_L`, `_FWD_RIGHT_`, `_AFT_LEFT_`, `_AFT_RIGHT_`, `PLT_CMWS_D_BRT_L`, `PLT_CMWS_R_BRT_L` (and the matching `_DIM_L`) | lamps | orange, bright and dim | PLT | readable |
 | AUDIO | `PLT_CMWS_VOL` | knob | MIN to MAX | PLT | ok |
 | LAMP | `PLT_CMWS_LAMP` | knob | MIN to MAX | PLT | ok |
@@ -262,9 +287,9 @@ The master zeroize switch sits on the instrument panel next to the armament pane
 
 | Label | Id | Type | Positions | Seats | Stage 2 |
 | --- | --- | --- | --- | --- | --- |
-| CHK OVSP TEST, CKT A | `PLT_CHK_OSPD_ENG_A` | hat, rest 1 | 2 ENG 1, 1 OFF, 0 ENG 2 (spring return) | PLT | ok |
-| CHK OVSP TEST, CKT B | `PLT_CHK_OSPD_ENG_B` | hat, rest 1 | 2 ENG 1, 1 OFF, 0 ENG 2 (spring return) | PLT | ok |
-| GEN RST | `PLT_GEN_RESET` | hat, rest 1 | 0 GEN 1, 1 off, 2 GEN 2 (spring return) | PLT | ok |
+| CHK OVSP TEST, CKT A | `PLT_CHK_OSPD_ENG_A` | selector, rest 1 | 2 ENG 1, 1 OFF, 0 ENG 2 (spring return) | PLT | ok |
+| CHK OVSP TEST, CKT B | `PLT_CHK_OSPD_ENG_B` | selector, rest 1 | 2 ENG 1, 1 OFF, 0 ENG 2 (spring return) | PLT | ok |
+| GEN RST | `PLT_GEN_RESET` | selector, rest 1 | 0 GEN 1, 1 off, 2 GEN 2 (spring return) | PLT | ok |
 | DEFOG | `PLT_DEFOG_BTN` | button | press | PLT | ok |
 | WINDSHIELD WIPER | `PLT_WIPER_SW` | selector | 0 PARK, 1 OFF, 2 LO, 3 HI | PLT | ok |
 | PARK BRAKE | `PLT_PARK_BRAKE` | selector | 0 IN, 1 PULLED | PLT | ok |
@@ -272,21 +297,28 @@ The master zeroize switch sits on the instrument panel next to the armament pane
 
 ### COMM (right console)
 
-Both seats; the CP/G page also carries the wiper and defog.
+Both seats, one drawing for both. The volume knobs of VHF, UHF, FM 1, FM 2, HF, VCR and ADF have a PULL chip (a `chip` control, the `pull` id of the knob) for the pull-to-disable position.
 
 | Label | Id | Type | Positions | Seats | Stage 2 |
 | --- | --- | --- | --- | --- | --- |
 | VHF, UHF, FM 1, FM 2, HF volume | `{S}_COM_VHF_VOL`, `_UHF_`, `_FM1_`, `_FM2_`, `_HF_` | knob | MIN to MAX | both | ok |
 | VHF, UHF, FM 1, FM 2, HF disable (pull) | `{S}_COM_VHF_PW`, `_UHF_`, `_FM1_`, `_FM2_`, `_HF_` | selector | 0 In, 1 Out | both | ok |
-| SQL ×5 | `{S}_COM_VHF_SQL`, `_UHF_`, `_FM1_`, `_FM2_`, `_HF_` | hat, rest 1 | 2 ENABLE, 1 off, 0 DISABLE (spring return) | both | ok |
+| SQL ×5 | `{S}_COM_VHF_SQL`, `_UHF_`, `_FM1_`, `_FM2_`, `_HF_` | selector, rest 1 | 2 ENABLE, 1 off, 0 DISABLE (spring return) | both | ok |
 | MASTER | `{S}_COM_MASTER_VOL` | knob | MIN to MAX | both | ok |
 | SENS | `{S}_COM_SENS_KNB` | knob | MIN to MAX | both | ok |
 | ICS | `{S}_COM_ICS_MODE` | selector | 0 HOT MIC, 1 VOX, 2 PTT | both | passes after 3 s |
 | IDENT | `{S}_COM_IDENT_BTN` | button | press | both | ok |
 | IFF, RLWR, ATA, VCR, ADF volume | `{S}_COM_IFF_VOL`, `_RLWR_`, `_ATA_`, `_VCR_`, `_ADF_` | knob | MIN to MAX | both | ok |
 | VCR, ADF disable (pull) | `{S}_COM_VCR_PW`, `{S}_COM_ADF_PW` | selector | 0 In, 1 Out | both | ok |
-| DEFOG (CP/G) | `CPG_DEFOG_BTN` | button | press | CPG | ok |
-| WINDSHIELD WIPER (CP/G) | `CPG_WIPER_SW` | selector | 0 PARK, 1 OFF, 2 LO, 3 HI | CPG | ok |
+
+### WIPER / DEFOG (CP/G only)
+
+The same drawing as the wiper block of the pilot's CENTER page.
+
+| Label | Id | Type | Positions | Seats | Stage 2 |
+| --- | --- | --- | --- | --- | --- |
+| DEFOG | `CPG_DEFOG_BTN` | button | press | CPG | ok |
+| WINDSHIELD WIPER | `CPG_WIPER_SW` | selector | 0 PARK, 1 OFF, 2 LO, 3 HI | CPG | ok |
 
 ### Existing tabs
 
@@ -300,27 +332,27 @@ MPD (left, right, cursor, TEDAC for the CP/G) and KU are unchanged. Their boxes 
 - **Grip controls with guards** (CHOP, BUCS, emergency jettison, weapons trigger): not part of this change. The cyclic and collective grip controls stay on FLIGHT and FIGHT, without the guarded ones.
 - **Radio frequencies:** not on a page, as before.
 
-## What gets removed
+## What was removed
 
-The STARTUP tab goes away. Its controls move to the POWER, TAIL WHEEL / NVS, EXT / INTR LT and CENTER pages. FLIGHT and FIGHT stay as they are, including TAIL WHEEL on FLIGHT and the CMWS controls on FIGHT.
+The STARTUP tab is gone (the `Startup` view is removed from `VIEWS`). Its controls moved to the POWER, TAIL WHEEL / NVS, EXT / INTR LT and CENTER pages and to the map (CANOPY). The MPD L and MPD R mode selectors of the old tab are the MODE knob of each display on the MPD tab. FLIGHT and FIGHT stay as they are, including TAIL WHEEL on FLIGHT and the CMWS controls on FIGHT.
 
 ## Speed and load
 
-Measured in the test setup with a simulated DCS-BIOS stream and a tablet polling five times a second: 7.5 KB per reply (about 1 ms), 2 % of one core in the bridge (29 MB), and 0.006 to 0.021 ms per page redraw, on every tab including the 89-control MPD page. The page builds and redraws only the open tab, so the new pages cost no more than the MPD page. With all panel controls the reply grows to about 11 KB. The cost inside DCS (the export script, about 43 MPD text calls per second) was not measured; build step 0 adds a timing line for it.
+Measured in the test setup with a simulated DCS-BIOS stream and a tablet polling five times a second: 7.5 KB per reply (about 1 ms), 2 % of one core in the bridge (29 MB), and 0.006 to 0.021 ms per page redraw, on every tab including the 89-control MPD page. The page builds and redraws only the open tab, so the new pages cost no more than the MPD page. With all panel controls the reply grows to about 11 KB. The cost inside DCS (the export script, about 43 MPD text calls per second) was not measured; build step 0 added a timing line for it. The export script writes one `export timing` line per minute of model time to the DCS log (`dcs.log`, source DCS-Dashboard), not to the dashboard log. The updated script has to be copied to the Saved Games Scripts folder again to take effect.
 
 ## Build steps
 
-One step at a time, each checked in a browser at 1024 × 768 and 1180 × 820 against a simulated DCS-BIOS (no real DCS ports), then the real test run.
+One step at a time, each checked in a browser against a simulated DCS-BIOS (no real DCS ports). All steps are done and checked this way. The test run in DCS after each step is open.
 
-0. **Optional: measure the export script.** The Lua script times its own work and writes one summary line per minute to the log. Check: the line appears with a number in a DCS run.
-1. **Map, navigation, panel layout and guard**, with two small pages: TAIL WHEEL / NVS and EMERGENCY (it has a guarded control: ZEROIZE). Includes the `PANELS` table, the `panel` layout with `at` coordinates, the COCKPIT tab (tap, back, long hold list), the bridge guard window and its log lines. Check: map and list per seat, a guarded press only works after the cover is lifted, `refused: guard closed` otherwise, the window closes after 5 s, no scrolling, nothing under the gear.
-2. **POWER and EXT / INTR LT.** Check: the cold start still works end to end; every position as in the tables.
-3. **FIRE DET/EXTG, ARMAMENT / VIDEO / MASTER ZEROIZE, STORES JETT.** Check: lamps follow the simulated DCS-BIOS, the guard applies to the listed controls and no others.
-4. **EUFD (live text), CMWS, CENTER.** Check: the 14 lines render as 56-character rows; CMWS counts match FIGHT.
-5. **COMM, with the CP/G wiper and defog.** Check: all 15 knobs reachable through the knob bar; the squelch rockers are spring return.
-6. **Remove STARTUP, update README and STAGE3.md.**
+0. **Measure the export script.** Done. The Lua script times its own work and writes one summary line per minute to the DCS log (`dcs.log`, source DCS-Dashboard). Check: the line appears with a number in a DCS run (open).
+1. **Map, navigation, panel layout and guard**, with two small pages: TAIL WHEEL / NVS and EMERGENCY (it has a guarded control: ZEROIZE). Done. Includes the `panel` layout with `at` coordinates, the COCKPIT tab (tap, back, long hold list), the bridge guard window and its log lines. Check: map and list per seat, a guarded press only works after the cover is lifted, `refused: guard closed` otherwise, the window closes after 5 s, no scrolling, nothing under the gear.
+2. **POWER and EXT / INTR LT.** Done. Check: the cold start still works end to end; every position as in the tables.
+3. **FIRE DET/EXTG, ARMAMENT / VIDEO / MASTER ZEROIZE, STORES JETT.** Done. Check: lamps follow the simulated DCS-BIOS, the guard applies to the listed controls and no others.
+4. **EUFD (live text), CMWS, CENTER.** Done. Check: the 14 lines render as 56-character rows; CMWS counts match FIGHT.
+5. **COMM, and the CP/G WIPER / DEFOG page.** Done. Check: all 12 knobs reachable through the knob bar; the squelch switches are spring return.
+6. **Remove STARTUP, update README and STAGE3.md.** Done. The page falls back to COCKPIT for a saved STARTUP tab, and goes to the COCKPIT map when a seat change leaves a page with no page of the same name.
 
-Each step ends with a test run in DCS by the user.
+Each step ends with a test run in DCS by the user (open).
 
 ## Test run for the guarded controls
 
@@ -334,8 +366,11 @@ These controls were never sent before (they were skipped in Stage 2), so nothing
 
 ## Open points
 
-- Does DCS need the real cover open for the fire, zeroize and CMWS jettison buttons? Decides whether the tablet cover also moves the real one (test run, step 2 and 5).
+- Does DCS need the real cover open for the fire, zeroize and CMWS jettison buttons? Still to be tested. Decides whether the tablet cover also moves the real one (test run, step 2 and 5).
 - The CP/G power lever keys (`RAlt` / `RShift` with `Home` and so on) are only tested in the pilot seat.
 - Lamp colours of the DISCH lights (manual does not say; check in DCS).
-- Reference photos for the master zeroize switch and the CP/G right console are not available yet; the pages are drawn from the manual photos until then.
+- The master zeroize switch has no photo; MASTER ZEROIZE is a plain placard. The CP/G COMM and WIPER / DEFOG pages use the same drawings as the pilot's COMM and CENTER pages. The photos used for drawing the pages are kept outside the repo.
+- The FRICT slider direction and the end of the SIGNAL knob sweep were taken from the photo, not from DCS. Check them in DCS.
+- The five top-row PULL chips on COMM have a small touch area (about 16 to 18 px high) because the SQL switches need the room. A long press on the knob is the alternative if it proves too small.
+- The panel pages need a browser with CSS container queries: Safari / iPadOS 16 or newer, or current Chrome.
 - Grip controls with guards (CHOP, BUCS, emergency jettison) may follow later with the same guard mechanism.

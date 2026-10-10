@@ -2408,7 +2408,7 @@ function followSeat() {
   const view = views[activeIndex];
   if (!view || !view.panel || current.status !== 'live' || view.seats.includes(current.seat)) return;
   const i = views.findIndex((v) => v.name === view.name && v.seats.includes(current.seat));
-  if (i >= 0) showView(i);
+  showView(i >= 0 ? i : views.indexOf(homeView()));
 }
 
 function placeGrid(box, cs) {

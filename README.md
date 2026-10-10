@@ -2,7 +2,7 @@
 
 A simple tablet dashboard for the **AH-64D Apache** in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Big touch buttons replace keyboard combinations for cockpit commands and George, the AI copilot.
 
-**Status:** Stage 1 (read data) is built and tested on Windows. Results: [docs/STAGE1.md](docs/STAGE1.md#results). Stage 2 (control) is tested on Windows. Results: [docs/STAGE2.md](docs/STAGE2.md#results). Stage 3 (dashboard): the Startup view is tested on Windows, the Flight, Fight, MPD and KU views are built and ready for their first test run.
+**Status:** Stage 1 (read data) is built and tested on Windows. Results: [docs/STAGE1.md](docs/STAGE1.md#results). Stage 2 (control) is tested on Windows. Results: [docs/STAGE2.md](docs/STAGE2.md#results). Stage 3 (dashboard): the tabs COCKPIT, FLIGHT, FIGHT, MPD and KU are built. COCKPIT is tested in an isolated setup only, the Flight, Fight, MPD and KU views are ready for their first test run in DCS. The old Startup view (tested on Windows) is replaced by the COCKPIT pages.
 
 ## Aircraft
 
@@ -16,7 +16,7 @@ A simple tablet dashboard for the **AH-64D Apache** in DCS World. A small Python
 
 1. **Read** – test which data we can read from DCS (both seats, in flight). Details: [docs/STAGE1.md](docs/STAGE1.md)
 2. **Control** – test which cockpit controls we can set from outside. Details: [docs/STAGE2.md](docs/STAGE2.md)
-3. **Dashboard** – HTML page with views: Startup, Flight, Fight, MPD and KU (built), George (later). Details: [docs/STAGE3.md](docs/STAGE3.md)
+3. **Dashboard** – HTML page with tabs COCKPIT, FLIGHT, FIGHT, MPD and KU (built), George (later). Details: [docs/STAGE3.md](docs/STAGE3.md)
 
 Overview: [docs/SPEC.md](docs/SPEC.md)
 
@@ -90,9 +90,13 @@ Results are in `logs\stage2_results.csv`. The test procedure is in [docs/STAGE2.
 1. Start DCS in windowed or borderless mode. The tablet and the PC must be on the same network.
 2. Double-click `start_dashboard.bat` in the repo folder (or run `python dashboard.py`). It prints the address to open, for example `http://<PC address>:8080`. If Windows asks to allow Python on the network, allow it for private networks.
 3. Open that address in the tablet's browser. On an iPad: Share → Add to Home Screen. The page then runs full screen with its own icon; scrolling and zooming are switched off. To get a new icon after an update, remove the home screen app and add it again.
-4. Load an AH-64D mission. The STARTUP tab controls the pilot seat (read only in the CP/G seat); FLIGHT, FIGHT, MPD and KU follow the seat you are in.
+4. Load an AH-64D mission. The tabs are COCKPIT, FLIGHT, FIGHT, MPD and KU. All of them follow the seat you are in.
 5. Stop with Ctrl+C or close the window.
 
 The power levers are moved by keypresses, so DCS must be the active window on the PC; the dashboard brings it to the front itself. The test procedure is in [docs/STAGE3.md](docs/STAGE3.md#test-run-windows-manual).
 
+**COCKPIT.** The COCKPIT tab shows a simple map of the cockpit of the current seat. Each box is a cockpit panel. Tap a box to open the page of that panel: the real labels, switch positions and lamps, laid out as on the panel (POWER, EMERGENCY, FIRE DET/EXTG, ARMAMENT, EUFD, COMM and more; the pilot and the CP/G have their own pages). A long hold on the COCKPIT tab lists all pages of the seat. On a page the tab reads `◀ COCKPIT`; one tap returns to the map. Guarded controls (the fire buttons, the extinguisher discharge, store jettison, zeroize and the CMWS flare jettison) need two steps: tap the cover to lift it, then press the control and hold it for 1 second. Details: [docs/COCKPIT.md](docs/COCKPIT.md).
+
 The gear button at the bottom right opens the settings: logging on or off (remembered on the PC), keep the tablet screen on, and information such as the detected DCS folder and the address for another tablet. The iPad cannot lock the rotation from a web page; use the rotation lock in Control Center. In portrait the page shows a hint to turn the iPad.
+
+The export script writes one `export timing` line per minute of model time to the DCS log (`dcs.log`, source DCS-Dashboard), so its cost inside DCS can be read. After an update of the repo, copy the export script again to `<Saved Games>\Scripts\` and restart the mission, as in step 4 of Getting started. Only the updated script writes the timing line.

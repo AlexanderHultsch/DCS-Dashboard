@@ -2,15 +2,13 @@
 
 Detailed spec for Stage 3 of [SPEC.md](SPEC.md). Goal: a dashboard page on the tablet that replaces the keyboard and mouse for cockpit commands.
 
-Status: Startup view (formerly Aircraft) tested on Windows. Flight, Fight, MPD and KU views built, waiting for the test run.
+Status: the Startup view (formerly Aircraft) was tested on Windows and is now replaced by the COCKPIT pages, which are built and tested in an isolated setup only (the real DCS test run is open). Flight, Fight, MPD and KU views built, waiting for the test run.
 
-Stage 3 is built one view at a time. Built so far: **Startup** (cold start, pilot seat), **Flight** (power levers, symbology, monocle, controls display; follows the seat), **Fight** (weapons, sights, countermeasures, both seats), **MPD** (both MPD bezels, both seats) and **KU** (keyboard unit, both seats); George is not built yet.
-
-Next: [COCKPIT.md](COCKPIT.md) specifies a COCKPIT tab with one page per cockpit panel, replacing the Startup view.
+Stage 3 is built one view at a time. Built so far: **COCKPIT** (map and one page per cockpit panel, both seats; replaces the Startup view, see [COCKPIT.md](COCKPIT.md)), **Flight** (power levers, symbology, monocle, controls display; follows the seat), **Fight** (weapons, sights, countermeasures, both seats), **MPD** (both MPD bezels, both seats) and **KU** (keyboard unit, both seats); George is not built yet.
 
 ## What Stage 2 tells us
 
-- Every Startup control except the power levers works through DCS-BIOS commands with readback.
+- Every cold-start control (master ignition, APU, engine start, rotor brake, parking brake) except the power levers works through DCS-BIOS commands with readback.
 - The power levers only move by keypress, one key per lever (`power_*` entries in `[keys]`). Keys for both levers together do not work.
 - Some switch positions do not work: master ignition EXT PWR (no ground power), rotor brake BRK.
 - The APU button only works with its cover open.
@@ -20,53 +18,39 @@ Next: [COCKPIT.md](COCKPIT.md) specifies a COCKPIT tab with one page per cockpit
 
 - **Cockpit names and positions.** Every control uses the label printed in the cockpit and shows all of its real positions, in cockpit order, even positions we do not use. A position that cannot be set (see Stage 2) is shown greyed out and cannot be selected.
 - **The tablet shows the cockpit, not the last tap.** Every control shows the position read back from DCS. A switch moved in the cockpit with the mouse moves on the tablet too.
-- **Big touch targets**: 56 × 56 CSS pixels where space allows; at least 44 px on the three-row STARTUP and FLIGHT views and as on the real bezel on the MPD view (about 0.7 of the button spacing).
+- **Big touch targets**: 56 × 56 CSS pixels where space allows; at least 44 px on the three-row FLIGHT view and as on the real bezel on the MPD view (about 0.7 of the button spacing).
 - **Landscape first.** Designed for an iPad Air in landscape (1180 × 820 CSS pixels), but laid out with a CSS grid that also fits other tablets from about 1024 × 768 up. Portrait works but is not optimised.
 - **Plain look.** Dark background, white stencil-style labels, lamp colours as in the cockpit. No images, no frameworks, no external files.
 
-## Startup view
+## Startup view (replaced)
 
-Pilot seat only (`"seats": [0]`), controls grouped like the cockpit on a fixed grid of 3 rows × 7 columns (each control has `"grid": [row, col, rows, cols]`). Values are the DCS-BIOS readback values.
+The Startup view was the first view: pilot seat only, the cold-start controls on a fixed grid of 3 rows × 7 columns. It was tested on Windows (see [Results](#results)). It is replaced by the COCKPIT tab and its panel pages ([COCKPIT.md](COCKPIT.md)); the controls moved like this:
 
-### Lamps (top row)
+| Startup control | Now on |
+| --- | --- |
+| MSTR IGN, APU cover, APU, ENG 1 / 2 START, RTR BRK, PWR LVR 1 / 2 | POWER page (pilot seat; the CP/G page has the power levers only) |
+| PARK BRAKE | CENTER page (pilot seat) |
+| TAIL WHEEL | TAIL WHEEL / NVS page, and FLIGHT |
+| NAV, ANTI COL | EXT / INTR LT page (pilot seat) |
+| MPD L, MPD R mode (DAY / NT / MONO) | MODE knob of each display on the MPD tab |
+| CANOPY | COCKPIT map (pilot seat) |
 
-| Label | DCS-BIOS | Colour |
-| --- | --- | --- |
-| MASTER WARNING | `PLT_MASTER_WARNING_L` | red |
-| MASTER CAUTION | `PLT_MASTER_CAUTION_L` | amber |
-| ENG 1 FIRE | `PLT_ENG_1_FIRE_L` | red |
-| APU FIRE | `PLT_APU_FIRE_L` | red |
-| ENG 2 FIRE | `PLT_ENG_2_FIRE_L` | red |
-| APU ON | `PLT_APU_L` | green (check against the cockpit in the test run) |
+How these controls behave did not change:
 
-Lamps are display only, except MASTER WARNING and MASTER CAUTION.
+- The APU button is locked while the APU cover is closed (`requires`): the page does not send it and the bridge refuses it.
+- ENG 1 / ENG 2 START (2 = START, 1 = OFF, 0 = IGN ORIDE): START and IGN ORIDE are spring-loaded (`rest`): set, held 0.5 s, back to OFF.
+- MPD mode (`step_fallback`): if the position is not reached in 0.5 s the bridge turns the knob with INC / DEC steps (NT did not take a direct command in Stage 2).
+- CANOPY is a key button (`canopy`, LCtrl+C) with readback `PLT_CANOPY` (0 = CLOSED, 1 = OPEN), because DCS-BIOS cannot move the canopy.
+- MSTR IGN EXT PWR, RTR BRK BRK and the power lever LOCKOUT are greyed out (cannot be set, see Stage 2).
+- The power levers are described below.
 
-MASTER WARNING and MASTER CAUTION are lighted pushbuttons as in the cockpit: tapping the lamp presses `PLT_INTL_MWARN_BTN` / `PLT_INTL_MCAUTION_BTN` (0.3 s).
+### Lamp row
 
-### Controls
+The FLIGHT view keeps the lamp row of the Startup view: MASTER WARNING (red) and MASTER CAUTION (amber) with `{seat}_` ids, ENG 1 FIRE, APU FIRE and ENG 2 FIRE (red, `PLT_ENG_1_FIRE_L`, `PLT_APU_FIRE_L`, `PLT_ENG_2_FIRE_L`) and APU ON (green, `PLT_APU_L`; check the colour against the cockpit in the test run). Lamps are display only, except MASTER WARNING and MASTER CAUTION: they are lighted pushbuttons as in the cockpit, tapping the lamp presses `{seat}_INTL_MWARN_BTN` / `{seat}_INTL_MCAUTION_BTN` (0.3 s). Every COCKPIT page has the two master lamps in its top row.
 
-| Label | DCS-BIOS | Positions (value = label) | Route | Notes |
-| --- | --- | --- | --- | --- |
-| MSTR IGN | `PLT_MASTER_IGN_SW` | 0 = OFF, 1 = BATT, 2 = EXT PWR | DCS-BIOS | EXT PWR greyed |
-| APU cover | `PLT_APU_BTN_CVR` | 0 = CLOSED, 1 = OPEN | DCS-BIOS | |
-| APU | `PLT_APU_BTN` | push button | DCS-BIOS | press = 1, released to 0 after 0.3 s; locked while the cover is closed |
-| ENG 1 START | `PLT_ENG1_START` | 2 = START, 1 = OFF, 0 = IGN ORIDE | DCS-BIOS | START and IGN ORIDE are spring-loaded: set, held 0.5 s, back to OFF |
-| ENG 2 START | `PLT_ENG2_START` | 2 = START, 1 = OFF, 0 = IGN ORIDE | DCS-BIOS | as ENG 1 START |
-| PWR LVR 1 | readback `PLT_ENG_L_PW_LVR` | OFF, IDLE, FLY, LOCKOUT | keys | slider, see below; LOCKOUT greyed |
-| PWR LVR 2 | readback `PLT_ENG_R_PW_LVR` | OFF, IDLE, FLY, LOCKOUT | keys | as ENG 1 |
-| RTR BRK | `PLT_ROTOR_BRK` | 2 = OFF, 1 = BRK, 0 = LOCK | DCS-BIOS | BRK greyed |
-| PARK BRAKE | `PLT_PARK_BRAKE` | 0 = IN, 1 = PULLED | DCS-BIOS | |
-| TAIL WHEEL | `PLT_T_WHEEL_UNLOCK_BTN`, lamp `PLT_T_WHEEL_UNLOCK_L` | lit push button | DCS-BIOS | press = 1, released to 0 after 0.3 s; the UNLOCK window lights when the tail wheel is unlocked; pilot seat only |
-| NAV | `PLT_EXTL_NAV_L_SW` | 2 = BRT, 1 = OFF, 0 = DIM | DCS-BIOS | EXT LT panel |
-| ANTI COL | `PLT_EXTL_ACOL_L_SW` | 2 = WHT, 1 = OFF, 0 = RED | DCS-BIOS | EXT LT panel |
-| MPD L, MPD R | `PLT_MPD_L_MODE`, `PLT_MPD_R_MODE` | 2 = DAY, 1 = NT, 0 = MONO | DCS-BIOS | if the position is not reached in 0.5 s the bridge turns the knob with INC / DEC steps (NT did not take a direct command in Stage 2) |
-| CANOPY | readback `PLT_CANOPY` | 0 = CLOSED, 1 = OPEN | key `canopy` (LCtrl+C) | DCS-BIOS cannot move the canopy; state mapping to be checked in the test run |
+### Power levers
 
-Grid: row 1 MSTR IGN, APU COVER, APU, ENG 1 START, ENG 2 START; row 2 RTR BRK, PARK BRAKE, NAV, ANTI COL, TAIL WHEEL; row 3 MPD L, MPD R, CANOPY (3 columns wide); columns 6 and 7 PWR LVR 1 and 2 over all three rows. Buttons are at least 44 px here.
-
-A selector shows one button per position, the current position highlighted. Tapping a position sends it. Tapping a greyed position does nothing.
-
-### Power lever sliders
+Used on the FLIGHT view and on the POWER page.
 
 - One vertical slider per lever, positions bottom to top: OFF, IDLE, FLY, LOCKOUT. The slider snaps to positions only; there are no values in between. LOCKOUT is shown above FLY but greyed and cannot be reached.
 - Readback to position: the nearest of OFF 0, IDLE 16383, FLY 58981, LOCKOUT 65535.
@@ -80,7 +64,7 @@ A selector shows one button per position, the current position highlighted. Tapp
 
 ## Flight view
 
-Follows the current seat (`"seats": [0, 1]`). Same lamp row and the same grid as Startup, so the power levers and TAIL WHEEL stay in exactly the same place when switching tabs. MASTER WARNING / MASTER CAUTION use `{seat}_` ids here.
+Follows the current seat (`"seats": [0, 1]`). Lamp row as described above. Fixed grid of 3 rows × 7 columns (each control has `"grid": [row, col, rows, cols]`), so the power levers and TAIL WHEEL stay in the same place when switching to FIGHT.
 
 | Label | DCS-BIOS / route | Grid | Notes |
 | --- | --- | --- | --- |
@@ -88,7 +72,7 @@ Follows the current seat (`"seats": [0, 1]`). Same lamp row and the same grid as
 | CTRL IND | key `controls_overlay` (RCtrl+Enter, DCS "Show controls indicator") | row 3, column 1 | toggles DCS's own controls overlay (no lag) |
 | SYMBOLOGY | `{seat}_CYCLIC_SYMBOLOGY` | rows 1–2, column 4 | two-way hat: T/C ↑ (2), H/B ↓ (0), held 0.3 s, back to centre |
 | MONOCLE | key `monocle` (`I`, DCS "IHADSS show") | row 1, column 5 | push button, no state |
-| TAIL WHEEL | as on Startup | row 2, column 5 | pilot seat only (greyed in the CP/G seat) |
+| TAIL WHEEL | `PLT_T_WHEEL_UNLOCK_BTN`, lamp `PLT_T_WHEEL_UNLOCK_L` | row 2, column 5 | lit push button, press = 1, released to 0 after 0.3 s; the UNLOCK window lights when the tail wheel is unlocked; pilot seat only (greyed in the CP/G seat) |
 | PWR LVR 1, 2 | keys, readback `{seat}_ENG_L_PW_LVR` / `{seat}_ENG_R_PW_LVR` | columns 6 and 7 | ids `flight_power_left` / `flight_power_right` |
 
 ### Trim display
@@ -149,7 +133,7 @@ Flares only fire with the CMWS panel set up: CMWS PWR ON, FLARE SQUIBS ARM, CMWS
 | CMWS MODE | `PLT_CMWS_MODE` | 1 = CMWS, 0 = NAV | row 2, column 5 |
 | CMWS OPER | `PLT_CMWS_BYPASS` | 1 = BYPASS, 0 = AUTO | row 2, column 6 |
 
-The Fight view uses the same fixed 3 × 7 grid as Startup and Flight.
+The Fight view uses the same fixed 3 × 7 grid as Flight.
 
 ## MPD view
 
@@ -189,8 +173,8 @@ The keyboard unit, drawn 1:1 after a photo in the same technique as the MPD (`"l
 
 ## Seat
 
-- Each view lists the seats it can be used in: Startup the pilot seat; Flight, Fight, MPD and KU both seats. A control can also have its own `seats` (TAIL WHEEL: pilot only) and is greyed in the other seat.
-- The header shows the current seat: `PILOT` or `CP/G`. It adds ` – READ ONLY` when the shown view cannot be used in this seat (Startup in the CP/G seat): lamps and positions are shown, all controls are disabled.
+- Each view lists the seats it can be used in: Flight, Fight, MPD, KU and the COCKPIT map both seats; a panel page lists the one seat it exists for. A control can also have its own `seats` (TAIL WHEEL on FLIGHT: pilot only) and is greyed in the other seat.
+- The header shows the current seat: `PILOT` or `CP/G`. It adds ` – READ ONLY` when the shown view cannot be used in this seat: lamps and positions are shown, all controls are disabled. A panel page that does not exist in the new seat is left at once for the page of the same name in that seat, or for the COCKPIT map if there is none, so this is rarely seen.
 - The header shows `NO DCS DATA` when no DCS-BIOS packet arrived for 3 s, and `BRIDGE OFFLINE` when the page cannot reach the bridge.
 - The bridge refuses commands of a view outside its seats.
 
@@ -215,7 +199,7 @@ The keyboard unit, drawn 1:1 after a photo in the same technique as the MPD (`"l
 
 ```
 Tablet browser  --GET /            -->  dashboard.py  (serves web/index.html)
-                --GET /layout      -->  the view definitions (Startup, Flight, Fight, MPD, KU) as JSON
+                --GET /layout      -->  the view definitions (COCKPIT, the panel pages, Flight, Fight, MPD, KU) as JSON
                 --GET /state  5 Hz -->  seat, data age, current values
                 --POST /command    -->  checks it, sends DCS-BIOS command or keys
                                             |
@@ -226,13 +210,13 @@ Tablet browser  --GET /            -->  dashboard.py  (serves web/index.html)
 - **Threads.** One background thread reads the DCS-BIOS stream into the current values; the web server (`ThreadingHTTPServer`) answers each request in its own thread. A lock protects the values, a second lock makes sure only one command (or key sequence) is sent at a time.
 - **The view is data.** The controls of each view are one Python list in `dashboard.py`, served as `/layout`. The page draws whatever the lists contain. Adding a view later means adding a list, not new page code (unless a new control type is needed).
 - **Seat placeholder.** Ids in a view may contain `{seat}`. `/layout` serves them unexpanded and the page sends them unexpanded; the bridge expands them from the current seat (`PLT_` or `CPG_`) before it reads or sends.
-- **Only listed controls.** `/command` accepts only controls and positions from the view lists, refuses greyed positions, refuses the push button while its cover is closed, refuses commands of a view outside its seats (for example Startup in the CP/G seat), and refuses displays (display only). Each refusal returns an error message the page shows briefly.
+- **Only listed controls.** `/command` accepts only controls and positions from the view lists, refuses greyed positions, refuses the push button while its cover is closed, refuses commands of a view outside its seats (for example the POWER page controls of the pilot in the CP/G seat), and refuses displays (display only). Each refusal returns an error message the page shows briefly.
 - **Local network only, no login** (as in SPEC.md). The server listens on `[dashboard] host` and `port` from `config.toml` (default `0.0.0.0:8080`).
 - New control types: `knob` (value "up" / "down", sends ±step), `key` (a keypress from `[keys]`, e.g. the canopy), lamps with a `button`, and selectors with `step_fallback`.
 
 ### Requests
 
-- `GET /layout` → `{"views": [{"name": "Startup", "seats": [0], "lamps": [...], "controls": [...]}, {"name": "Flight", "seats": [0, 1], ...}, ...]}`
+- `GET /layout` → `{"views": [{"name": "COCKPIT", "seats": [0, 1], "lamps": [...], "controls": [...], "links": [...]}, {"name": "Flight", "seats": [0, 1], ...}, ...]}`
 - `GET /state` → `{"seat": 0, "age": 0.1, "values": {"PLT_MASTER_IGN_SW": 1, ...}}`; `seat` is `null` before the first packet.
 - `POST /command` with `{"id": "PLT_MASTER_IGN_SW", "value": 1}`, `{"id": "power_left", "value": "FLY"}` or, for a hat, `{"id": "{seat}_WAS", "value": "up"}` → `{"ok": true}` or HTTP 409 with `{"error": "..."}`. Displays are read only: a command for a display returns `{"error": "display only"}`.
 - `GET /settings` → `{"logging": true, "saved_games": "...", "address": "http://<PC address>:8080"}`; `POST /settings` with `{"logging": false}` → the same JSON, or HTTP 400.
@@ -263,13 +247,13 @@ Reused unchanged: `bridge/config.py`, `bridge/log.py`, `bridge/dcsbios.py`, `bri
 
 Preparation: Stage 2 setup, DCS in windowed or borderless mode. PC and tablet on the same network. Windows may ask to allow Python on the network: allow it for private networks.
 
-**Startup view**
+**COCKPIT tab**
 
 1. Start `python dashboard.py`. It prints the address to open, for example `http://<PC address>:8080`.
 2. Open the address on the iPad, add it to the home screen for full screen.
-3. AH-64D mission, cold and dark, pilot seat, STARTUP tab. Start up using only the tablet: MSTR IGN BATT, APU cover OPEN, APU, wait for APU ON, ENG 1 START, ENG 1 power lever IDLE, ENG 2 START, ENG 2 power lever IDLE, both power levers FLY, PARK BRAKE IN, TAIL WHEEL once.
+3. AH-64D mission, cold and dark, pilot seat, COCKPIT tab. Start up using only the tablet: on POWER MSTR IGN BATT, APU cover OPEN, APU, wait for APU ON, ENG 1 START, ENG 1 power lever IDLE, ENG 2 START, ENG 2 power lever IDLE, both power levers FLY; on CENTER PARK BRAKE IN; on TAIL WHEEL / NVS TAIL WHEEL once. The test run of every page is in [COCKPIT.md](COCKPIT.md#test-run-for-the-guarded-controls).
 4. Move a few switches in the cockpit with the mouse and check the tablet follows.
-5. Switch to the CP/G seat: the STARTUP tab shows `CP/G – READ ONLY`, controls disabled.
+5. Switch to the CP/G seat while on a pilot-only page (for example CMWS): the page goes to the CP/G COCKPIT map, which has no CMWS, CENTER or EXT LT page.
 6. Keep the log.
 
 **Fight view**
@@ -280,16 +264,20 @@ Preparation: Stage 2 setup, DCS in windowed or borderless mode. PC and tablet on
 4. Tap SIGHT SEL in each direction.
 5. Tap FLARE and CHAFF once each: the counts change (CMWS must be on).
 6. Switch to the CP/G seat (key `2`): the badge shows `CP/G`. Repeat A/S, WAS and SIGHT SEL.
-7. The STARTUP tab shows `CP/G – READ ONLY`.
+7. Switch to the pilot seat again: the COCKPIT map shows the pilot pages.
 8. Check the lamp colours (ARM, SAFE, GND ORIDE) against the cockpit.
 
-Done when a cold start to both power levers at FLY works from the tablet alone, the lamps match the cockpit, and the CP/G seat shows read only on the STARTUP tab. For the FIGHT tab: every control acts in both seats, the counts change, and the lamp colours match the cockpit.
+Done when a cold start to both power levers at FLY works from the tablet alone, the lamps match the cockpit, and the CP/G seat shows only its own pages. For the FIGHT tab: every control acts in both seats, the counts change, and the lamp colours match the cockpit.
 
 ## Results
 
-### Startup view (formerly Aircraft)
+### Startup view (formerly Aircraft, now replaced by the COCKPIT pages)
 
 Tested on Windows with an iPad Air. A cold start to both power levers at FLY worked from the tablet alone. The tester reported that it works and looks good.
+
+### COCKPIT tab
+
+Built and checked only against a fake DCS-BIOS in a browser (both seats). Not tested in DCS yet.
 
 ### Fight view
 
@@ -307,9 +295,10 @@ Each step is verified before the next one starts.
 6. Page: tabs AIRCRAFT / FIGHT, hat cross, count displays. Check: in a browser at 1180 × 820 and 1024 × 768 and in both seats.
 7. Docs (this update).
 8. Settings page, page lock, app icon, `start_dashboard.bat`, Saved Games detection and the logging switch. Check: in a browser against the fake DCS-BIOS at 1024 × 768 and 1180 × 820 (no control under the gear, nothing clipped), logging off writes nothing and survives a restart, the portrait hint covers the screen, the icon is served as PNG.
-9. MPD and KU views, NAV / ANTI COL / MPD mode / canopy on AIRCRAFT, tappable master lamps, `knob` and `key` types. Check: against the fake DCS-BIOS (commands, step fallback, canopy key simulated) and in a browser at 1024 × 768 and 1180 × 820 (no overlap, nothing under the gear).
-10. Startup and Flight views on a shared fixed grid, lit TAIL WHEEL button, symbology, monocle. Check: against the fake DCS-BIOS in both seats and in a browser (power levers and TAIL WHEEL at identical positions on both tabs).
+9. MPD and KU views, NAV / ANTI COL / MPD mode / canopy on the first view (the Startup view, replaced later), tappable master lamps, `knob` and `key` types. Check: against the fake DCS-BIOS (commands, step fallback, canopy key simulated) and in a browser at 1024 × 768 and 1180 × 820 (no overlap, nothing under the gear).
+10. Startup and Flight views on a shared fixed grid, lit TAIL WHEEL button, symbology, monocle. Check: against the fake DCS-BIOS in both seats and in a browser (power levers and TAIL WHEEL at identical positions on both tabs). The Startup view was removed in step 12.
 11. Controls display: export script positions, export reader in dashboard.py, display on FLIGHT. Check: with a scratch export sender (values, stale state, busy port).
+12. COCKPIT tab with the cockpit map, the panel pages and the guarded controls; the Startup view removed. Steps and checks: [COCKPIT.md](COCKPIT.md#build-steps).
 
 ## Open points
 
