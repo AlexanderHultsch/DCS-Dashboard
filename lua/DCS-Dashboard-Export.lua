@@ -6,6 +6,8 @@
 local PORT = 7790
 local FLIGHT_INTERVAL = 0.1
 local MPD_INTERVAL = 1.0
+local MPD_FAST_INTERVAL = 0.25
+local MPD_FAST = {[7] = true, [9] = true, [11] = true, [13] = true}
 
 package.path = package.path .. ";.\\LuaSocket\\?.lua"
 package.cpath = package.cpath .. ";.\\LuaSocket\\?.dll"
@@ -14,6 +16,7 @@ local socket = require("socket")
 local udp = nil
 local next_flight = 0
 local next_mpd = 0
+local next_mpd_fast = 0
 
 local prev_start = LuaExportStart
 local prev_stop = LuaExportStop
@@ -76,13 +79,26 @@ local function send(packet)
     end
 end
 
+local function send_indication(n)
+    local ok, text = pcall(list_indication, n)
+    if ok and type(text) == "string" and text ~= "" then
+        send("ind" .. n .. "=" .. (text:gsub("\n", "\\n")))
+    end
+end
+
 -- One packet per indication keeps each packet small.
 local function send_mpd()
     for n = 0, 30 do
-        local ok, text = pcall(list_indication, n)
-        if ok and type(text) == "string" and text ~= "" then
-            send("ind" .. n .. "=" .. (text:gsub("\n", "\\n")))
+        if not MPD_FAST[n] then
+            send_indication(n)
         end
+    end
+end
+
+-- The four MPD indications are sent more often than the rest.
+local function send_mpd_fast()
+    for n in pairs(MPD_FAST) do
+        send_indication(n)
     end
 end
 
@@ -94,6 +110,7 @@ LuaExportStart = function()
     end)
     next_flight = 0
     next_mpd = 0
+    next_mpd_fast = 0
 end
 
 LuaExportAfterNextFrame = function()
@@ -107,6 +124,10 @@ LuaExportAfterNextFrame = function()
         if t >= next_mpd then
             next_mpd = t + MPD_INTERVAL
             send_mpd()
+        end
+        if t >= next_mpd_fast then
+            next_mpd_fast = t + MPD_FAST_INTERVAL
+            send_mpd_fast()
         end
     end)
 end

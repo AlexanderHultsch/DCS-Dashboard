@@ -1,5 +1,6 @@
 import json
 import math
+import re
 import socket
 import threading
 import time
@@ -120,14 +121,17 @@ VIEWS = [
             {"id": "{seat}_GROUND_OVERRIDE_L", "label": "GND ORIDE", "color": "amber"},
         ],
         "controls": [
-            {"id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": 0.3},
-            {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": 0.3},
-            {"id": "{seat}_WAS", "label": "WAS", "type": "hat", "ud": "{seat}_CYCLIC_WEAPON_UD", "lr": "{seat}_CYCLIC_WEAPON_LR", "hold": 0.3, "positions": {"up": "G", "down": "A", "left": "R", "right": "M"}},
-            {"id": "{seat}_SIGHT_SEL", "label": "SIGHT SEL", "type": "hat", "ud": "{seat}_COLLECTIVE_SIGHT_SELECT_UD", "lr": "{seat}_COLLECTIVE_SIGHT_SELECT_LR", "hold": 0.3, "positions": {"up": "HMD", "down": "LINK", "left": "FCR", "right": "TADS"}},
-            {"id": "{seat}_CYCLIC_FLARE", "label": "FLARE", "type": "button", "hold": 0.3},
-            {"id": "{seat}_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": 0.3},
-            {"id": "PLT_CMWS_FLARE_COUNT", "label": "FLARE COUNT", "type": "display"},
-            {"id": "PLT_CMWS_CHAFF_COUNT", "label": "CHAFF COUNT", "type": "display"},
+            {"id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": 0.3, "grid": [1, 1, 1, 1]},
+            {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": 0.3, "grid": [1, 2, 1, 1]},
+            {"id": "{seat}_WAS", "label": "WAS", "type": "hat", "ud": "{seat}_CYCLIC_WEAPON_UD", "lr": "{seat}_CYCLIC_WEAPON_LR", "hold": 0.3, "positions": {"up": "G", "down": "A", "left": "R", "right": "M"}, "grid": [1, 3, 1, 2]},
+            {"id": "{seat}_SIGHT_SEL", "label": "SIGHT SEL", "type": "hat", "ud": "{seat}_COLLECTIVE_SIGHT_SELECT_UD", "lr": "{seat}_COLLECTIVE_SIGHT_SELECT_LR", "hold": 0.3, "positions": {"up": "HMD", "down": "LINK", "left": "FCR", "right": "TADS"}, "grid": [2, 3, 1, 2]},
+            {"id": "{seat}_CYCLIC_FLARE", "label": "FLARE", "type": "button", "hold": 0.3, "grid": [2, 1, 1, 1]},
+            {"id": "{seat}_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": 0.3, "grid": [2, 2, 1, 1]},
+            {"id": "PLT_CMWS_FLARE_COUNT", "label": "FLARE COUNT", "type": "display", "grid": [3, 1, 1, 1]},
+            {"id": "PLT_CMWS_CHAFF_COUNT", "label": "CHAFF COUNT", "type": "display", "grid": [3, 2, 1, 1]},
+            {"id": "{seat}_COLLECTIVE_CURSOR_ENTER", "label": "ENTER", "type": "button", "hold": 0.15, "grid": [3, 3, 1, 1]},
+            {"id": "{seat}_COLLECTIVE_CURSOR_DISPLAY", "label": "DISPLAY", "type": "button", "hold": 0.15, "grid": [3, 4, 1, 1]},
+            {"id": "{seat}_CURSOR", "label": "CURSOR", "type": "stick", "x": "{seat}_COLLECTIVE_CURSOR_LR", "y": "{seat}_COLLECTIVE_CURSOR_UD", "grid": [1, 5, 3, 3]},
         ],
     },
     {"name": "MPD", "seats": [0, 1], "layout": "mpd", "lamps": [], "controls": mpd_controls("L") + mpd_controls("R")},
@@ -140,6 +144,14 @@ STEP_WAIT = 0.5
 STEP_TRIES = 2
 
 CONTROL_NAMES = [f"{seat}_{axis}" for seat in ("plt", "cpg") for axis in ("cyc_pitch", "cyc_roll", "coll", "pedals")]
+
+MPD_INDICATIONS = (7, 9, 11, 13)
+MPD_SEATS = {0: (7, 9), 1: (11, 13)}
+MPD_SEPARATOR = "-" * 41
+MPD_BUTTON = re.compile(r"^PB(\d+)_(?:bold_)?(\d+)$")
+MPD_SKIP_LINES = ("children are {", "}")
+
+STICK_CENTRE = 0.02
 
 CONTROLS_STALE = 3
 TRIM_POLL = 0.05
@@ -160,6 +172,10 @@ command_lock = threading.Lock()
 last_packet = None
 control_values = {}
 control_packet = None
+mpd_labels = {}
+mpd_times = {}
+stick_lock = threading.Lock()
+stick_last = {}
 trim = {}
 trim_switch = {}
 cmd_sock = None
@@ -193,6 +209,8 @@ def read_names() -> list[str]:
             elif control["type"] == "controls":
                 if "trim_switch" in control:
                     names += expand_all(control["trim_switch"])
+            elif control["type"] == "stick":
+                names += expand_all(control["x"]) + expand_all(control["y"])
             else:
                 names += expand_all(control["id"])
             if "lamp" in control:
@@ -250,6 +268,33 @@ def trim_reset_watcher() -> None:
         was_pressed = pressed
 
 
+def parse_mpd_labels(text: str) -> dict[str, str]:
+    blocks = [[]]
+    for line in text.replace("\\n", "\n").split("\n"):
+        line = line.strip()
+        if line == MPD_SEPARATOR:
+            blocks.append([])
+        elif line:
+            blocks[-1].append(line)
+    found = {}
+    for lines in blocks:
+        if not lines:
+            continue
+        match = MPD_BUTTON.match(lines[0])
+        body = [line for line in lines[1:] if line not in MPD_SKIP_LINES]
+        if not match or not body:
+            continue
+        found.setdefault(match.group(1), []).append((int(match.group(2)), "\n".join(body)))
+    labels = {}
+    for button, parts in found.items():
+        texts = []
+        for _, part in sorted(parts, key=lambda p: p[0]):
+            if part not in texts:
+                texts.append(part)
+        labels[button] = "\n".join(texts)
+    return labels
+
+
 def export_reader(sock: socket.socket) -> None:
     global control_packet
     while True:
@@ -259,6 +304,7 @@ def export_reader(sock: socket.socket) -> None:
         except ValueError:
             continue
         with lock:
+            now = time.monotonic()
             for name in CONTROL_NAMES:
                 try:
                     number = float(values[name])
@@ -266,7 +312,12 @@ def export_reader(sock: socket.socket) -> None:
                     continue
                 if math.isfinite(number):
                     control_values[name] = number
-            control_packet = time.monotonic()
+            for number in MPD_INDICATIONS:
+                text = values.get(f"ind{number}")
+                if text is not None:
+                    mpd_labels[number] = parse_mpd_labels(text)
+                    mpd_times[number] = now
+            control_packet = now
 
 
 def read(name: str):
@@ -318,12 +369,20 @@ def snapshot() -> dict:
         now = time.monotonic()
         age = None if last_packet is None else round(now - last_packet, 1)
         controls_age = None if control_packet is None else round(now - control_packet, 1)
+        seat = read(SEAT)
+        left, right = MPD_SEATS.get(seat, (None, None))
+        received = [mpd_times[n] for n in (left, right) if n in mpd_times]
         return {
-            "seat": read(SEAT),
+            "seat": seat,
             "age": age,
             "values": {name: read(name) for name in outputs if name != SEAT},
             "controls": dict(control_values),
             "controls_age": controls_age,
+            "mpd_labels": {
+                "L": dict(mpd_labels.get(left, {})),
+                "R": dict(mpd_labels.get(right, {})),
+                "age": round(now - max(received), 1) if received else None,
+            },
             "trim": {
                 prefix.lower(): {
                     "pitch": point["pitch"], "roll": point["roll"], "pedals": point["pedals"],
@@ -385,6 +444,32 @@ def move_lever(control: dict, value, target: dict, seat: int) -> tuple[bool, str
                     return False, f"no readback after {name}"
                 time.sleep(0.05)
     log.line("dash", control["id"], f"{value}: keys {', '.join(names)}")
+    return True, ""
+
+
+def is_number(value) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def move_stick(control: dict, name: str, value, seat: int) -> tuple[bool, str]:
+    if not isinstance(value, dict) or not is_number(value.get("x")) or not is_number(value.get("y")):
+        return False, "position not available"
+    position = (max(-1.0, min(1.0, value["x"])), max(-1.0, min(1.0, value["y"])))
+    with stick_lock:
+        last = stick_last.setdefault(name, {"position": (0.0, 0.0), "raw": {}})
+        for axis, v in zip(("x", "y"), position):
+            raw = round(32767.5 + v * 32767.5)
+            axis_name = expand(control[axis], seat)
+            if last["raw"].get(axis_name) != raw:
+                send(axis_name, raw)
+                last["raw"][axis_name] = raw
+        was_centre = all(abs(v) < STICK_CENTRE for v in last["position"])
+        is_centre = all(abs(v) < STICK_CENTRE for v in position)
+        last["position"] = position
+    if was_centre and not is_centre:
+        log.line("dash", name, "moving")
+    elif is_centre and not was_centre:
+        log.line("dash", name, "centre")
     return True, ""
 
 
@@ -458,12 +543,20 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str]:
         log.line("dash", name, "pressed")
         return True, ""
     if control["type"] == "knob":
+        if is_number(value) and 0 <= value <= 65535:
+            level = round(value)
+            with command_lock:
+                send(name, level)
+            log.line("dash", name, f"set {level}")
+            return True, ""
         if value not in ("up", "down"):
             return False, "position not available"
         with command_lock:
             send(name, f"+{control['step']}" if value == "up" else f"-{control['step']}")
         log.line("dash", name, f"{value} sent")
         return True, ""
+    if control["type"] == "stick":
+        return move_stick(control, name, value, seat)
     if control["type"] == "key":
         with command_lock:
             if not keys.focus(cfg["dcs"]["window_title"]):
