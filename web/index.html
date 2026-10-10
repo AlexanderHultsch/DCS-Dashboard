@@ -216,7 +216,7 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .mart.ted text { font-size: 14px; }
 .mart.ted .lead { stroke-width: 1.4; }
 .mkey, .mknob { position: absolute; margin: 0; padding: 0; }
-.mkey::before, .mknob::before, .rhalf::before, .kkey::before {
+.mkey::before, .mknob::before, .rhalf::before, .kkey::before, .pbtn::before, .ppos::before {
   content: ""; position: absolute; left: 50%; top: 50%; width: var(--hw, 100%); height: var(--hh, 100%); transform: translate(-50%, -50%);
 }
 .mkey { font-stretch: condensed; letter-spacing: 0.02em; }
@@ -296,6 +296,76 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .kkey.rnd { border-radius: 50%; font-size: calc(var(--bh) * 0.04); }
 .kkey.sm { font-size: calc(var(--bh) * 0.026); }
 .boxed { padding: 0.02em 0.16em; border: 1.5px solid #e8e8e8; border-radius: 2px; line-height: 1; }
+
+#controls.map, #controls.plate { min-height: 0; overflow: hidden; }
+#controls.map {
+  grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr));
+  gap: 8px 10px; padding-top: 8px;
+}
+#controls.plate { display: flex; align-items: center; justify-content: center; }
+.mapbox {
+  min-width: 0; min-height: 0; padding: 4px; font-size: 16px; line-height: 1.2; color: #f2f2f2;
+  background: #1b1d1f; border: 1px solid #5d656c; border-radius: 6px;
+}
+.mapbox.link { background: #26292c; }
+.mapbox:active { background: #3a3d40; }
+
+.pbox { position: relative; flex: none; }
+body.ro .pbox { opacity: 0.6; }
+.part, .pswitch { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.part text { fill: #f2f2f2; text-anchor: middle; letter-spacing: 0; }
+.pctl { position: absolute; }
+.pbtn {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(#5b4a49, #2c2323); border: 1px solid #000; border-radius: 7%;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.pbtn::after {
+  content: ""; position: absolute; left: 13%; top: 13%; right: 13%; bottom: 13%; border-radius: 4%;
+  background: linear-gradient(#32373b, #1d2023); box-shadow: inset 0 0 0 1px #000, inset 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+.pbtn:active { transform: scale(0.97); }
+.pbtn.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
+.pbtn.lit.c-green::after { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8), inset 0 0 0 1px #000; }
+.pbtn.lit.c-amber::after { background: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8), inset 0 0 0 1px #000; }
+.plegend { position: relative; z-index: 1; font-size: calc(var(--bh) * 0.045); letter-spacing: 0.02em; color: #7d858c; pointer-events: none; }
+.pbtn.lit.c-amber .plegend { color: #111; }
+.ppos { position: absolute; left: 0; width: 100%; margin: 0; padding: 0; background: none; border: 0; }
+.ppos:active { background: rgba(255, 255, 255, 0.12); }
+.ppos.pending { outline: 3px solid #ffb300; outline-offset: -3px; }
+
+.gcover {
+  position: absolute; inset: 0; z-index: 3; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center;
+  background: repeating-linear-gradient(-45deg, #c62828 0 12px, #f2f2f2 12px 24px);
+  border: 2px solid #7f1414; border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  transform-origin: 50% 0; transition: transform 0.25s, opacity 0.25s;
+}
+.gcover:active { filter: brightness(1.15); }
+.gcover.open { transform: perspective(400px) rotateX(100deg); opacity: 0; pointer-events: none; }
+.glock {
+  display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  background: #111; border: 2px solid #f2f2f2; border-radius: 50%;
+}
+.glock svg { width: 60%; height: 60%; fill: #f2f2f2; }
+.gring { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: none; pointer-events: none; z-index: 2; }
+.gring.fill { display: block; }
+.gring svg { width: 100%; height: 100%; overflow: visible; }
+.gring rect, .gring circle { fill: none; stroke: #ffb300; stroke-width: 6; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.gring.fill rect, .gring.fill circle { animation: gfill var(--hold) linear forwards; }
+@keyframes gfill { to { stroke-dashoffset: 0; } }
+
+#pages {
+  position: fixed; inset: 0; z-index: 65; display: none; align-items: center; justify-content: center;
+  padding: 12px 12px 56px; background: rgba(0, 0, 0, 0.6);
+}
+#pages.open { display: flex; }
+#pagecard {
+  display: flex; flex-direction: column; gap: 10px; width: min(560px, 100%); padding: 12px;
+  background: #1b1d1f; border: 1px solid #3a3d40; border-radius: 6px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8);
+}
+.phead { display: flex; align-items: center; gap: 12px; }
+#pagelist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 
 #kscrim { position: fixed; inset: 0; z-index: 60; display: none; }
 #kbar {
@@ -415,6 +485,15 @@ body.settings-open #gear { display: none; }
     </div>
   </div>
 </div>
+<div id="pages" role="dialog">
+  <div id="pagecard">
+    <div class="phead">
+      <span class="sheading">PAGES</span>
+      <button id="pageclose" class="back" type="button">CLOSE</button>
+    </div>
+    <div id="pagelist"></div>
+  </div>
+</div>
 <div id="kscrim"></div>
 <div id="kbar" role="dialog">
   <div class="khead">
@@ -460,6 +539,14 @@ const MODE_STEP = 45;
 const KNOB_TOL = 700;
 const TOUCH_MIN = 56;
 const GEAR_CLEAR = 44;
+const GUARD_MS = 5000;
+const HOLD_MS = 1000;
+const LIST_HOLD_MS = 500;
+const PRINT_SIZE = 25;
+const LAYOUT_CLASS = { panel: 'plate' };
+const PADLOCK = '<span class="glock"><svg viewBox="0 0 24 24" fill-rule="evenodd" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V11a1 1 0 0 0-1-1h-1V7a5 5 0 0 0-5-5zM9 10V7a3 3 0 0 1 6 0v3z"/></svg></span>';
+const RING_SQUARE = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="-3" y="-3" width="106" height="106" rx="8" pathLength="100"/></svg>';
+const RING_ROUND = '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" pathLength="100"/></svg>';
 const CUR_MIN = 160;
 const MPD_BOX = { x: 470, y: 25, w: 1060, h: 1065 };
 const MPD_SCREEN = { x: 605, y: 165, w: 790, h: 787 };
@@ -522,6 +609,11 @@ let views = [];
 let activeIndex = 0;
 let lamps = [];
 let controls = [];
+let tabs = [];
+let mapView = null;
+let plateView = null;
+let lifted = null;
+let pagesSeat = null;
 let current = { status: 'offline', seat: null, values: {}, controls: {}, controlsAge: null, trim: {}, mpdLabels: null };
 let toastTimer = null;
 let mpdView = null;
@@ -602,7 +694,7 @@ function readValue(name) {
 
 function loadTab() {
   try {
-    const i = views.findIndex((v) => v.name === localStorage.getItem(TAB_KEY));
+    const i = views.findIndex((v) => !v.panel && v.name === localStorage.getItem(TAB_KEY));
     if (i >= 0) return i;
   } catch (e) { /* storage not available, use the first view */ }
   return 0;
@@ -663,7 +755,7 @@ function notConfirmed(c) {
 }
 
 async function run(c, body, target) {
-  if (c.busy || !can(c)) return;
+  if (c.busy || !can(c)) return null;
   c.busy = true;
   c.pending = target;
   c.update();
@@ -673,6 +765,7 @@ async function run(c, body, target) {
   else c.pending = null;
   c.update();
   if (reply && reply.confirmed === false) notConfirmed(c);
+  return reply;
 }
 
 function statusOf(s) {
@@ -695,6 +788,7 @@ function renderBadge() {
 }
 
 function render() {
+  followSeat();
   renderBadge();
   lamps.forEach((l) => l.update());
   controls.forEach((c) => {
@@ -703,6 +797,9 @@ function render() {
   });
   renderMpd();
   renderBar();
+  renderMap();
+  renderPages();
+  if (lifted && !can(lifted.c)) closeGuard();
 }
 
 function buildLamp(def) {
@@ -767,7 +864,7 @@ function buildButton(def, cls, label) {
   }
   const locked = () => !!def.requires && readValue(def.requires.id) !== def.requires.value;
   btn.addEventListener('click', () => {
-    if (!can(c) || c.busy || locked()) return;
+    if (def.guard || !can(c) || c.busy || locked()) return;
     run(c, { id: def.id }, null);
   });
   c.update = () => {
@@ -1253,7 +1350,133 @@ function buildScratch(def) {
   return c;
 }
 
+function closeGuard() {
+  if (!lifted) return;
+  const { c, timer } = lifted;
+  clearTimeout(timer);
+  lifted = null;
+  c.stops.forEach((stop) => stop());
+  c.cover.classList.remove('open');
+}
+
+function openGuard(c) {
+  closeGuard();
+  lifted = { c, timer: setTimeout(closeGuard, GUARD_MS) };
+  c.cover.classList.add('open');
+}
+
+function addGuard(c, items, round) {
+  const cover = make('button', 'gcover');
+  cover.type = 'button';
+  cover.setAttribute('aria-label', 'Lift cover');
+  cover.innerHTML = PADLOCK;
+  cover.addEventListener('click', async () => {
+    if (c.busy) return;
+    closeGuard();
+    if (await run(c, { id: c.def.id, guard: 'open' }, null)) openGuard(c);
+  });
+  c.cover = cover;
+  c.stops = [];
+  c.el.append(cover);
+  items.forEach(({ el, ready, fire }) => {
+    const ring = make('span', 'gring');
+    ring.innerHTML = round ? RING_ROUND : RING_SQUARE;
+    ring.style.setProperty('--hold', HOLD_MS + 'ms');
+    el.append(ring);
+    let timer = null;
+    const stop = () => {
+      clearTimeout(timer);
+      timer = null;
+      ring.classList.remove('fill');
+    };
+    c.stops.push(stop);
+    el.addEventListener('pointerdown', (e) => {
+      if (timer || !lifted || lifted.c !== c || !can(c) || c.busy || !ready()) return;
+      try { el.releasePointerCapture(e.pointerId); } catch (err) { /* not captured */ }
+      ring.classList.add('fill');
+      timer = setTimeout(() => {
+        stop();
+        closeGuard();
+        fire();
+      }, HOLD_MS);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach((type) => el.addEventListener(type, stop));
+  });
+}
+
+function buildPlateButton(def) {
+  const c = buildButton(def, 'pbtn' + (def.color ? ' c-' + def.color : ''), '');
+  const btn = c.el;
+  c.el = make('div', 'pctl');
+  c.el.append(btn);
+  if (def.legend) btn.append(make('span', 'plegend', def.legend));
+  const update = c.update;
+  c.update = () => {
+    update();
+    btn.classList.toggle('lit', !!def.lamp && readValue(def.lamp) === 1);
+  };
+  c.touchAt = ([x, y, w, h]) => [{ el: btn, cx: x + w / 2, cy: y + h / 2, w, h }];
+  if (def.guard) addGuard(c, [{ el: btn, ready: () => true, fire: () => run(c, { id: def.id }, null) }], false);
+  return c;
+}
+
+function buildPlateSwitch(def) {
+  const [, , w, h] = def.at;
+  const n = def.positions.length;
+  const cx = w / 2;
+  const cy = h / 2;
+  const r = Math.min(w, h) * 0.45;
+  const wrap = make('div', 'pctl');
+  wrap.insertAdjacentHTML('beforeend', '<svg class="pswitch" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#101112" stroke="#e8e8e8" stroke-width="3"/>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.74 + '" fill="#3b1d19" stroke="#8a3a2b" stroke-width="3"/>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.42 + '" fill="#050505"/>'
+    + '<line class="lv" x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + cy + '" stroke="#cfd3d8" stroke-width="8" stroke-linecap="round"/>'
+    + '<circle class="tip" cx="' + cx + '" cy="' + cy + '" r="7" fill="#e9edf0" stroke="#7b8288" stroke-width="2"/>'
+    + '</svg>');
+  const lever = wrap.querySelector('.lv');
+  const tip = wrap.querySelector('.tip');
+  const c = { def, el: wrap, busy: false, pending: null, buttons: [] };
+  const free = (p) => can(c) && !c.busy && !p.disabled && readValue(def.id) !== p.value;
+  const items = def.positions.map((p, i) => {
+    const btn = make('button', 'ppos');
+    btn.type = 'button';
+    btn.style.top = i / n * 100 + '%';
+    btn.style.height = 100 / n + '%';
+    btn.setAttribute('aria-label', p.label);
+    btn.addEventListener('click', () => {
+      if (def.guard || !free(p)) return;
+      run(c, { id: def.id, value: p.value }, p.value);
+    });
+    wrap.append(btn);
+    c.buttons.push(btn);
+    return { el: btn, ready: () => free(p), fire: () => run(c, { id: def.id, value: p.value }, p.value) };
+  });
+  c.update = () => {
+    const idx = def.positions.findIndex((p) => p.value === readValue(def.id));
+    const dy = idx < 0 || n < 2 ? 0 : (idx / (n - 1) * 2 - 1) * r * 0.55;
+    lever.setAttribute('y2', cy + dy);
+    tip.setAttribute('cy', cy + dy);
+    lever.style.visibility = tip.style.visibility = idx < 0 ? 'hidden' : '';
+    def.positions.forEach((p, i) => {
+      c.buttons[i].classList.toggle('pending', c.pending === p.value);
+      c.buttons[i].setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
+    });
+  };
+  c.touchAt = ([x, y, tw, th]) => c.buttons.map((el, i) => ({ el, cx: x + tw / 2, cy: y + th * (i + 0.5) / n, w: tw, h: th / n }));
+  if (def.guard) addGuard(c, items, true);
+  return c;
+}
+
+function buildPanelControl(def) {
+  if (def.type === 'button') return buildPlateButton(def);
+  if (def.type === 'selector') return buildPlateSwitch(def);
+  console.error('no panel drawing for control type ' + def.type + ' (' + def.id + ')');
+  return null;
+}
+
 function buildControl(def, layout) {
+  if (layout === 'panel') return buildPanelControl(def);
   if (def.type === 'selector') return layout === 'mpd' ? buildMpdKnob(def) : buildSelector(def);
   if (def.type === 'button') {
     if (layout === 'mpd') return buildMpdButton(def);
@@ -1607,6 +1830,156 @@ function fitKu() {
   spread(kuView.touch, s);
 }
 
+function plateArt(a) {
+  const [x, y, w, h] = a.at;
+  const rect = (r, style) => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + r + '" ' + style + '/>';
+  if (a.shape === 'plate') return rect(12, 'fill="#26292c" stroke="#3d4348" stroke-width="3"');
+  if (a.shape === 'bracket') return rect(6, 'fill="#33373b" stroke="#474e54" stroke-width="2"');
+  if (a.shape === 'outline') return rect(4, 'fill="none" stroke="#e8e8e8" stroke-width="3"');
+  if (a.shape === 'screw') {
+    return '<circle cx="' + x + '" cy="' + y + '" r="' + w + '" fill="#5b6269" stroke="#1a1c1e" stroke-width="2"/>'
+      + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.4" transform="rotate(' + (x + y) % 90 + ' ' + x + ' ' + y + ')"/>';
+  }
+  if (a.shape === 'hazard') {
+    const [hx, hy, hw, hh] = a.hole;
+    const box = (bx, by, bw, bh) => 'M' + bx + ' ' + by + 'h' + bw + 'v' + bh + 'h' + -bw + 'z';
+    return '<path d="' + box(x, y, w, h) + box(hx, hy, hw, hh) + '" fill="url(#phaz)" fill-rule="evenodd" stroke="#111" stroke-width="2"/>';
+  }
+  return '';
+}
+
+function plateSvg(view) {
+  const [w, h] = view.box;
+  const text = (view.print || []).map(([t, x, y, size, width, rot]) => (
+    '<text x="' + x + '" y="' + y + '" dy="0.35em" font-size="' + (size || PRINT_SIZE) + '"'
+    + (width ? ' textLength="' + width + '" lengthAdjust="spacingAndGlyphs"' : '')
+    + (rot ? ' transform="rotate(' + rot + ' ' + x + ' ' + y + ')"' : '') + '>' + t + '</text>'
+  ));
+  return '<svg class="part" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<defs><pattern id="phaz" patternUnits="userSpaceOnUse" width="34" height="34" patternTransform="rotate(45)">'
+    + '<rect width="17" height="34" fill="#e0c21a"/><rect x="17" width="17" height="34" fill="#e4e4e0"/></pattern></defs>'
+    + (view.art || []).map(plateArt).join('') + text.join('')
+    + '</svg>';
+}
+
+function placePlate(box, cs) {
+  const view = views[activeIndex];
+  const pbox = make('div', 'pbox');
+  pbox.insertAdjacentHTML('beforeend', plateSvg(view));
+  plateView = { pbox, box: view.box, touch: [] };
+  cs.forEach((c) => {
+    const [x, y, w, h] = c.def.at;
+    boxRect(c.el, { x: 0, y: 0, w: view.box[0], h: view.box[1] }, x + w / 2, y + h / 2, w, h);
+    pbox.append(c.el);
+    plateView.touch.push(...c.touchAt(c.def.at));
+  });
+  box.append(pbox);
+}
+
+function fitPlate() {
+  if (!plateView) return;
+  const [bw, bh] = plateView.box;
+  const [w, h] = innerSize(document.getElementById('controls'));
+  const s = Math.min(w / bw, h / bh);
+  if (!(s > 0)) return;
+  const st = plateView.pbox.style;
+  st.width = bw * s + 'px';
+  st.height = bh * s + 'px';
+  st.setProperty('--bh', bh * s + 'px');
+  spread(plateView.touch, s);
+}
+
+function homeView() {
+  return views.find((v) => v.layout === 'map');
+}
+
+function shownSeat() {
+  return current.seat === 1 ? 1 : 0;
+}
+
+function openLink(link) {
+  showView(views.findIndex((v) => v.name === link.view));
+  if (link.side) setMpdSide(link.side);
+}
+
+function pageEntries(seat) {
+  const entries = [];
+  views.forEach((v, index) => {
+    if (v.panel && v.seats.includes(seat)) entries.push({ label: v.name, map: v.map, link: false, go: () => showView(index) });
+  });
+  homeView().links.forEach((link) => {
+    if (link.seats.includes(seat)) entries.push({ label: link.label, map: link.map, link: true, go: () => openLink(link) });
+  });
+  return entries.sort((a, b) => a.map[0] - b.map[0] || a.map[1] - b.map[1]);
+}
+
+function cell(el, [row, col, rows, cols]) {
+  el.style.gridRow = row + ' / span ' + rows;
+  el.style.gridColumn = col + ' / span ' + cols;
+}
+
+function placeMap(box, cs) {
+  mapView = { box, seat: null, boxes: [], controls: cs };
+  cs.forEach((c) => {
+    cell(c.el, c.def.map);
+    box.append(c.el);
+  });
+  renderMap();
+}
+
+function renderMap() {
+  if (!mapView) return;
+  const seat = shownSeat();
+  if (mapView.seat !== seat) {
+    mapView.boxes.forEach((b) => b.remove());
+    mapView.boxes = pageEntries(seat).map((e) => {
+      const btn = make('button', e.link ? 'mapbox link' : 'mapbox', e.label.toUpperCase());
+      btn.type = 'button';
+      cell(btn, e.map);
+      btn.addEventListener('click', e.go);
+      mapView.box.append(btn);
+      return btn;
+    });
+    mapView.seat = seat;
+  }
+  mapView.controls.forEach((c) => {
+    c.el.style.display = c.def.seats && !c.def.seats.includes(seat) ? 'none' : '';
+  });
+}
+
+function openPages() {
+  pagesSeat = null;
+  document.getElementById('pages').classList.add('open');
+  renderPages();
+}
+
+function closePages() {
+  document.getElementById('pages').classList.remove('open');
+}
+
+function renderPages() {
+  if (!document.getElementById('pages').classList.contains('open')) return;
+  const seat = shownSeat();
+  if (pagesSeat === seat) return;
+  pagesSeat = seat;
+  document.getElementById('pagelist').replaceChildren(...pageEntries(seat).map((e) => {
+    const btn = make('button', 'pos', e.label.toUpperCase());
+    btn.type = 'button';
+    btn.addEventListener('click', () => {
+      closePages();
+      e.go();
+    });
+    return btn;
+  }));
+}
+
+function followSeat() {
+  const view = views[activeIndex];
+  if (!view || !view.panel || current.status !== 'live' || view.seats.includes(current.seat)) return;
+  const i = views.findIndex((v) => v.name === view.name && v.seats.includes(current.seat));
+  if (i >= 0) showView(i);
+}
+
 function placeGrid(box, cs) {
   cs.forEach((c) => {
     const [row, col, rows, cols] = c.def.grid;
@@ -1615,29 +1988,34 @@ function placeGrid(box, cs) {
   });
 }
 
-const PLACERS = { mpd: placeMpd, ku: placeKu };
+const PLACERS = { mpd: placeMpd, ku: placeKu, panel: placePlate, map: placeMap };
 
 function fit() {
   const name = document.getElementById('controls').className;
   if (name === 'mpd') fitMpd();
   else if (name === 'ku') fitKu();
+  else if (name === 'plate') fitPlate();
 }
 
 function showView(index) {
   activeIndex = index;
   const view = views[index];
-  saveTab(view.name);
+  saveTab(view.panel ? homeView().name : view.name);
   const lampBox = document.getElementById('lamps');
   const controlBox = document.getElementById('controls');
   const layout = view.layout || null;
   const grid = !layout && view.controls.some((d) => d.grid);
   mpdView = null;
   kuView = null;
+  mapView = null;
+  plateView = null;
   closeBar();
+  closeGuard();
+  closePages();
   lampBox.replaceChildren();
   controlBox.replaceChildren();
-  controlBox.className = layout || (grid ? 'grid' : '');
-  lampBox.classList.toggle('compact', grid);
+  controlBox.className = LAYOUT_CLASS[layout] || layout || (grid ? 'grid' : '');
+  lampBox.classList.toggle('compact', grid || layout === 'map' || layout === 'panel');
   lampBox.style.display = view.lamps.length ? '' : 'none';
   lamps = view.lamps.map(buildLamp);
   controls = view.controls.map((d) => buildControl(d, layout)).filter((c) => c !== null);
@@ -1646,17 +2024,53 @@ function showView(index) {
   else if (grid) placeGrid(controlBox, controls);
   else controls.forEach((c) => controlBox.append(c.el));
   fit();
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === index));
+  updateTabs();
   render();
+}
+
+function updateTabs() {
+  const view = views[activeIndex];
+  tabs.forEach(({ el, index }) => {
+    const home = views[index].layout === 'map' && !!view.panel;
+    el.classList.toggle('active', index === activeIndex || home);
+    el.textContent = (home ? '\u25c0 ' : '') + views[index].name.toUpperCase();
+  });
+}
+
+function holdTab(tab) {
+  let timer = null;
+  const stop = () => {
+    clearTimeout(timer);
+    timer = null;
+  };
+  tab.addEventListener('pointerdown', () => {
+    stop();
+    tab.held = false;
+    timer = setTimeout(() => {
+      tab.held = true;
+      openPages();
+    }, LIST_HOLD_MS);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((type) => tab.addEventListener(type, stop));
 }
 
 function buildTabs() {
   const nav = document.getElementById('tabs');
-  views.forEach((v, i) => {
+  tabs = [];
+  views.forEach((v, index) => {
+    if (v.panel) return;
     const tab = make('button', 'tab', v.name.toUpperCase());
     tab.type = 'button';
-    tab.addEventListener('click', () => showView(i));
+    tab.addEventListener('click', () => {
+      if (tab.held) {
+        tab.held = false;
+        return;
+      }
+      showView(index);
+    });
+    if (v.layout === 'map') holdTab(tab);
     nav.append(tab);
+    tabs.push({ el: tab, index });
   });
 }
 
@@ -1822,6 +2236,10 @@ const wakeSupported = 'wakeLock' in navigator;
 const logButtons = buildSeg(document.getElementById('logseg'), setLogging);
 const wakeButtons = buildSeg(document.getElementById('wakeseg'), setWake);
 initBar();
+document.getElementById('pageclose').addEventListener('click', closePages);
+document.getElementById('pages').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closePages();
+});
 document.getElementById('gear').addEventListener('click', openSettings);
 document.getElementById('back').addEventListener('click', closeSettings);
 renderSettings();

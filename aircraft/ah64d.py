@@ -85,7 +85,85 @@ def tedac_controls() -> list[dict]:
     return controls
 
 
+MASTER_LAMPS = [
+    {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
+    {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
+]
+
+
+def panel_pages(name: str, cells: dict, box: list, placard: list, art: list, controls: list) -> list[dict]:
+    return [
+        {
+            "name": name, "seats": [seat], "panel": True, "layout": "panel", "map": cell, "box": box,
+            "lamps": MASTER_LAMPS, "print": placard, "art": art, "controls": controls,
+        }
+        for seat, cell in cells.items()
+    ]
+
+
+def tail_wheel_pages() -> list[dict]:
+    controls = [
+        {"id": "{seat}_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "color": "amber", "at": [130, 71, 88, 90]},
+        {"id": "{seat}_NVS_MODE", "label": "NVS MODE", "type": "selector", "positions": [{"value": 2, "label": "FIXED"}, {"value": 1, "label": "NORM"}, {"value": 0, "label": "OFF"}], "at": [410, 52, 80, 126]},
+    ]
+    placard = [
+        ["TAIL WHEEL", 177.5, 38, 30, 153], ["+", 83, 51, 16], ["NVS MODE", 456, 43, 30, 134],
+        ["FIXED", 449, 68.5, 21, 52], ["NORM", 497.5, 115, 21, 67, 90], ["OFF", 447, 165, 20, 36],
+    ]
+    art = [
+        {"shape": "plate", "at": [10, 6, 600, 196]},
+        {"shape": "bracket", "at": [9, 4, 44, 80]},
+        {"shape": "bracket", "at": [572, 128, 50, 74]},
+        {"shape": "screw", "at": [31, 60, 18]}, {"shape": "screw", "at": [61, 143, 14]},
+        {"shape": "screw", "at": [551, 68, 14]}, {"shape": "screw", "at": [594, 158, 18]},
+        {"shape": "outline", "at": [121, 63, 100, 101]},
+    ]
+    return panel_pages("TAIL WHEEL / NVS", {0: [2, 1, 1, 3], 1: [5, 1, 1, 3]}, [622, 216], placard, art, controls)
+
+
+def emergency_pages() -> list[dict]:
+    controls = [
+        {"id": "{seat}_EMERG_GUARD_BTN", "label": "GUARD", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_GUARD_L", "color": "green", "at": [103, 99, 84, 86]},
+        {"id": "{seat}_EMERG_XPNDR_BTN", "label": "XPNDR", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_XPNDR_L", "color": "green", "at": [213, 99, 86, 87]},
+        {"id": "{seat}_EMERG_ZERO_SW", "label": "ZEROIZE", "type": "selector", "guard": True, "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}], "at": [326, 96, 80, 88]},
+        {"id": "{seat}_EMERG_HYD_BTN", "label": "EMERG HYD", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_HYD_L", "color": "green", "at": [449, 115, 90, 89]},
+    ]
+    placard = [
+        ["EMERGENCY", 302.5, 32, 28, 188], ["+", 131, 51, 16], ["GUARD", 146.5, 80, 25, 83], ["XPNDR", 255.5, 81.5, 25, 81],
+        ["ZEROIZE", 364.5, 84, 25, 105], ["EMERG", 497, 60, 25, 84], ["HYD", 496.5, 84.5, 25, 49],
+    ]
+    art = [
+        {"shape": "plate", "at": [9, 4, 601, 228]},
+        {"shape": "bracket", "at": [9, 4, 44, 82]},
+        {"shape": "bracket", "at": [574, 166, 51, 66]},
+        {"shape": "screw", "at": [32, 60, 19]}, {"shape": "screw", "at": [72, 179, 15]},
+        {"shape": "screw", "at": [561, 72, 15]}, {"shape": "screw", "at": [598, 188, 18]},
+        {"shape": "outline", "at": [96, 90, 100, 98]}, {"shape": "outline", "at": [205, 91, 100, 101]},
+        {"shape": "hazard", "at": [427, 93, 139, 133], "hole": [445, 111, 98, 97]},
+    ]
+    return panel_pages("EMERGENCY", {0: [3, 1, 1, 3], 1: [2, 1, 1, 3]}, [625, 251], placard, art, controls)
+
+
 VIEWS = [
+    {
+        "name": "COCKPIT",
+        "seats": [0, 1],
+        "layout": "map",
+        "lamps": MASTER_LAMPS,
+        "controls": [
+            {"id": "canopy", "label": "CANOPY", "type": "key", "key": "canopy", "readback": "PLT_CANOPY", "states": {"0": "CLOSED", "1": "OPEN"}, "seats": [0], "map": [2, 7, 1, 3]},
+        ],
+        "links": [
+            {"label": "KU", "view": "KU", "seats": [0, 1], "map": [1, 1, 1, 3]},
+            {"label": "MPD L", "view": "MPD", "side": "L", "seats": [0], "map": [3, 4, 3, 3]},
+            {"label": "MPD R", "view": "MPD", "side": "R", "seats": [0], "map": [3, 7, 3, 3]},
+            {"label": "MPD L", "view": "MPD", "side": "L", "seats": [1], "map": [2, 4, 3, 2]},
+            {"label": "TEDAC", "view": "MPD", "side": "T", "seats": [1], "map": [2, 6, 3, 2]},
+            {"label": "MPD R", "view": "MPD", "side": "R", "seats": [1], "map": [2, 8, 3, 3]},
+        ],
+    },
+    *tail_wheel_pages(),
+    *emergency_pages(),
     {
         "name": "Startup",
         "seats": [0],
