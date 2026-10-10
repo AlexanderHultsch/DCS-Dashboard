@@ -59,7 +59,7 @@ def ku_controls() -> list[dict]:
 
 VIEWS = [
     {
-        "name": "Aircraft",
+        "name": "Startup",
         "seats": [0],
         "lamps": [
             {"id": "PLT_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "PLT_INTL_MWARN_BTN"},
@@ -70,21 +70,41 @@ VIEWS = [
             {"id": "PLT_APU_L", "label": "APU ON", "color": "green"},
         ],
         "controls": [
-            {"id": "PLT_MASTER_IGN_SW", "label": "MSTR IGN", "type": "selector", "positions": [{"value": 0, "label": "OFF"}, {"value": 1, "label": "BATT"}, {"value": 2, "label": "EXT PWR", "disabled": True}]},
-            {"id": "PLT_APU_BTN_CVR", "label": "APU COVER", "type": "selector", "positions": [{"value": 0, "label": "CLOSED"}, {"value": 1, "label": "OPEN"}]},
-            {"id": "PLT_APU_BTN", "label": "APU", "type": "button", "hold": 0.3, "requires": {"id": "PLT_APU_BTN_CVR", "value": 1}},
-            {"id": "PLT_ENG1_START", "label": "ENG 1 START", "type": "selector", "rest": 1, "hold": 0.5, "positions": ENGINE_START_POSITIONS},
-            {"id": "PLT_ENG2_START", "label": "ENG 2 START", "type": "selector", "rest": 1, "hold": 0.5, "positions": ENGINE_START_POSITIONS},
-            {"id": "power_left", "label": "PWR LVR 1", "type": "lever", "readback": "PLT_ENG_L_PW_LVR", "side": "left", "positions": POWER_POSITIONS},
-            {"id": "power_right", "label": "PWR LVR 2", "type": "lever", "readback": "PLT_ENG_R_PW_LVR", "side": "right", "positions": POWER_POSITIONS},
-            {"id": "PLT_ROTOR_BRK", "label": "RTR BRK", "type": "selector", "positions": [{"value": 2, "label": "OFF"}, {"value": 1, "label": "BRK", "disabled": True}, {"value": 0, "label": "LOCK"}]},
-            {"id": "PLT_PARK_BRAKE", "label": "PARK BRAKE", "type": "selector", "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "PULLED"}]},
-            {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": 0.3},
-            {"id": "PLT_EXTL_NAV_L_SW", "label": "NAV", "type": "selector", "positions": [{"value": 2, "label": "BRT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "DIM"}]},
-            {"id": "PLT_EXTL_ACOL_L_SW", "label": "ANTI COL", "type": "selector", "positions": [{"value": 2, "label": "WHT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "RED"}]},
-            {"id": "PLT_MPD_L_MODE", "label": "MPD L", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS},
-            {"id": "PLT_MPD_R_MODE", "label": "MPD R", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS},
-            {"id": "canopy", "label": "CANOPY", "type": "key", "key": "canopy", "readback": "PLT_CANOPY", "states": {"0": "CLOSED", "1": "OPEN"}},
+            {"id": "PLT_MASTER_IGN_SW", "label": "MSTR IGN", "type": "selector", "positions": [{"value": 0, "label": "OFF"}, {"value": 1, "label": "BATT"}, {"value": 2, "label": "EXT PWR", "disabled": True}], "grid": [1, 1, 1, 1]},
+            {"id": "PLT_APU_BTN_CVR", "label": "APU COVER", "type": "selector", "positions": [{"value": 0, "label": "CLOSED"}, {"value": 1, "label": "OPEN"}], "grid": [1, 2, 1, 1]},
+            {"id": "PLT_APU_BTN", "label": "APU", "type": "button", "hold": 0.3, "requires": {"id": "PLT_APU_BTN_CVR", "value": 1}, "grid": [1, 3, 1, 1]},
+            {"id": "PLT_ENG1_START", "label": "ENG 1 START", "type": "selector", "rest": 1, "hold": 0.5, "positions": ENGINE_START_POSITIONS, "grid": [1, 4, 1, 1]},
+            {"id": "PLT_ENG2_START", "label": "ENG 2 START", "type": "selector", "rest": 1, "hold": 0.5, "positions": ENGINE_START_POSITIONS, "grid": [1, 5, 1, 1]},
+            {"id": "power_left", "label": "PWR LVR 1", "type": "lever", "readback": "PLT_ENG_L_PW_LVR", "side": "left", "positions": POWER_POSITIONS, "grid": [1, 6, 3, 1]},
+            {"id": "power_right", "label": "PWR LVR 2", "type": "lever", "readback": "PLT_ENG_R_PW_LVR", "side": "right", "positions": POWER_POSITIONS, "grid": [1, 7, 3, 1]},
+            {"id": "PLT_ROTOR_BRK", "label": "RTR BRK", "type": "selector", "positions": [{"value": 2, "label": "OFF"}, {"value": 1, "label": "BRK", "disabled": True}, {"value": 0, "label": "LOCK"}], "grid": [2, 1, 1, 1]},
+            {"id": "PLT_PARK_BRAKE", "label": "PARK BRAKE", "type": "selector", "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "PULLED"}], "grid": [2, 2, 1, 1]},
+            {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": 0.3, "lamp": "PLT_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "seats": [0], "grid": [2, 5, 1, 1]},
+            {"id": "PLT_EXTL_NAV_L_SW", "label": "NAV", "type": "selector", "positions": [{"value": 2, "label": "BRT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "DIM"}], "grid": [2, 3, 1, 1]},
+            {"id": "PLT_EXTL_ACOL_L_SW", "label": "ANTI COL", "type": "selector", "positions": [{"value": 2, "label": "WHT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "RED"}], "grid": [2, 4, 1, 1]},
+            {"id": "PLT_MPD_L_MODE", "label": "MPD L", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS, "grid": [3, 1, 1, 1]},
+            {"id": "PLT_MPD_R_MODE", "label": "MPD R", "type": "selector", "step_fallback": True, "positions": MODE_POSITIONS, "grid": [3, 2, 1, 1]},
+            {"id": "canopy", "label": "CANOPY", "type": "key", "key": "canopy", "readback": "PLT_CANOPY", "states": {"0": "CLOSED", "1": "OPEN"}, "grid": [3, 3, 1, 3]},
+        ],
+    },
+    {
+        "name": "Flight",
+        "seats": [0, 1],
+        "lamps": [
+            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
+            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
+            {"id": "PLT_ENG_1_FIRE_L", "label": "ENG 1 FIRE", "color": "red"},
+            {"id": "PLT_APU_FIRE_L", "label": "APU FIRE", "color": "red"},
+            {"id": "PLT_ENG_2_FIRE_L", "label": "ENG 2 FIRE", "color": "red"},
+            {"id": "PLT_APU_L", "label": "APU ON", "color": "green"},
+        ],
+        "controls": [
+            {"id": "controls", "label": "CONTROLS", "type": "controls", "grid": [1, 1, 3, 3]},
+            {"id": "{seat}_CYCLIC_SYMBOLOGY", "label": "SYMBOLOGY", "type": "hat", "ud": "{seat}_CYCLIC_SYMBOLOGY", "hold": 0.3, "positions": {"up": "T/C", "down": "H/B"}, "grid": [1, 4, 2, 1]},
+            {"id": "monocle", "label": "MONOCLE", "type": "key", "key": "monocle", "grid": [1, 5, 1, 1]},
+            {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": 0.3, "lamp": "PLT_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "seats": [0], "grid": [2, 5, 1, 1]},
+            {"id": "flight_power_left", "label": "PWR LVR 1", "type": "lever", "readback": "{seat}_ENG_L_PW_LVR", "side": "left", "positions": POWER_POSITIONS, "grid": [1, 6, 3, 1]},
+            {"id": "flight_power_right", "label": "PWR LVR 2", "type": "lever", "readback": "{seat}_ENG_R_PW_LVR", "side": "right", "positions": POWER_POSITIONS, "grid": [1, 7, 3, 1]},
         ],
     },
     {
@@ -152,11 +172,16 @@ def read_names() -> list[str]:
             if control["type"] == "lever":
                 names += expand_all(control["readback"])
             elif control["type"] == "key":
-                names += expand_all(control["readback"])
+                if "readback" in control:
+                    names += expand_all(control["readback"])
             elif control["type"] == "hat":
-                names += expand_all(control["ud"]) + expand_all(control["lr"])
-            else:
+                names += expand_all(control["ud"])
+                if "lr" in control:
+                    names += expand_all(control["lr"])
+            elif control["type"] != "controls":
                 names += expand_all(control["id"])
+            if "lamp" in control:
+                names += expand_all(control["lamp"])
     return list(dict.fromkeys(names))
 
 
@@ -247,9 +272,10 @@ def lever_index(control: dict, raw: int) -> int:
     return min(range(len(positions)), key=lambda i: abs(positions[i]["value"] - raw))
 
 
-def move_lever(control: dict, value, target: dict) -> tuple[bool, str]:
+def move_lever(control: dict, value, target: dict, seat: int) -> tuple[bool, str]:
+    readback = expand(control["readback"], seat)
     with lock:
-        raw = read(control["readback"])
+        raw = read(readback)
     if raw is None:
         return False, "no readback"
     current = lever_index(control, raw)
@@ -270,7 +296,7 @@ def move_lever(control: dict, value, target: dict) -> tuple[bool, str]:
             deadline = time.monotonic() + LEVER_WAIT
             while True:
                 with lock:
-                    raw = read(control["readback"])
+                    raw = read(readback)
                 if raw is not None and lever_index(control, raw) == b:
                     break
                 if time.monotonic() >= deadline:
@@ -326,14 +352,16 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str]:
         return False, "no DCS data"
     if seat not in view["seats"]:
         return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only"
+    if "seats" in control and seat not in control["seats"]:
+        return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only"
     name = expand(identifier, seat)
-    if control["type"] == "display":
+    if control["type"] in ("display", "controls"):
         return False, "display only"
     if control["type"] == "lever":
         target = next((p for p in control["positions"] if p["label"] == value), None)
         if target is None or target.get("disabled"):
             return False, "position not available"
-        return move_lever(control, value, target)
+        return move_lever(control, value, target, seat)
     if control["type"] == "button":
         requires = control.get("requires")
         if requires:
@@ -363,7 +391,7 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str]:
         return True, ""
     if control["type"] == "hat":
         axes = {"up": ("ud", 2), "down": ("ud", 0), "left": ("lr", 0), "right": ("lr", 2)}
-        if not isinstance(value, str) or value not in axes:
+        if not isinstance(value, str) or value not in control["positions"]:
             return False, "position not available"
         axis, level = axes[value]
         target = expand(control[axis], seat)

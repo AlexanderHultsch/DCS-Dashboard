@@ -31,6 +31,8 @@ power_left_off = "RAlt+End"
 power_right_off = "RShift+End"
 # Opens / closes the canopy (DCS "Open/Close Cockpit Door").
 canopy = "LCtrl+C"
+# Shows / hides the IHADSS monocle (DCS "IHADSS show").
+monocle = "I"
 george_show_hide = "LCtrl+V"
 george_up = "W"
 george_down = "S"
