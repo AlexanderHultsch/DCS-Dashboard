@@ -2,7 +2,7 @@
 
 Detailed spec for Stage 2 of [SPEC.md](SPEC.md). Goal: a pass / fail list of every control we can set from outside, for both seats.
 
-Status: built, waiting for the test run on Windows.
+Status: tested on Windows. Open: power levers.
 
 ## What Stage 1 tells us
 
@@ -145,14 +145,33 @@ The console prints one line per control (result and note) and a progress counter
 
 Preparation: Stage 1 setup. DCS in windowed or borderless mode. Single player mission, AH-64D cold and dark, battery off.
 
-1. Pilot seat. Start `python stage2_sweep.py`, press Enter when asked, do not touch the controls for about 7 minutes.
-2. Start `python stage2_sweep.py keys` and go through the key list.
+1. Pilot seat. Start `python stage2_sweep.py`, press Enter when asked, do not touch the controls for about 2 minutes.
+2. Turn the battery on (George needs power), start `python stage2_sweep.py keys` and go through the key list.
 3. Restart the mission, switch to the CP/G seat (key `2`), repeat steps 1 and 2.
 4. Keep `logs/stage2_results.csv` and the log files.
 
 ## Results
 
-Filled in after the test run: counts per seat and result, every `fail` with its reviewed cause, the keypress results and the answer to the focus question.
+From the test run on Windows, cold and dark: one sweep per seat (about 1.5 minutes each), the George keys with battery power, and a few manual follow-ups.
+
+| Seat | pass | fail | skipped (blocklist) | sent-unverified |
+| --- | --- | --- | --- | --- |
+| Pilot | 227 | 12 | 29 | 5 |
+| CP/G | 238 | 18 | 27 | 1 |
+
+Keypresses: George 9 / 9 pass in both seats. Bringing DCS to the front worked every time, so the bridge can send keys while DCS is in front. George needs electrical power; with the battery off it answers "no power".
+
+Reviewed failures:
+
+- Cockpit logic or missing preconditions: master ignition EXT PWR (no external power), APU button (passes with the cover open, fails with it closed), NVS mode position 2, rotor brake BRK.
+- Passed with a 3 s wait instead of 0.5 s: ICS mode, M4 safety.
+- Spring-loaded, always back to centre: CP/G manual tracker (2).
+- Not reached, also not with a 3 s wait: canopy (both seats), CP/G stick fold, MPD mode knobs (both seats), processor select, TADS select, SAI cage, SAI pitch trim, CP/G left MPD L1–L6. Probably missing preconditions. Not followed up, the dashboard does not need them.
+- Power levers: not controllable yet. DCS-BIOS does not move them past the OFF detent, and PageUp / PageDown did not move them in the cold cockpit.
+
+Everything the Fighting and Navigation views need passed: master arm, ground override, weapons action switch, sight select, flare, chaff, force trim, KU keys and MPD buttons (except CP/G left MPD L1–L6). For the Startup view, master ignition, APU cover, engine start switches and parking brake passed; the APU button works once the cover is open.
+
+Conclusion: a single command works for most controls, but some only work after other steps (cover open, power on, finger lift). Stage 3 uses only controls that passed, in the order a pilot would use them.
 
 Stage 2 is done when every control of both seats has a result and the failures are reviewed.
 
@@ -170,3 +189,4 @@ Each step is checked by compiling the code and reading the diff. The real check 
 - Does a DCS-BIOS command reach the controls of the other seat? Not tested, the dashboard follows the current seat.
 - Do the George W / S / A / D keys only act while the George menu is shown, or also as other DCS commands? Watch during the keypress test.
 - Keyboard combinations for cockpit commands: none for now, only George. A later combination goes into `[keys]` and becomes a dashboard button.
+- Power levers: find a way to move them from outside (keybinds, finger lift, DCS-BIOS IDLE / LIFT controls). Needed for the Startup view.

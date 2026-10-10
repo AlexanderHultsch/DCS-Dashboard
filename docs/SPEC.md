@@ -157,7 +157,7 @@ Open questions:
 - [ ] Radios on the dashboard in version 1, or later?
 - [x] Are the generic engine values plausible for the Apache? Partly: RPM is NG %, temperature is always 0. TGT, torque, NP and NR come from the MPD page text. See [STAGE1.md](STAGE1.md#results).
 - [x] Can the MPD page text be read? Yes, for the displays of the occupied seat. See [STAGE1.md](STAGE1.md#results).
-- [ ] Keypresses need the DCS window in focus. Is that fine when triggered from the tablet? Stage 2 answers this.
+- [x] Keypresses need the DCS window in focus. Is that fine when triggered from the tablet? Yes: the bridge brings DCS to the front before each key, which worked every time. See [STAGE2.md](STAGE2.md#results).
 - [ ] Which keyboard combinations for cockpit commands are used today? Each one becomes a dashboard button.
 
 Out of scope: AI integration (see future development), multiplayer, automatic flying (stick, collective, pedals), cockpit-replica graphics, hardware panels, security beyond the local network.

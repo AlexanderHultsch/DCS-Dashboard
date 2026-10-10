@@ -2,7 +2,7 @@
 
 A simple tablet dashboard for the **AH-64D Apache** in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Big touch buttons replace keyboard combinations for cockpit commands and George, the AI copilot.
 
-**Status:** Stage 1 (read data) is built and tested on Windows. Results: [docs/STAGE1.md](docs/STAGE1.md#results). Stage 2 (control) is built and ready for its first test run.
+**Status:** Stage 1 (read data) is built and tested on Windows. Results: [docs/STAGE1.md](docs/STAGE1.md#results). Stage 2 (control) is tested on Windows. Results: [docs/STAGE2.md](docs/STAGE2.md#results).
 
 ## Plan
 
@@ -69,8 +69,8 @@ The test procedure is in [docs/STAGE1.md](docs/STAGE1.md#test-run-windows-manual
 
 1. Add the `window_title` line and the `[keys]` section from `config.example.toml` to your `config.toml`.
 2. Start DCS in windowed or borderless mode and an AH-64D mission, cold and dark, battery off.
-3. In the repo folder run `python stage2_sweep.py` and press Enter when asked. Do not touch the controls for about 7 minutes.
-4. Run `python stage2_sweep.py keys` and answer each key test with y, n or s.
+3. In the repo folder run `python stage2_sweep.py` and press Enter when asked. Do not touch the controls for about 2 minutes.
+4. Turn the battery on (George needs power), run `python stage2_sweep.py keys` and answer each key test with y, n or s.
 5. Restart the mission, switch to the CP/G seat (key `2`) and repeat steps 3 and 4.
 
 Results are in `logs\stage2_results.csv`. The test procedure is in [docs/STAGE2.md](docs/STAGE2.md#test-run-windows-manual).
