@@ -26,7 +26,7 @@ MODE_POSITIONS = [
     {"value": 0, "label": "MONO"},
 ]
 KNOB_STEP = 3200
-MPD_BUTTON_HOLD = 0.15
+MPD_BUTTON_HOLD = 0.3
 MPD_LABELS = {"B1": "M", "AC": "A/C", "AST": "*"}
 KU_LABELS = {
     "DOT": ".", "SIGN": "+/-", "SLASH": "/", "DIV": "\u00f7", "MULTI": "*", "PLUS": "+",
@@ -57,6 +57,14 @@ def ku_controls() -> list[dict]:
     ]
     controls.append({"id": "{seat}_KU_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "slot": "BRT"})
     return controls
+
+
+def cursor_controls() -> list[dict]:
+    return [
+        {"id": "{seat}_CURSOR", "label": "CURSOR", "type": "stick", "x": "{seat}_COLLECTIVE_CURSOR_LR", "y": "{seat}_COLLECTIVE_CURSOR_UD", "slot": "CURSOR"},
+        {"id": "{seat}_COLLECTIVE_CURSOR_DISPLAY", "label": "CURSOR SWITCH DISPLAY", "type": "button", "hold": MPD_BUTTON_HOLD, "slot": "CURSOR_DISPLAY"},
+        {"id": "{seat}_COLLECTIVE_CURSOR_ENTER", "label": "ENTER", "type": "button", "hold": MPD_BUTTON_HOLD, "slot": "CURSOR_ENTER"},
+    ]
 
 
 VIEWS = [
@@ -129,12 +137,13 @@ VIEWS = [
             {"id": "{seat}_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": 0.3, "grid": [2, 2, 1, 1]},
             {"id": "PLT_CMWS_FLARE_COUNT", "label": "FLARE COUNT", "type": "display", "grid": [3, 1, 1, 1]},
             {"id": "PLT_CMWS_CHAFF_COUNT", "label": "CHAFF COUNT", "type": "display", "grid": [3, 2, 1, 1]},
-            {"id": "{seat}_COLLECTIVE_CURSOR_ENTER", "label": "ENTER", "type": "button", "hold": 0.15, "grid": [3, 3, 1, 1]},
-            {"id": "{seat}_COLLECTIVE_CURSOR_DISPLAY", "label": "DISPLAY", "type": "button", "hold": 0.15, "grid": [3, 4, 1, 1]},
-            {"id": "{seat}_CURSOR", "label": "CURSOR", "type": "stick", "x": "{seat}_COLLECTIVE_CURSOR_LR", "y": "{seat}_COLLECTIVE_CURSOR_UD", "grid": [1, 5, 3, 3]},
+            {"id": "PLT_CMWS_PW", "label": "CMWS PWR", "type": "selector", "rest": 1, "hold": 0.5, "positions": [{"value": 2, "label": "TEST", "momentary": True}, {"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}], "seats": [0], "grid": [1, 5, 1, 1]},
+            {"id": "PLT_CMWS_ARM", "label": "FLARE SQUIBS", "type": "selector", "positions": [{"value": 1, "label": "ARM"}, {"value": 0, "label": "SAFE"}], "seats": [0], "grid": [1, 6, 1, 1]},
+            {"id": "PLT_CMWS_MODE", "label": "CMWS MODE", "type": "selector", "positions": [{"value": 1, "label": "CMWS"}, {"value": 0, "label": "NAV"}], "seats": [0], "grid": [2, 5, 1, 1]},
+            {"id": "PLT_CMWS_BYPASS", "label": "CMWS OPER", "type": "selector", "positions": [{"value": 1, "label": "BYPASS"}, {"value": 0, "label": "AUTO"}], "seats": [0], "grid": [2, 6, 1, 1]},
         ],
     },
-    {"name": "MPD", "seats": [0, 1], "layout": "mpd", "lamps": [], "controls": mpd_controls("L") + mpd_controls("R")},
+    {"name": "MPD", "seats": [0, 1], "layout": "mpd", "lamps": [], "controls": mpd_controls("L") + mpd_controls("R") + cursor_controls()},
     {"name": "KU", "seats": [0, 1], "layout": "ku", "lamps": [], "controls": ku_controls()},
 ]
 
@@ -142,6 +151,10 @@ LEVER_KEYS = {(0, 1): "idle", (1, 2): "up", (2, 1): "down", (1, 0): "off"}
 LEVER_WAIT = 1.0
 STEP_WAIT = 0.5
 STEP_TRIES = 2
+PRESS_MIN = 0.3
+PRESS_MAX = 1.0
+CONFIRM_WAIT = 0.5
+CONFIRM_POLL = 0.02
 
 CONTROL_NAMES = [f"{seat}_{axis}" for seat in ("plt", "cpg") for axis in ("cyc_pitch", "cyc_roll", "coll", "pedals")]
 
@@ -196,6 +209,8 @@ def read_names() -> list[str]:
     for view in VIEWS:
         for lamp in view["lamps"]:
             names += expand_all(lamp["id"])
+            if "button" in lamp:
+                names += expand_all(lamp["button"])
         for control in view["controls"]:
             if control["type"] == "lever":
                 names += expand_all(control["readback"])
@@ -500,99 +515,119 @@ def reach_by_steps(name: str, value: int) -> tuple[bool, bool]:
     return False, False
 
 
-def command(body: dict) -> tuple[bool, str]:
+def hold_until(name: str, level, hold: float, limit: float) -> bool:
+    start = time.monotonic()
+    seen = False
+    while True:
+        with lock:
+            seen = seen or read(name) == level
+        elapsed = time.monotonic() - start
+        if seen and elapsed >= hold or elapsed >= limit:
+            return seen
+        time.sleep(CONFIRM_POLL)
+
+
+def command(body: dict) -> tuple[bool, str, bool | None]:
     identifier = body.get("id")
     value = body.get("value", "")
-    ok, message = check_and_send(identifier, value, body)
+    ok, message, confirmed = check_and_send(identifier, value, body)
     if not ok:
         log.line("dash", identifier, f"{value} refused: {message}")
-    return ok, message
+    return ok, message, confirmed
 
 
-def check_and_send(identifier, value, body: dict) -> tuple[bool, str]:
+def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | None]:
     control, view = find_control(identifier)
     if control is None:
-        return False, "unknown control"
+        return False, "unknown control", None
     with lock:
         seat = read(SEAT)
     if seat is None:
-        return False, "no DCS data"
+        return False, "no DCS data", None
     if seat not in view["seats"]:
-        return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only"
+        return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only", None
     if "seats" in control and seat not in control["seats"]:
-        return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only"
+        return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only", None
     name = expand(identifier, seat)
     if control["type"] in ("display", "controls"):
-        return False, "display only"
+        return False, "display only", None
     if control["type"] == "lever":
         target = next((p for p in control["positions"] if p["label"] == value), None)
         if target is None or target.get("disabled"):
-            return False, "position not available"
-        return move_lever(control, value, target, seat)
+            return False, "position not available", None
+        ok, message = move_lever(control, value, target, seat)
+        return ok, message, True if ok else None
     if control["type"] == "button":
         requires = control.get("requires")
         if requires:
             with lock:
                 current = read(expand(requires["id"], seat))
             if current != requires["value"]:
-                return False, "locked: open the cover first"
+                return False, "locked: open the cover first", None
         with command_lock:
             send(name, 1)
-            time.sleep(control.get("hold", 0.3))
+            confirmed = hold_until(name, 1, max(control.get("hold", 0.3), PRESS_MIN), PRESS_MAX)
             send(name, 0)
-        log.line("dash", name, "pressed")
-        return True, ""
+        log.line("dash", name, "pressed" if confirmed else "pressed, not confirmed")
+        return True, "", confirmed
     if control["type"] == "knob":
         if is_number(value) and 0 <= value <= 65535:
             level = round(value)
             with command_lock:
                 send(name, level)
             log.line("dash", name, f"set {level}")
-            return True, ""
+            return True, "", None
         if value not in ("up", "down"):
-            return False, "position not available"
+            return False, "position not available", None
         with command_lock:
             send(name, f"+{control['step']}" if value == "up" else f"-{control['step']}")
         log.line("dash", name, f"{value} sent")
-        return True, ""
+        return True, "", None
     if control["type"] == "stick":
-        return move_stick(control, name, value, seat)
+        ok, message = move_stick(control, name, value, seat)
+        return ok, message, None
     if control["type"] == "key":
         with command_lock:
             if not keys.focus(cfg["dcs"]["window_title"]):
-                return False, "DCS not in front"
+                return False, "DCS not in front", None
             keys.press(cfg["keys"][control["key"]], 0.1)
         log.line("dash", name, "pressed")
-        return True, ""
+        return True, "", None
     if control["type"] == "hat":
         axes = {"up": ("ud", 2), "down": ("ud", 0), "left": ("lr", 0), "right": ("lr", 2)}
         if not isinstance(value, str) or value not in control["positions"]:
-            return False, "position not available"
+            return False, "position not available", None
         axis, level = axes[value]
         target = expand(control[axis], seat)
         with command_lock:
             send(target, level)
-            time.sleep(control.get("hold", 0.3))
+            confirmed = hold_until(target, level, max(control.get("hold", 0.3), PRESS_MIN), PRESS_MAX)
             send(target, 1)
-        log.line("dash", name, f"{value} ({control['positions'][value]}) sent")
-        return True, ""
+        log.line("dash", name, f"{value} ({control['positions'][value]}) sent" + ("" if confirmed else ", not confirmed"))
+        return True, "", confirmed
     position = next((p for p in control["positions"] if p["value"] == value and not isinstance(value, bool)), None)
     if position is None or position.get("disabled"):
-        return False, "position not available"
+        return False, "position not available", None
     how = "sent"
+    confirmed = None
     with command_lock:
         send(name, value)
         if position.get("momentary"):
-            time.sleep(control["hold"])
+            confirmed = hold_until(name, value, control["hold"], max(control["hold"], CONFIRM_WAIT))
             send(name, control["rest"])
+        elif not control.get("step_fallback"):
+            confirmed = hold_until(name, value, 0, CONFIRM_WAIT)
         if control.get("step_fallback"):
             reached, by_steps = reach_by_steps(name, value)
             if not reached:
-                return False, "position not reached"
+                return False, "position not reached", None
+            confirmed = True
             if by_steps:
                 how = "sent by steps"
+    if confirmed is False:
+        how += ", not confirmed"
     log.line("dash", name, f"{value} {how}")
-    return True, ""
+    return True, "", confirmed
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -649,9 +684,9 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self.reply_json(400, {"error": "bad request"})
             return
-        ok, message = command(body)
+        ok, message, confirmed = command(body)
         if ok:
-            self.reply_json(200, {"ok": True})
+            self.reply_json(200, {"ok": True, "confirmed": confirmed})
         else:
             self.reply_json(409, {"error": message})
 
