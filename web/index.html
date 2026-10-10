@@ -204,8 +204,8 @@ body.ro .panel { opacity: 0.6; }
   --u: min(5vw, 5.5vh);
   display: flex; align-items: center; justify-content: center;
 }
-#controls.mpd { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-bottom: 12px; }
-body.ro .mbezel, body.ro .kupanel { opacity: 0.6; }
+#controls.mpd { display: flex; align-items: center; justify-content: center; gap: 16px; padding-bottom: 12px; }
+body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .kkey { place-self: center; width: 84%; height: 84%; padding: 0; position: relative; font-stretch: condensed; letter-spacing: 0.02em; }
 .kkey:active { transform: scale(0.95); }
 .kkey.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
@@ -214,6 +214,11 @@ body.ro .mbezel, body.ro .kupanel { opacity: 0.6; }
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.65); color: #f2f2f2;
 }
 
+.mpdmain { flex: 1; align-self: stretch; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.mpdcur { flex: none; width: 240px; display: flex; flex-direction: column; gap: 8px; }
+.mpdcur .pad { flex: none; width: 100%; aspect-ratio: 1; }
+.curbtns { display: flex; gap: 8px; }
+.cbtn { flex: 1; min-width: 0; min-height: 72px; padding: 2px; font-size: 14px; line-height: 1.15; }
 .mpdsw { flex: none; width: 388px; max-width: 100%; }
 .mpdsw .pos { flex: 1; min-width: 0; min-height: 44px; height: 48px; font-size: 16px; }
 .mpdstage { position: relative; flex: 1; min-height: 0; width: 100%; }
@@ -320,6 +325,12 @@ body.knob-open #kscrim, body.knob-open #kbar { display: flex; }
   font-size: 16px; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
 #toast.show { opacity: 1; }
+#toast.warn { background: #ffb300; color: #111; }
+.flash { animation: flash 0.6s ease-out; }
+@keyframes flash {
+  from { outline: 3px solid #ffb300; outline-offset: 1px; box-shadow: 0 0 14px 4px rgba(255, 179, 0, 0.9); }
+  to { outline: 3px solid rgba(255, 179, 0, 0); outline-offset: 1px; box-shadow: 0 0 0 0 rgba(255, 179, 0, 0); }
+}
 
 #gear {
   position: fixed; z-index: 40;
@@ -566,9 +577,10 @@ function saveTab(name) {
   } catch (e) { /* storage not available, the choice is not remembered */ }
 }
 
-function toast(message) {
+function toast(message, warn) {
   const t = document.getElementById('toast');
   t.textContent = message;
+  t.classList.toggle('warn', !!warn);
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), TOAST_MS);
@@ -593,14 +605,24 @@ async function send(body) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-    if (r.ok) return true;
+    if (r.ok) {
+      try { return await r.json(); } catch (e) { return {}; }
+    }
     let message = 'error ' + r.status;
     try { message = (await r.json()).error || message; } catch (e) { /* keep the status text */ }
     toast(message);
   } catch (e) {
     toast('bridge not reachable');
   }
-  return false;
+  return null;
+}
+
+function notConfirmed(c) {
+  toast(c.def.label + ': not confirmed by DCS', true);
+  c.el.classList.remove('flash');
+  void c.el.offsetWidth;
+  c.el.classList.add('flash');
+  setTimeout(() => c.el.classList.remove('flash'), 600);
 }
 
 async function run(c, body, target) {
@@ -608,11 +630,12 @@ async function run(c, body, target) {
   c.busy = true;
   c.pending = target;
   c.update();
-  const ok = await send(body);
+  const reply = await send(body);
   c.busy = false;
-  if (c.def.type === 'lever' && ok) c.doneAt = Date.now();
+  if (c.def.type === 'lever' && reply) c.doneAt = Date.now();
   else c.pending = null;
   c.update();
+  if (reply && reply.confirmed === false) notConfirmed(c);
 }
 
 function statusOf(s) {
@@ -1140,6 +1163,7 @@ function initBar() {
 }
 
 function buildMpdButton(def) {
+  if (!def.side) return buildButton(def, 'push cbtn', def.label);
   const edge = def.slot !== 'B1' && /^[TLRB][1-6]$/.test(def.slot) ? def.slot[0].toLowerCase() : null;
   if (edge) return buildButton(def, 'mkey var e-' + edge, '');
   return buildButton(def, def.slot === 'AST' ? 'mkey fix ast' : 'mkey fix', def.label);
@@ -1282,6 +1306,8 @@ function setMpdSide(side) {
 }
 
 function placeMpd(box, cs) {
+  const main = make('div', 'mpdmain');
+  const cur = make('div', 'mpdcur');
   const sw = make('div', 'seg mpdsw');
   const stage = make('div', 'mpdstage');
   mpdView = { side: loadMpdSide(), stage, bezels: {}, labels: {}, buttons: {}, items: {} };
@@ -1307,7 +1333,14 @@ function placeMpd(box, cs) {
     });
     mpdView.bezels[side] = bezel;
   });
-  box.append(sw, stage);
+  const bySlot = {};
+  cs.forEach((c) => { if (!c.def.side) bySlot[c.def.slot] = c; });
+  const row = make('div', 'curbtns');
+  if (bySlot.CURSOR) cur.append(bySlot.CURSOR.el);
+  ['CURSOR_DISPLAY', 'CURSOR_ENTER'].forEach((slot) => { if (bySlot[slot]) row.append(bySlot[slot].el); });
+  cur.append(row);
+  main.append(sw, stage);
+  box.append(main, cur);
   stage.append(mpdView.bezels[mpdView.side]);
 }
 
