@@ -82,19 +82,22 @@ Follows the current seat (`"seats": [0, 1]`). Same lamp row and the same grid as
 
 | Label | DCS-BIOS / route | Grid | Notes |
 | --- | --- | --- | --- |
-| CONTROLS | export script, see below | rows 1–3, columns 1–3 | read only |
+| TRIM | export script + `{seat}_CYCLIC_TRIM_UD`, see below | rows 1–2, columns 1–2 | read only |
+| CTRL IND | key `controls_overlay` (RCtrl+Enter, DCS "Show controls indicator") | row 3, column 1 | toggles DCS's own controls overlay (no lag) |
 | SYMBOLOGY | `{seat}_CYCLIC_SYMBOLOGY` | rows 1–2, column 4 | two-way hat: T/C ↑ (2), H/B ↓ (0), held 0.3 s, back to centre |
 | MONOCLE | key `monocle` (`I`, DCS "IHADSS show") | row 1, column 5 | push button, no state |
 | TAIL WHEEL | as on Startup | row 2, column 5 | pilot seat only (greyed in the CP/G seat) |
 | PWR LVR 1, 2 | keys, readback `{seat}_ENG_L_PW_LVR` / `{seat}_ENG_R_PW_LVR` | columns 6 and 7 | ids `flight_power_left` / `flight_power_right` |
 
-### Controls display
+### Trim display
 
-- The export script sends the actual control positions 10 times per second as cockpit arguments: pilot cyclic pitch 470, cyclic roll 471, collective 474, pedals 476; CP/G 472, 473, 475, 478 (`plt_cyc_pitch`, `plt_cyc_roll`, `plt_coll`, `plt_pedals`, `cpg_…`).
-- `dashboard.py` receives them on the export port and adds `controls` and `controls_age` to `/state`. If the export port is busy (for example `stage1_read.py` running), it logs `export port busy` and runs without them.
-- The page draws a red cross for the cyclic in a square, a marker on the pedal bar and a filled collective bar, like DCS's controls overlay, with small numbers for checking. With a spring stick, the cross shows the trimmed position when you let go of the stick.
-- `NO CONTROL DATA` when no export packet arrived for 3 s.
-- Ranges and directions are not confirmed yet: constants `CTRL_PITCH_SIGN`, `CTRL_ROLL_SIGN`, `CTRL_PEDAL_SIGN`, `CTRL_COLL_MIN`, `CTRL_COLL_MAX` at the top of the page script adjust them after the DCS test.
+- The export script sends the actual control positions 10 times per second as cockpit arguments: pilot cyclic pitch 470, cyclic roll 471, collective 474, pedals 476; CP/G 472, 473, 475, 478 (`plt_cyc_pitch`, `plt_cyc_roll`, `plt_coll`, `plt_pedals`, `cpg_…`). `dashboard.py` receives them on the export port (if the port is busy, e.g. `stage1_read.py` running, it logs `export port busy` and runs without them).
+- The live position is not drawn (it lags behind the stick); for that, CTRL IND toggles DCS's own overlay.
+- **Trim point:** when the Force Trim switch (`{seat}_CYCLIC_TRIM_UD`) goes from 2 (held) back to rest, the bridge stores the cyclic pitch / roll and the pedals at that moment as the seat's trim point and logs `PLT set P … R … Y …`.
+- **Trim reset:** while DCS is the active window, the bridge watches the `trim_reset` key (`LCtrl+T`, DCS "Trimmer reset") by reading only those keys' state; on a press it moves the trim point to the centre and logs `PLT reset`.
+- `/state` has `trim`: `{"plt": {"pitch", "roll", "pedals", "reset", "age"}, ...}`.
+- The page draws a small box with a green ring at the trim point and a green tick on the pedal bar, with the values as text; `NOT TRIMMED` before the first trim, `RESET` after a reset.
+- Directions are set by `CTRL_PITCH_SIGN`, `CTRL_ROLL_SIGN`, `CTRL_PEDAL_SIGN` at the top of the page script.
 
 ## Fight view
 
@@ -281,6 +284,6 @@ Each step is verified before the next one starts.
 - CANOPY state mapping (0 = CLOSED, 1 = OPEN): check in DCS.
 - CP/G left MPD L1–L6 did not respond in Stage 2.
 - The layout is made for 1024 × 768 and larger; smaller screens overlap.
-- Controls display: confirm ranges and directions in DCS (collective probably 0..1).
+- Trim display: confirm the ring and tick directions in DCS after a few trims.
 - The export port can be used by either dashboard.py or stage1_read.py, not both at once.
 - Symbology keys are not needed: the switch is set through DCS-BIOS.
