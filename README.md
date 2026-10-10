@@ -2,13 +2,13 @@
 
 A simple tablet dashboard for the **AH-64D Apache** in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Big touch buttons replace keyboard combinations for cockpit commands and George, the AI copilot.
 
-**Status:** Stage 1 (read data) is built and tested on Windows. Results: [docs/STAGE1.md](docs/STAGE1.md#results). Stage 2 (control) is tested on Windows. Results: [docs/STAGE2.md](docs/STAGE2.md#results). Stage 3 (dashboard): the Aircraft view is tested on Windows, the Fight, MPD and KU views are built and ready for their first test run.
+**Status:** Stage 1 (read data) is built and tested on Windows. Results: [docs/STAGE1.md](docs/STAGE1.md#results). Stage 2 (control) is tested on Windows. Results: [docs/STAGE2.md](docs/STAGE2.md#results). Stage 3 (dashboard): the Startup view is tested on Windows, the Flight, Fight, MPD and KU views are built and ready for their first test run.
 
 ## Plan
 
 1. **Read** – test which data we can read from DCS (both seats, in flight). Details: [docs/STAGE1.md](docs/STAGE1.md)
 2. **Control** – test which cockpit controls we can set from outside. Details: [docs/STAGE2.md](docs/STAGE2.md)
-3. **Dashboard** – HTML page with views: Aircraft, Fight, MPD and KU (built), George (later). Details: [docs/STAGE3.md](docs/STAGE3.md)
+3. **Dashboard** – HTML page with views: Startup, Flight, Fight, MPD and KU (built), George (later). Details: [docs/STAGE3.md](docs/STAGE3.md)
 
 Overview: [docs/SPEC.md](docs/SPEC.md)
 
@@ -53,6 +53,8 @@ Download it with **Code → Download ZIP** on GitHub and unzip it, or clone it w
    dofile(lfs.writedir() .. [[Scripts\DCS-Dashboard-Export.lua]])
    ```
 
+After an update of the repo, copy the export script again and restart the mission.
+
 ### 5. Config
 
 Copy `config.example.toml` to `config.toml` in the repo folder. `saved_games = "auto"` finds the DCS Saved Games folder by itself; set a path only if that fails. `config.toml` stays on your machine and is never committed.
@@ -80,7 +82,7 @@ Results are in `logs\stage2_results.csv`. The test procedure is in [docs/STAGE2.
 1. Start DCS in windowed or borderless mode. The tablet and the PC must be on the same network.
 2. Double-click `start_dashboard.bat` in the repo folder (or run `python dashboard.py`). It prints the address to open, for example `http://<PC address>:8080`. If Windows asks to allow Python on the network, allow it for private networks.
 3. Open that address in the tablet's browser. On an iPad: Share → Add to Home Screen. The page then runs full screen with its own icon; scrolling and zooming are switched off. To get a new icon after an update, remove the home screen app and add it again.
-4. Load an AH-64D mission. The AIRCRAFT tab controls the pilot seat (read only in the CP/G seat); FIGHT, MPD and KU follow the seat you are in.
+4. Load an AH-64D mission. The STARTUP tab controls the pilot seat (read only in the CP/G seat); FLIGHT, FIGHT, MPD and KU follow the seat you are in.
 5. Stop with Ctrl+C or close the window.
 
 The power levers are moved by keypresses, so DCS must be the active window on the PC; the dashboard brings it to the front itself. The test procedure is in [docs/STAGE3.md](docs/STAGE3.md#test-run-windows-manual).
