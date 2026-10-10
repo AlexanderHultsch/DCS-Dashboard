@@ -6,6 +6,8 @@
 #   %USERPROFILE%\Saved Games\DCS
 #   %USERPROFILE%\Saved Games\DCS.openbeta
 saved_games = "%USERPROFILE%\\Saved Games\\DCS"
+# Part of the DCS window title, used to bring DCS to the front before a keypress (Stage 2).
+window_title = "Digital Combat Simulator"
 
 [dcs_bios]
 # DCS-BIOS defaults
@@ -16,6 +18,15 @@ command_port = 7778
 [export]
 # UDP port the export script sends to. Must match PORT in lua/DCS-Dashboard-Export.lua.
 port = 7790
+
+[keys]
+# DCS keybinds sent as keypresses (Stage 2). Modifiers and key joined by "+".
+# Defaults from the DCS install; change them if you rebound them in DCS.
+george_show_hide = "LCtrl+V"
+george_up = "W"
+george_down = "S"
+george_left = "A"
+george_right = "D"
 
 [dashboard]
 # Web server for the tablet. 0.0.0.0 = reachable from the local network.

@@ -2,7 +2,7 @@
 
 Detailed spec for Stage 2 of [SPEC.md](SPEC.md). Goal: a pass / fail list of every control we can set from outside, for both seats.
 
-Status: approved, build in progress.
+Status: built, waiting for the test run on Windows.
 
 ## What Stage 1 tells us
 
@@ -46,7 +46,7 @@ New keys in `config.example.toml`:
 
 ```toml
 [dcs]
-# Title of the DCS window, used to bring it to the front before a keypress.
+# Part of the DCS window title, used to bring DCS to the front before a keypress.
 window_title = "Digital Combat Simulator"
 
 [keys]
@@ -102,7 +102,7 @@ DCS reads the keyboard through scan codes, so keys are sent with `SendInput` and
 For each entry in `[keys]`:
 
 1. The console shows the name and the key, and waits for Enter.
-2. The script brings the DCS window (`window_title`) to the front and waits 0.3 s.
+2. The script taps LShift, brings the first visible window whose title contains `window_title` to the front and waits 0.3 s. The tap is needed because Windows only lets a background program change the active window right after it sent input; LAlt would put the window into menu mode and swallow the next key. If the window does not come to the front, no key is sent and the result is `fail` with note `no focus`.
 3. It presses the modifiers, presses the key, holds it, releases everything in reverse order.
 4. The user looks at DCS, clicks back into the console and answers `y` (worked), `n` (did not work) or `s` (skip).
 
