@@ -109,6 +109,8 @@ Done when: every control of both seats has a result and the failures are reviewe
 
 Goal: replace the keyboard combinations for cockpit commands and George with buttons on a tablet, plus a few relevant displays. Flying itself stays on stick, collective and pedals.
 
+Detailed spec, view list and build steps: [STAGE3.md](STAGE3.md). It takes precedence over this section; it uses polling (GET /state five times per second) instead of a WebSocket.
+
 How it works:
 
 - The bridge serves a plain HTML page (HTML, CSS, JavaScript, no framework), opened in the tablet's browser and added to the home screen for fullscreen.

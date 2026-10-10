@@ -2,7 +2,7 @@
 
 Detailed spec for Stage 3 of [SPEC.md](SPEC.md). Goal: a dashboard page on the tablet that replaces the keyboard and mouse for cockpit commands.
 
-Status: approved, build in progress.
+Status: Startup view built, waiting for the test run on Windows.
 
 Stage 3 is built one view at a time. This first part covers the **Startup** view only. Navigation, Fighting and George follow once Startup works in DCS.
 
