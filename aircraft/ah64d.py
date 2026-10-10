@@ -401,6 +401,45 @@ def armament_pages() -> list[dict]:
     )
 
 
+def eufd_rocker(name: str, at: list) -> dict:
+    return {"id": f"{{seat}}_EUFD_{name}", "label": name, "type": "hat", "ud": f"{{seat}}_EUFD_{name}", "hold": MPD_BUTTON_HOLD, "positions": {"up": "▲", "down": "▼"}, "at": at}
+
+
+def eufd_button(name: str, label: str, at: list) -> dict:
+    return {"id": f"{{seat}}_EUFD_{name}", "label": label, "type": "button", "style": "flat", "hold": MPD_BUTTON_HOLD, "at": at}
+
+
+def eufd_pages() -> list[dict]:
+    controls = [
+        {"id": "{seat}_EUFD_DISPLAY", "label": "EUFD", "type": "display", "ids": [f"{{seat}}_EUFD_LINE{n}" for n in range(1, 15)], "at": [104, 14.5, 325, 169.5]},
+        eufd_rocker("WCA", [61, 27, 18.5, 63]),
+        eufd_rocker("IDM", [15, 71.5, 19, 63]),
+        eufd_rocker("RTS", [63, 114.5, 19, 63]),
+        {"id": "{seat}_EUFD_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135], "at": [455, 45, 47, 47]},
+        eufd_button("PRESET", "P", [451.5, 116.5, 19.5, 20]),
+        eufd_button("ENT", "ENTER", [501, 116.5, 22, 20.5]),
+        eufd_button("STOPWATCH", "STOPWATCH", [451, 168, 20, 18.5]),
+        eufd_button("SWAP", "SWAP", [501, 168, 20.5, 18.5]),
+    ]
+    placard = [
+        ["WCA", 70, 58.5, 13.5, 16.5], ["IDM", 24.5, 103, 13.5, 15], ["RTS", 72, 146, 13.5, 17],
+        ["BRT", 475, 42, 10, 17], ["P", 462.5, 127.8, 16.5, 7.5],
+    ]
+    art = [
+        {"shape": "plate", "at": [2, 2, 552, 193]},
+        {"shape": "slot", "at": [100, 13, 332, 173]},
+        {"shape": "bracket", "at": [61, 32, 18.5, 53]}, {"shape": "bracket", "at": [15, 76.5, 19, 53]}, {"shape": "bracket", "at": [63, 119.5, 19, 53]},
+        {"shape": "bracket", "at": [451.5, 116.5, 19.5, 20]}, {"shape": "bracket", "at": [501, 116.5, 22, 20.5]},
+        {"shape": "bracket", "at": [451, 168, 20, 18.5]}, {"shape": "bracket", "at": [501, 168, 20.5, 18.5]},
+        {"shape": "path", "at": [504.5, 124, 16, 8], "d": "M15 0V4.2H4", "width": 1.6},
+        {"shape": "path", "at": [504.5, 124, 16, 8], "d": "M5.5 1.2L1 4.2L5.5 7.2Z", "width": 1, "fill": True},
+        {"shape": "path", "at": [455, 169.5, 12.4, 16.2], "d": "M0.4 10a5.8 5.8 0 1 0 11.6 0a5.8 5.8 0 1 0-11.6 0M3.4 0.5H9M6.2 0.5V4.2M6.2 10L4.3 12.6", "width": 1.6},
+        {"shape": "path", "at": [503.5, 170.3, 14, 14], "d": "M0.9 5.9A6.2 6.2 0 0 1 11.75 3M13.1 8.1A6.2 6.2 0 0 1 2.25 11", "width": 1.6},
+        {"shape": "path", "at": [503.5, 170.3, 14, 14], "d": "M12.5 3.9L12.9 1L9.5 3.8ZM1.5 10.1L1.1 13L4.45 10.2Z", "width": 0.8, "fill": True},
+    ]
+    return panel_pages("EUFD", {0: [1, 7, 1, 3], 1: [1, 8, 1, 3]}, [556, 197], placard, art, controls)
+
+
 VIEWS = [
     {
         "name": "COCKPIT",
@@ -426,6 +465,7 @@ VIEWS = [
     *fire_pages(),
     *jettison_pages(),
     *armament_pages(),
+    *eufd_pages(),
     {
         "name": "Startup",
         "seats": [0],

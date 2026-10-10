@@ -332,6 +332,8 @@ body.ro .pbox { opacity: 0.6; }
 }
 .pbtn.plunger { background: #08090b; border-color: #3b3550; }
 .pbtn.plunger::after { left: 31%; top: 31%; right: 31%; bottom: 31%; background: radial-gradient(circle at 40% 35%, #cfe3f6, #8db3d6); }
+.pbtn.flat { background: none; border: 0; box-shadow: none; }
+.pbtn.flat::after { display: none; }
 .pbtn:active { transform: scale(0.97); }
 .pbtn.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
 .pbtn.lit.c-green::after { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8), inset 0 0 0 1px #000; }
@@ -352,6 +354,15 @@ body.ro .pbox { opacity: 0.6; }
 .ppos.pending { outline: 3px solid #ffb300; outline-offset: -3px; }
 .pgrip { fill: #3d4247; stroke: #9aa0a6; stroke-width: 2; }
 .pgrip.pending { stroke: #ffb300; stroke-width: 4; }
+.pdisp { overflow: hidden; container-type: size; background: #121a16; }
+.ptext {
+  transform-origin: 0 0; transform: scaleY(var(--sy)); font-size: calc(100cqw / var(--em)); line-height: calc(100cqh / var(--rows) / var(--sy));
+  white-space: pre; text-transform: none; letter-spacing: 0; color: #50dc5c;
+}
+.prock { container-type: size; }
+.prock .rhalf { font-size: 62cqmin; }
+.prock.v .rhalf.a { align-items: center; padding: 0 0 5.6cqh; }
+.prock.v .rhalf.b { align-items: center; padding: 5.6cqh 0 0; }
 .pslot { position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0; background: none; border: 0; }
 .pmark { position: absolute; margin: 0; padding: 0; background: none; border: 0; }
 .pdot { position: absolute; border: 2px solid #e8e8e8; border-radius: 50%; }
@@ -597,6 +608,8 @@ const GUARD_MS = 5000;
 const HOLD_MS = 1000;
 const LIST_HOLD_MS = 500;
 const PRINT_SIZE = 25;
+const LINE_COLS = 56;
+const MONO_FONT = '"Courier New", Consolas, monospace';
 const LAYOUT_CLASS = { panel: 'plate' };
 const PADLOCK = '<span class="glock"><svg viewBox="0 0 24 24" fill-rule="evenodd" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V11a1 1 0 0 0-1-1h-1V7a5 5 0 0 0-5-5zM9 10V7a3 3 0 0 1 6 0v3z"/></svg></span>';
 const RING_SQUARE = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="-3" y="-3" width="106" height="106" rx="8" pathLength="100"/></svg>';
@@ -1357,10 +1370,11 @@ function initBar() {
   document.getElementById('kscrim').addEventListener('click', closeBar);
 }
 
-function buildRocker(def) {
+function buildRocker(def, cls) {
+  const plate = cls !== undefined;
   const vertical = !def.lr;
   const dirs = vertical ? ['up', 'down'] : ['left', 'right'];
-  const el = make('div', 'mkey fix rocker ' + (vertical ? 'v' : 'h'));
+  const el = make('div', (plate ? cls : 'mkey fix') + ' rocker ' + (vertical ? 'v' : 'h'));
   const c = { def, el, busy: false, pending: null, vertical, halves: [], dirs };
   dirs.forEach((dir, i) => {
     const half = make('button', 'rhalf ' + 'ab'[i], def.positions[dir]);
@@ -1372,7 +1386,7 @@ function buildRocker(def) {
     el.append(half);
     c.halves.push(half);
   });
-  el.insertBefore(make('span', 'rlabel', def.label), c.halves[1]);
+  if (!plate) el.insertBefore(make('span', 'rlabel', def.label), c.halves[1]);
   c.update = () => {
     c.halves.forEach((half, i) => {
       half.classList.toggle('pressed', c.busy && c.pending === dirs[i]);
@@ -1774,7 +1788,40 @@ function buildPlateCap(def) {
   return c;
 }
 
+function buildPlateHat(def) {
+  const c = buildRocker(def, 'pctl prock');
+  c.touchAt = ([x, y, w, h]) => halfTouch(c, [x + w / 2, y + h / 2, w, h]);
+  return c;
+}
+
+function buildPlateDisplay(def) {
+  const [, , w, h] = def.at;
+  const rows = def.ids.length;
+  const ratio = document.createElement('canvas').getContext('2d');
+  ratio.font = 'bold 100px ' + MONO_FONT;
+  const em = ratio.measureText('0').width / 100;
+  const text = make('div', 'ptext');
+  const el = make('div', 'pctl pdisp');
+  text.style.fontFamily = MONO_FONT;
+  el.style.setProperty('--em', LINE_COLS * em);
+  el.style.setProperty('--rows', rows);
+  el.style.setProperty('--sy', h * em * LINE_COLS / (rows * w));
+  el.append(text);
+  const c = { def, el };
+  c.update = () => {
+    const shown = def.ids.map((id) => {
+      const v = readValue(id);
+      return typeof v === 'string' ? v.replace(/\0+$/, '') : '';
+    }).join('\n');
+    if (text.textContent !== shown) text.textContent = shown;
+  };
+  c.touchAt = () => [];
+  return c;
+}
+
 function buildPanelControl(def) {
+  if (def.type === 'display') return buildPlateDisplay(def);
+  if (def.type === 'hat') return buildPlateHat(def);
   if (def.type === 'button') return buildPlateButton(def);
   if (def.type === 'selector') {
     if (def.style === 'cover') return buildPlateCover(def);
@@ -2159,6 +2206,10 @@ function plateArt(a) {
     const back = a.up ? tip + w : tip - w;
     return '<path d="M' + (x + w / 2) + ' ' + (a.up ? y + h : y) + 'V' + tip + 'M' + x + ' ' + back + 'L' + (x + w / 2) + ' ' + tip + 'L' + (x + w) + ' ' + back
       + '" fill="none" stroke="#e8e8e8" stroke-width="3"/>';
+  }
+  if (a.shape === 'path') {
+    return '<path transform="translate(' + x + ' ' + y + ')" d="' + a.d + '" fill="' + (a.fill ? '#e8e8e8' : 'none') + '" stroke="#e8e8e8" stroke-width="' + a.width
+      + '" stroke-linecap="round" stroke-linejoin="round"/>';
   }
   if (a.shape === 'hazard') {
     const box = (bx, by, bw, bh) => 'M' + bx + ' ' + by + 'h' + bw + 'v' + bh + 'h' + -bw + 'z';
