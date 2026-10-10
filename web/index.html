@@ -75,6 +75,7 @@ button.lamp { width: 100%; }
 .panel.lever { grid-row: span 2; padding: 4px; }
 .title { font-size: 14px; text-align: center; color: #ddd; }
 body.ro .panel { opacity: 0.6; }
+.panel.off { opacity: 0.4; }
 
 .stack { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 .pos, .push {
@@ -125,14 +126,31 @@ body.ro .panel { opacity: 0.6; }
 .handle.pending { border-color: #ffb300; box-shadow: 0 0 12px 3px rgba(255, 179, 0, 0.8); }
 .handle.none { display: none; }
 
-#controls.rows, #controls.mpd, #controls.ku { min-height: 0; overflow: hidden; }
-#controls.rows { grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 8px 10px; padding-top: 8px; }
-.rows .panel { padding: 6px; gap: 4px; }
-.rows .panel.lever { padding: 4px; }
-.rows .title { font-size: 12px; }
-.rows .stack { gap: 4px; }
-.rows .pos, .rows .push { min-width: 44px; min-height: 44px; font-size: 13px; }
-.rows .push { font-size: 15px; }
+#controls.grid, #controls.mpd, #controls.ku { min-height: 0; overflow: hidden; }
+#controls.grid {
+  grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 8px 10px; padding-top: 8px;
+}
+.grid .panel { padding: 6px; gap: 4px; }
+.grid .panel.lever { padding: 4px; }
+.grid .title { font-size: 12px; }
+.grid .stack { gap: 4px; }
+.grid .pos, .grid .push { min-width: 44px; min-height: 44px; font-size: 13px; }
+.grid .push { font-size: 15px; }
+.cross.two { grid-template-columns: minmax(44px, 1fr); grid-template-rows: minmax(44px, 1fr) 28px minmax(44px, 1fr); }
+
+.litpush { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.lw {
+  min-width: 80%; padding: 8px 4px; font-size: 13px; line-height: 1.2; color: #ddd;
+  background: #14301a; border: 1px solid #43a047; border-radius: 4px;
+}
+.lw.lit { background: #43a047; color: #fff; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8); }
+
+.trim { flex: 1; min-height: 0; width: 100%; }
+.trim .edge { fill: #0b0c0d; stroke: #5d656c; stroke-width: 2; }
+.trim .axis { stroke: #3a3d40; stroke-width: 2; }
+.trim text { fill: #ddd; font-size: 15px; text-anchor: middle; }
+.trim text.dim { fill: #666; font-size: 20px; paint-order: stroke; stroke: #0b0c0d; stroke-width: 6px; }
 
 .keybtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-stretch: condensed; }
 .keybtn .kl { font-size: 20px; }
@@ -360,7 +378,6 @@ const BADGES = {
 };
 const HAT_CELLS = [null, 'up', null, 'left', 'hub', 'right', null, 'down', null];
 const HAT_AXES = { up: ['ud', 2], down: ['ud', 0], left: ['lr', 0], right: ['lr', 2] };
-const ROW_COUNT = 3;
 const KNOB_MAX = 65535;
 const MODE_BASE = 90;
 const MODE_STEP = 45;
@@ -414,6 +431,10 @@ function resolve(name) {
 function usable() {
   const view = views[activeIndex];
   return current.status === 'live' && !!view && view.seats.includes(current.seat);
+}
+
+function can(c) {
+  return usable() && (!c.def.seats || c.def.seats.includes(current.seat));
 }
 
 function readValue(name) {
@@ -472,7 +493,7 @@ async function send(body) {
 }
 
 async function run(c, body, target) {
-  if (c.busy || !usable()) return;
+  if (c.busy || !can(c)) return;
   c.busy = true;
   c.pending = target;
   c.update();
@@ -505,7 +526,10 @@ function renderBadge() {
 function render() {
   renderBadge();
   lamps.forEach((l) => l.update());
-  controls.forEach((c) => c.update());
+  controls.forEach((c) => {
+    c.update();
+    c.el.classList.toggle('off', usable() && !can(c));
+  });
 }
 
 function buildLamp(def) {
@@ -514,7 +538,7 @@ function buildLamp(def) {
   if (def.button) {
     el.type = 'button';
     el.addEventListener('click', () => {
-      if (!usable() || c.busy) return;
+      if (!can(c) || c.busy) return;
       run(c, { id: def.button }, true);
     });
   }
@@ -522,7 +546,7 @@ function buildLamp(def) {
     el.classList.toggle('lit', readValue(def.id) > 0);
     if (!def.button) return;
     el.classList.toggle('pending', c.busy);
-    el.setAttribute('aria-disabled', String(!usable() || c.busy));
+    el.setAttribute('aria-disabled', String(!can(c) || c.busy));
   };
   return c;
 }
@@ -536,7 +560,7 @@ function buildSelector(def) {
     const btn = make('button', 'pos', p.label);
     btn.type = 'button';
     btn.addEventListener('click', () => {
-      if (!usable() || c.busy || p.disabled || readValue(def.id) === p.value) return;
+      if (!can(c) || c.busy || p.disabled || readValue(def.id) === p.value) return;
       run(c, { id: def.id, value: p.value }, p.value);
     });
     stack.append(btn);
@@ -549,7 +573,7 @@ function buildSelector(def) {
       btn.classList.toggle('cur', readValue(def.id) === p.value);
       btn.classList.toggle('pending', c.pending === p.value);
       btn.classList.toggle('dis', !!p.disabled);
-      btn.setAttribute('aria-disabled', String(!!p.disabled || !usable() || c.busy));
+      btn.setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
     });
   };
   return c;
@@ -562,25 +586,33 @@ function buildButton(def, cls, label) {
   const panel = bare ? btn : make('div', 'panel');
   if (!bare) panel.append(btn);
   const c = { def, el: panel, busy: false, pending: null };
+  let legend = null;
+  if (!bare && def.lamp) {
+    legend = make('span', 'lw', def.legend);
+    btn.classList.add('litpush');
+    btn.replaceChildren(make('span', 'bl', def.label), legend);
+  }
   const locked = () => !!def.requires && readValue(def.requires.id) !== def.requires.value;
   btn.addEventListener('click', () => {
-    if (!usable() || c.busy || locked()) return;
+    if (!can(c) || c.busy || locked()) return;
     run(c, { id: def.id }, null);
   });
   c.update = () => {
+    if (legend) legend.classList.toggle('lit', readValue(def.lamp) === 1);
     btn.classList.toggle('locked', locked());
     btn.classList.toggle('pressed', c.busy);
-    btn.setAttribute('aria-disabled', String(locked() || !usable() || c.busy));
+    btn.setAttribute('aria-disabled', String(locked() || !can(c) || c.busy));
   };
   return c;
 }
 
 function buildHat(def) {
   const panel = make('div', 'panel hat');
-  const cross = make('div', 'cross');
+  const two = !def.lr;
+  const cross = make('div', two ? 'cross two' : 'cross');
   panel.append(make('div', 'title', def.label), cross);
   const c = { def, el: panel, busy: false, pending: null, buttons: {} };
-  HAT_CELLS.forEach((dir) => {
+  (two ? ['up', 'hub', 'down'] : HAT_CELLS).forEach((dir) => {
     if (dir === null) {
       cross.append(make('div'));
     } else if (dir === 'hub') {
@@ -589,7 +621,7 @@ function buildHat(def) {
       const btn = make('button', 'pos', def.positions[dir]);
       btn.type = 'button';
       btn.addEventListener('click', () => {
-        if (!usable() || c.busy) return;
+        if (!can(c) || c.busy) return;
         run(c, { id: def.id, value: dir }, dir);
       });
       cross.append(btn);
@@ -598,12 +630,12 @@ function buildHat(def) {
   });
   c.update = () => {
     panel.classList.toggle('busy', c.busy);
-    Object.keys(HAT_AXES).forEach((dir) => {
+    Object.keys(c.buttons).forEach((dir) => {
       const [axis, level] = HAT_AXES[dir];
       const btn = c.buttons[dir];
       btn.classList.toggle('cur', readValue(def[axis]) === level);
       btn.classList.toggle('pending', c.pending === dir);
-      btn.setAttribute('aria-disabled', String(!usable() || c.busy));
+      btn.setAttribute('aria-disabled', String(!can(c) || c.busy));
     });
   };
   return c;
@@ -620,6 +652,25 @@ function buildDisplay(def) {
     box.textContent = text === '' ? '—' : text;
   };
   return c;
+}
+
+const TRIM_SVG = '<svg class="trim" viewBox="0 0 330 360" aria-hidden="true">'
+  + '<rect class="edge" x="10" y="10" width="250" height="250"/>'
+  + '<line class="axis" x1="135" y1="10" x2="135" y2="260"/><line class="axis" x1="10" y1="135" x2="260" y2="135"/>'
+  + '<text class="dim" x="135" y="142">—</text><text x="135" y="286">CYCLIC</text>'
+  + '<rect class="edge" x="10" y="302" width="250" height="22"/>'
+  + '<line class="axis" x1="135" y1="302" x2="135" y2="324"/>'
+  + '<text class="dim" x="135" y="320">—</text><text x="135" y="349">PEDALS</text>'
+  + '<rect class="edge" x="276" y="10" width="22" height="250"/>'
+  + '<line class="axis" x1="276" y1="135" x2="298" y2="135"/>'
+  + '<text class="dim" x="287" y="142">—</text><text transform="translate(318 135) rotate(90)">COLLECTIVE</text>'
+  + '</svg>';
+
+function buildTrim(def) {
+  const panel = make('div', 'panel');
+  panel.append(make('div', 'title', def.label));
+  panel.insertAdjacentHTML('beforeend', TRIM_SVG);
+  return { def, el: panel, update() {} };
 }
 
 function leverIndex(def, raw) {
@@ -668,7 +719,7 @@ function buildLever(def) {
     return Math.min(Math.max((r.bottom - e.clientY) / r.height, 0), topEnabled);
   };
   zone.addEventListener('pointerdown', (e) => {
-    if (!usable() || c.busy) return;
+    if (!can(c) || c.busy) return;
     zone.setPointerCapture(e.pointerId);
     c.dragFrac = fractionAt(e);
     c.update();
@@ -682,7 +733,7 @@ function buildLever(def) {
     if (c.dragFrac === null) return;
     const idx = nearestEnabled(def, fractionAt(e));
     c.dragFrac = null;
-    if (idx !== leverIndex(def, readValue(def.readback)) && usable() && !c.busy) {
+    if (idx !== leverIndex(def, readValue(def.readback)) && can(c) && !c.busy) {
       run(c, { id: def.id, value: def.positions[idx].label }, idx);
     } else {
       c.update();
@@ -715,18 +766,21 @@ function buildKey(def) {
   const btn = make('button', 'push keybtn');
   const state = make('span', 'ks');
   btn.type = 'button';
-  btn.append(make('span', 'kl', def.label), state);
+  btn.append(make('span', 'kl', def.label));
+  if (def.states) btn.append(state);
   panel.append(btn);
   const c = { def, el: panel, busy: false, pending: null };
   btn.addEventListener('click', () => {
-    if (!usable() || c.busy) return;
+    if (!can(c) || c.busy) return;
     run(c, { id: def.id }, null);
   });
   c.update = () => {
-    const text = def.states[String(readValue(def.readback))];
-    state.textContent = text === undefined ? '—' : text;
+    if (def.states) {
+      const text = def.states[String(readValue(def.readback))];
+      state.textContent = text === undefined ? '—' : text;
+    }
     btn.classList.toggle('pressed', c.busy);
-    btn.setAttribute('aria-disabled', String(!usable() || c.busy));
+    btn.setAttribute('aria-disabled', String(!can(c) || c.busy));
   };
   return c;
 }
@@ -746,7 +800,7 @@ function buildKnob(def, bare) {
   }
   const c = { def, el, busy: false, pending: null };
   btn.addEventListener('click', (e) => {
-    if (!usable() || c.busy) return;
+    if (!can(c) || c.busy) return;
     const r = btn.getBoundingClientRect();
     const dir = e.clientX < r.left + r.width / 2 ? 'down' : 'up';
     run(c, { id: def.id, value: dir }, dir);
@@ -756,7 +810,7 @@ function buildKnob(def, bare) {
     arm.style.visibility = typeof v === 'number' ? '' : 'hidden';
     if (typeof v === 'number') arm.style.transform = 'rotate(' + (v / KNOB_MAX * 270 - 135) + 'deg)';
     btn.classList.toggle('pending', c.pending !== null);
-    btn.setAttribute('aria-disabled', String(!usable() || c.busy));
+    btn.setAttribute('aria-disabled', String(!can(c) || c.busy));
   };
   return c;
 }
@@ -773,7 +827,7 @@ function buildMode(def) {
     const btn = make('button', 'mlab', p.label);
     btn.type = 'button';
     btn.addEventListener('click', () => {
-      if (!usable() || c.busy || p.disabled || readValue(def.id) === p.value) return;
+      if (!can(c) || c.busy || p.disabled || readValue(def.id) === p.value) return;
       run(c, { id: def.id, value: p.value }, p.value);
     });
     labels.append(btn);
@@ -786,7 +840,7 @@ function buildMode(def) {
     def.positions.forEach((p, i) => {
       c.buttons[i].classList.toggle('cur', v === p.value);
       c.buttons[i].classList.toggle('pending', c.pending === p.value);
-      c.buttons[i].setAttribute('aria-disabled', String(!!p.disabled || !usable() || c.busy));
+      c.buttons[i].setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
     });
   };
   return c;
@@ -827,6 +881,7 @@ function buildControl(def, layout) {
   if (def.type === 'key') return buildKey(def);
   if (def.type === 'lever') return buildLever(def);
   if (def.type === 'hat') return buildHat(def);
+  if (def.type === 'controls') return buildTrim(def);
   if (def.type === 'display') return layout === 'ku' ? buildScratch(def) : buildDisplay(def);
   return null;
 }
@@ -865,15 +920,12 @@ function placeKu(box, cs) {
   box.append(panel);
 }
 
-function placeRows(box, cs) {
-  const levers = cs.filter((c) => c.def.type === 'lever');
-  const rest = cs.filter((c) => c.def.type !== 'lever');
-  const cols = Math.ceil(rest.length / ROW_COUNT);
-  box.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, 1fr)) repeat(' + levers.length + ', minmax(0, 1.2fr))';
-  levers.forEach((c, i) => place(c, '1 / span ' + ROW_COUNT, cols + 1 + i));
-  const key = rest.find((c) => c.def.type === 'key');
-  if (key) key.el.style.gridColumn = 'span ' + (cols * ROW_COUNT - rest.length + 1);
-  cs.forEach((c) => box.append(c.el));
+function placeGrid(box, cs) {
+  cs.forEach((c) => {
+    const [row, col, rows, cols] = c.def.grid;
+    place(c, row + ' / span ' + rows, col + ' / span ' + cols);
+    box.append(c.el);
+  });
 }
 
 const PLACERS = { mpd: placeMpd, ku: placeKu };
@@ -897,18 +949,17 @@ function showView(index) {
   const lampBox = document.getElementById('lamps');
   const controlBox = document.getElementById('controls');
   const layout = view.layout || null;
-  const rows = !layout && view.controls.some((d) => d.type === 'lever');
+  const grid = !layout && view.controls.some((d) => d.grid);
   lampBox.replaceChildren();
   controlBox.replaceChildren();
-  controlBox.style.gridTemplateColumns = '';
-  controlBox.className = layout || (rows ? 'rows' : '');
-  lampBox.classList.toggle('compact', rows);
+  controlBox.className = layout || (grid ? 'grid' : '');
+  lampBox.classList.toggle('compact', grid);
   lampBox.style.display = view.lamps.length ? '' : 'none';
   lamps = view.lamps.map(buildLamp);
   controls = view.controls.map((d) => buildControl(d, layout)).filter((c) => c !== null);
   lamps.forEach((l) => lampBox.append(l.el));
   if (layout && PLACERS[layout]) PLACERS[layout](controlBox, controls);
-  else if (rows) placeRows(controlBox, controls);
+  else if (grid) placeGrid(controlBox, controls);
   else controls.forEach((c) => controlBox.append(c.el));
   fit();
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === index));
