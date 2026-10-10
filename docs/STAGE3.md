@@ -6,6 +6,8 @@ Status: Startup view (formerly Aircraft) tested on Windows. Flight, Fight, MPD a
 
 Stage 3 is built one view at a time. Built so far: **Startup** (cold start, pilot seat), **Flight** (power levers, symbology, monocle, controls display; follows the seat), **Fight** (weapons, sights, countermeasures, both seats), **MPD** (both MPD bezels, both seats) and **KU** (keyboard unit, both seats); George is not built yet.
 
+Next: [COCKPIT.md](COCKPIT.md) specifies a COCKPIT tab with one page per cockpit panel, replacing the Startup view.
+
 ## What Stage 2 tells us
 
 - Every Startup control except the power levers works through DCS-BIOS commands with readback.
