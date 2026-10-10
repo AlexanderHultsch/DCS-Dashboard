@@ -64,7 +64,7 @@ button.lamp { width: 100%; }
 #lamps.compact .lamp { min-height: 52px; }
 
 #controls {
-  flex: 1; display: grid; gap: 10px; padding: 12px 12px 80px;
+  flex: 1; display: grid; gap: 10px; padding: 12px 12px 56px;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   grid-auto-rows: minmax(230px, 1fr); grid-auto-flow: dense;
 }
@@ -334,11 +334,15 @@ body.knob-open #kscrim, body.knob-open #kbar { display: flex; }
 
 #gear {
   position: fixed; z-index: 40;
-  right: calc(16px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom));
-  width: 56px; height: 56px; padding: 0; display: flex; align-items: center; justify-content: center;
+  right: calc(8px + env(safe-area-inset-right)); bottom: calc(8px + env(safe-area-inset-bottom));
+  width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center;
+  background: none; border: 0;
+}
+#gear::before {
+  content: ""; position: absolute; left: 6px; top: 6px; width: 32px; height: 32px;
   background: #1b1d1f; border: 1px solid #3a3d40; border-radius: 50%;
 }
-#gear svg { width: 30px; height: 30px; fill: #fff; }
+#gear svg { position: relative; width: 20px; height: 20px; fill: #fff; }
 body.settings-open #gear { display: none; }
 
 #settings {
@@ -455,7 +459,7 @@ const MODE_BASE = 90;
 const MODE_STEP = 45;
 const KNOB_TOL = 700;
 const TOUCH_MIN = 56;
-const GEAR_CLEAR = 64;
+const GEAR_CLEAR = 44;
 const CUR_MIN = 160;
 const MPD_BOX = { x: 470, y: 25, w: 1060, h: 1065 };
 const MPD_SCREEN = { x: 605, y: 165, w: 790, h: 787 };

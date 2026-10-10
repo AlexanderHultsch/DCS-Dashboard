@@ -194,7 +194,7 @@ The keyboard unit, drawn 1:1 after a photo in the same technique as the MPD (`"l
 
 ## Settings and page lock
 
-- A gear button at the bottom right opens a settings page over the dashboard; `BACK` closes it. A free strip at the bottom of the controls keeps the gear clear of every control.
+- A small gear button at the bottom right opens a settings page over the dashboard; `BACK` closes it. A free strip at the bottom of the controls keeps the gear clear of every control.
 - **LOGGING** OFF / ON switches writing `logs/dcs-dashboard.log` on the PC (the console output stays). Saved in `settings.json` next to `dashboard.py` (git-ignored) and applied at the next start.
 - **KEEP SCREEN ON** OFF / ON uses the browser's screen wake lock, for this tablet only (stored in the browser).
 - **INFO** shows the DCS Saved Games folder the bridge uses, the DCS data status and the address to open on another tablet.
