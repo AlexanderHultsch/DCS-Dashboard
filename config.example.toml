@@ -27,6 +27,9 @@ george_up = "W"
 george_down = "S"
 george_left = "A"
 george_right = "D"
+# Both power levers one step up / down (OFF, IDLE, FLY). DCS-BIOS cannot move them past the detent.
+power_levers_up = "PageUp"
+power_levers_down = "PageDown"
 
 [dashboard]
 # Web server for the tablet. 0.0.0.0 = reachable from the local network.

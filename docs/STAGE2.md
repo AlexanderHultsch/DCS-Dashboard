@@ -57,6 +57,9 @@ george_up = "W"
 george_down = "S"
 george_left = "A"
 george_right = "D"
+# Both power levers one step up / down (OFF, IDLE, FLY). DCS-BIOS cannot move them past the detent.
+power_levers_up = "PageUp"
+power_levers_down = "PageDown"
 ```
 
 For now only the George keys are tested. Keyboard combinations for cockpit commands without a DCS-BIOS entry can be added to `[keys]` later the same way. Supported: modifiers `LCtrl` `RCtrl` `LShift` `RShift` `LAlt` `RAlt` `LWin`; keys `A`–`Z`, `0`–`9`, `F1`–`F12`, `Home` `End` `PageUp` `PageDown` `Insert` `Delete`, arrow keys `Up` `Down` `Left` `Right`, `Space`, `Enter`.
@@ -106,7 +109,7 @@ For each entry in `[keys]`:
 3. It presses the modifiers, presses the key, holds it, releases everything in reverse order.
 4. The user looks at DCS, clicks back into the console and answers `y` (worked), `n` (did not work) or `s` (skip).
 
-George hat directions are sent twice: a short press (0.1 s) and a long press (1 s), because George treats them differently. `george_show_hide` is sent once. That makes 9 tests per seat with the default config.
+George hat directions are sent twice: a short press (0.1 s) and a long press (1 s), because George treats them differently. `george_show_hide` is sent once. Every other entry, such as the power lever keys, is sent once. That makes 11 tests per seat with the default config.
 
 The log records whether bringing DCS to the front worked. That answers the focus question for the tablet: in Stage 3 the keypress comes from the bridge while the user flies with DCS in front.
 
@@ -138,6 +141,7 @@ The console prints one line per control (result and note) and a progress counter
 - `python stage2_sweep.py`: DCS-BIOS sweep of the current seat.
 - `python stage2_sweep.py <text>`: sweep only the controls of the current seat whose identifier contains `<text>`, for quick checks.
 - `python stage2_sweep.py keys`: keypress test.
+- `python stage2_sweep.py retest`: repeat every control of the current seat that failed in the sweep (`dcsbios` rows with result `fail` in `stage2_results.csv`), with a 3 s readback wait instead of 0.5 s. Rows get route `retest`. This separates slow switches (canopy, stick fold) from commands DCS really refuses.
 - Single-threaded like Stage 1: the DCS-BIOS socket is read in the wait loops, no extra threads.
 - Reuses `bridge.config`, `bridge.log` and the DCS-BIOS decoding from `bridge.dcsbios`.
 
