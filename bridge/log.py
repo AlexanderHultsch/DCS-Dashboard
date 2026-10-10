@@ -4,9 +4,12 @@ import sys
 from pathlib import Path
 
 logger = logging.getLogger("dcs-dashboard")
+file_handler = None
+OFF_LEVEL = logging.CRITICAL + 1
 
 
 def setup(log_cfg: dict) -> None:
+    global file_handler
     Path(log_cfg["file"]).parent.mkdir(parents=True, exist_ok=True)
     file_handler = logging.handlers.RotatingFileHandler(
         log_cfg["file"],
@@ -21,6 +24,14 @@ def setup(log_cfg: dict) -> None:
     logger.addHandler(console_handler)
     logger.setLevel(logging.INFO)
     logger.propagate = False
+
+
+def set_file_logging(enabled: bool) -> None:
+    file_handler.setLevel(logging.INFO if enabled else OFF_LEVEL)
+
+
+def file_logging() -> bool:
+    return file_handler.level <= logging.INFO
 
 
 def line(source: str, name: str, value) -> None:

@@ -73,8 +73,10 @@ LEVER_WAIT = 1.0
 SEAT = "SEAT_POSITION"
 SEAT_NAMES = {0: "PLT", 1: "CPG"}
 INDEX = Path(__file__).resolve().parent / "web" / "index.html"
+SETTINGS_FILE = Path(__file__).resolve().parent / "settings.json"
 
 cfg = {}
+settings = {}
 outputs = {}
 state = dcsbios.new_state()
 lock = threading.Lock()
@@ -123,6 +125,46 @@ def reader(sock: socket.socket) -> None:
 
 def read(name: str):
     return dcsbios.read_value(state, outputs[name])
+
+
+def load_settings() -> dict:
+    result = {"logging": True}
+    try:
+        with open(SETTINGS_FILE, encoding="utf-8") as f:
+            saved = json.load(f)
+    except (OSError, ValueError):
+        return result
+    if isinstance(saved, dict):
+        result.update(saved)
+    return result
+
+
+def save_settings(data: dict) -> None:
+    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+
+def settings_reply() -> dict:
+    return {
+        "logging": settings["logging"],
+        "saved_games": cfg["dcs"]["saved_games"],
+        "address": f"http://{lan_ip()}:{cfg['dashboard']['port']}",
+    }
+
+
+def change_settings(body: dict) -> bool:
+    enabled = body.get("logging")
+    if not isinstance(enabled, bool):
+        return False
+    if enabled:
+        log.set_file_logging(True)
+        log.line("bridge", "settings", "file logging on")
+    else:
+        log.line("bridge", "settings", "file logging off")
+        log.set_file_logging(False)
+    settings["logging"] = enabled
+    save_settings(settings)
+    return True
 
 
 def snapshot() -> dict:
@@ -275,11 +317,13 @@ class Handler(BaseHTTPRequestHandler):
             self.reply_json(200, {"views": VIEWS})
         elif self.path == "/state":
             self.reply_json(200, snapshot())
+        elif self.path == "/settings":
+            self.reply_json(200, settings_reply())
         else:
             self.reply(404, "text/plain; charset=utf-8", b"not found")
 
     def do_POST(self) -> None:
-        if self.path != "/command":
+        if self.path not in ("/command", "/settings"):
             self.reply(404, "text/plain; charset=utf-8", b"not found")
             return
         try:
@@ -289,6 +333,12 @@ class Handler(BaseHTTPRequestHandler):
             body = None
         if not isinstance(body, dict):
             self.reply_json(400, {"error": "bad request"})
+            return
+        if self.path == "/settings":
+            if change_settings(body):
+                self.reply_json(200, settings_reply())
+            else:
+                self.reply_json(400, {"error": "bad request"})
             return
         ok, message = command(body)
         if ok:
@@ -309,9 +359,11 @@ def lan_ip() -> str:
 
 
 def main() -> None:
-    global cfg, outputs, cmd_sock
+    global cfg, settings, outputs, cmd_sock
     cfg = config.load()
     log.setup(cfg["log"])
+    settings = load_settings()
+    log.set_file_logging(settings["logging"])
     key_map = cfg.get("keys", {})
     try:
         for side in ("left", "right"):

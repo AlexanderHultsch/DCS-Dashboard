@@ -1,5 +1,6 @@
 # Local, machine-specific settings
 config.toml
+settings.json
 
 # Logs
 logs/

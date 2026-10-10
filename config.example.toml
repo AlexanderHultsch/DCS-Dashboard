@@ -2,10 +2,9 @@
 # config.toml is ignored by git, so your local paths stay private.
 
 [dcs]
-# DCS Saved Games folder. Usually one of:
-#   %USERPROFILE%\Saved Games\DCS
-#   %USERPROFILE%\Saved Games\DCS.openbeta
-saved_games = "%USERPROFILE%\\Saved Games\\DCS"
+# DCS Saved Games folder. "auto" finds it (Saved Games\DCS or DCS.openbeta with DCS-BIOS installed).
+# Otherwise give the path, e.g. %USERPROFILE%\\Saved Games\\DCS
+saved_games = "auto"
 # Part of the DCS window title, used to bring DCS to the front before a keypress (Stage 2).
 window_title = "Digital Combat Simulator"
 
