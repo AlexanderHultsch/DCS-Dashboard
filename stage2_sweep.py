@@ -5,7 +5,7 @@ import sys
 import time
 from pathlib import Path
 
-from bridge import config, dcsbios, log
+from bridge import config, dcsbios, keys, log
 
 BLOCK = ["JETT", "FIRE_ENG", "FIRE_APU", "FIRE_PRIME", "FIRE_RES", "ZERO", "CHOP", "BUCS", "TRIGGER"]
 TIMEOUT = 0.5
@@ -120,31 +120,28 @@ def sweep(sock: socket.socket, cmd_sock: socket.socket, cmd_port: int, state: di
     return "sent-unverified", ""
 
 
-def main() -> None:
-    if sys.argv[1:] == ["keys"]:
-        raise SystemExit("Keypress test is not built yet.")
-    text = sys.argv[1] if len(sys.argv) > 1 else ""
-
-    cfg = config.load()
-    log.setup(cfg["log"])
-    path = dcsbios.json_path(cfg["dcs"]["saved_games"])
-    controls = dcsbios.load_controls(path)
-    seat_output = dcsbios.load_outputs(path, ["SEAT_POSITION"])[0]["SEAT_POSITION"]
-    group, port = cfg["dcs_bios"]["export_multicast"], cfg["dcs_bios"]["export_port"]
-    cmd_port = cfg["dcs_bios"]["command_port"]
-    bios_sock = dcsbios.open_socket(group, port)
-    cmd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    log.line("bridge", "start", f"stage 2 sweep, DCS-BIOS {group}:{port}, commands to port {cmd_port}")
-
-    state = dcsbios.new_state()
+def wait_for_seat(sock: socket.socket, state: dict, seat_output: dict) -> int:
     deadline = time.monotonic() + 30
     while dcsbios.read_value(state, seat_output) is None and time.monotonic() < deadline:
-        pump(bios_sock, state, deadline - time.monotonic())
+        pump(sock, state, deadline - time.monotonic())
     seat = dcsbios.read_value(state, seat_output)
     if seat is None:
         raise SystemExit("No DCS-BIOS data. Is DCS running with a mission loaded?")
+    return seat
 
-    name = "PLT" if seat == 0 else "CPG"
+
+def write_results(cfg: dict, rows: list) -> Path:
+    results_file = Path(cfg["log"]["file"]).parent / "stage2_results.csv"
+    is_new = not results_file.exists()
+    with open(results_file, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        if is_new:
+            writer.writerow(["control", "seat", "route", "result", "note"])
+        writer.writerows(rows)
+    return results_file
+
+
+def sweep_test(bios_sock: socket.socket, cmd_sock: socket.socket, cmd_port: int, state: dict, controls: list, name: str, text: str) -> tuple[list, dict, int]:
     prefix = name + "_"
     selected = [c for c in controls if c["identifier"].startswith(prefix) and text in c["identifier"]]
     deadline = time.monotonic() + 30
@@ -171,17 +168,90 @@ def main() -> None:
             counts[result] = counts.get(result, 0) + 1
     except KeyboardInterrupt:
         pass
+    return rows, counts, len(selected)
 
-    results_file = Path(cfg["log"]["file"]).parent / "stage2_results.csv"
-    is_new = not results_file.exists()
-    with open(results_file, "a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        if is_new:
-            writer.writerow(["control", "seat", "route", "result", "note"])
-        writer.writerows(rows)
 
+def key_tests(cfg: dict) -> tuple[list, str]:
+    entries = cfg.get("keys")
+    title = cfg.get("dcs", {}).get("window_title")
+    if entries is None or title is None:
+        raise SystemExit("config.toml needs [keys] and [dcs] window_title, see config.example.toml.")
+    for key_name, combo in entries.items():
+        try:
+            keys.parse(combo)
+        except ValueError as e:
+            raise SystemExit(f"[keys] {key_name} = '{combo}': {e}")
+    tests = []
+    for key_name, combo in entries.items():
+        if key_name.startswith("george_") and key_name != "george_show_hide":
+            tests.append((f"{key_name} short", combo, 0.1))
+            tests.append((f"{key_name} long", combo, 1.0))
+        else:
+            tests.append((key_name, combo, 0.1))
+    return tests, title
+
+
+def keys_test(tests: list, title: str, name: str) -> tuple[list, dict, int]:
+    log.line("bridge", "ready", f"seat {name}, {len(tests)} key tests, window '{title}'")
+    rows = []
+    counts = {}
+    try:
+        for i, (label, combo, hold) in enumerate(tests, 1):
+            answer = input(f"{label} ({combo}): Enter to send, s to skip: ").strip().lower()
+            note = ""
+            if answer == "s":
+                result = "skipped"
+            else:
+                ok = keys.focus(title)
+                log.line("stage2", label, "focus ok" if ok else "focus failed")
+                if not ok:
+                    result, note = "fail", "no focus"
+                else:
+                    time.sleep(0.3)
+                    log.line("stage2", label, f"sent {combo} hold {hold}")
+                    keys.press(combo, hold)
+                    answer = ""
+                    while answer not in ("y", "n", "s"):
+                        answer = input("Did it work? y / n / s: ").strip().lower()
+                    result = {"y": "pass", "n": "fail", "s": "skipped"}[answer]
+            log.line("stage2", label, f"[{i}/{len(tests)}] {result} {note}".strip())
+            rows.append((label, name, "keys", result, note))
+            counts[result] = counts.get(result, 0) + 1
+    except KeyboardInterrupt:
+        pass
+    return rows, counts, len(tests)
+
+
+def main() -> None:
+    keys_mode = sys.argv[1:] == ["keys"]
+    text = sys.argv[1] if len(sys.argv) > 1 else ""
+
+    cfg = config.load()
+    log.setup(cfg["log"])
+    tests, title = key_tests(cfg) if keys_mode else ([], "")
+    path = dcsbios.json_path(cfg["dcs"]["saved_games"])
+    controls = [] if keys_mode else dcsbios.load_controls(path)
+    seat_output = dcsbios.load_outputs(path, ["SEAT_POSITION"])[0]["SEAT_POSITION"]
+    group, port = cfg["dcs_bios"]["export_multicast"], cfg["dcs_bios"]["export_port"]
+    cmd_port = cfg["dcs_bios"]["command_port"]
+    bios_sock = dcsbios.open_socket(group, port)
+    cmd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    log.line("bridge", "start", f"stage 2 {'keys' if keys_mode else 'sweep'}, DCS-BIOS {group}:{port}, commands to port {cmd_port}")
+
+    state = dcsbios.new_state()
+    seat = wait_for_seat(bios_sock, state, seat_output)
+    name = "PLT" if seat == 0 else "CPG"
+
+    if keys_mode:
+        rows, counts, total = keys_test(tests, title, name)
+        unit = "key tests"
+    else:
+        rows, counts, total = sweep_test(bios_sock, cmd_sock, cmd_port, state, controls, name, text)
+        unit = "controls"
+
+    results_file = write_results(cfg, rows)
     log.line("bridge", "summary", ", ".join(f"{k} {v}" for k, v in counts.items()))
-    log.line("bridge", "stop", f"{len(rows)} of {len(selected)} controls, results in {results_file.name}")
+    log.line("bridge", "stop", f"{len(rows)} of {total} {unit}, results in {results_file.name}")
     bios_sock.close()
     cmd_sock.close()
 
