@@ -214,6 +214,65 @@ def power_pages() -> list[dict]:
     )
 
 
+def intr_lt_controls(spots: dict) -> list[dict]:
+    controls = [
+        {"id": f"{{seat}}_INTL_{name}_L_KNB", "label": name, "type": "knob", "step": KNOB_STEP, "sweep": sweep, "at": spots[name]}
+        for name, sweep in (("SIGNAL", [-129, 124]), ("PRIMARY", [-125, 125]), ("FLOOD", [-125, 125]))
+    ]
+    controls.append({"id": "{seat}_INTL_TEST_BTN", "label": "PRESS TO TEST", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_INTL_TEST_BTN", "color": "amber", "at": spots["TEST"]})
+    return controls
+
+
+def light_pages() -> list[dict]:
+    controls = [
+        {"id": "PLT_EXTL_NAV_L_SW", "label": "NAV", "type": "selector", "positions": [{"value": 2, "label": "BRT", "y": 57}, {"value": 1, "label": "OFF", "y": 102}, {"value": 0, "label": "DIM", "y": 147}], "at": [85, 34, 73, 136]},
+        {"id": "PLT_EXTL_FROMATION_L_KNB", "label": "FORM", "type": "knob", "step": KNOB_STEP, "sweep": [-125, 125], "at": [90, 210, 100, 100]},
+        {"id": "PLT_EXTL_ACOL_L_SW", "label": "ANTI COL", "type": "selector", "positions": [{"value": 2, "label": "WHT", "y": 340}, {"value": 1, "label": "OFF", "y": 385}, {"value": 0, "label": "RED", "y": 430}], "at": [122, 317, 73, 136]},
+        {"id": "PLT_INTL_STBYINST_L_KNB", "label": "STBY INST", "type": "knob", "step": KNOB_STEP, "sweep": [-125, 125], "at": [459, 262, 92, 92]},
+        *intr_lt_controls({"SIGNAL": [254, 92, 92, 92], "PRIMARY": [446, 93, 92, 92], "FLOOD": [274, 258, 92, 92], "TEST": [388, 377, 68, 68]}),
+    ]
+    placard = [
+        ["EXT LT", 111, 37, 26, 102], ["INTR LT", 402, 35, 26, 118],
+        ["BRT", 115, 59, 18, 35], ["OFF", 60, 104, 18, 35], ["DIM", 125, 149, 18, 32],
+        ["N", 179, 83, 20], ["A", 182, 102, 20], ["V", 182, 122, 20],
+        ["FORM", 133, 192, 22, 66], ["OFF", 88, 303, 17, 30], ["BRT", 200, 304, 17, 37],
+        ["WHT", 151, 342, 17, 38], ["OFF", 98, 379, 18, 35], ["RED", 163, 426, 18, 35],
+        ["A", 206, 355, 20], ["N", 208, 373, 20], ["T", 210, 391, 20], ["I", 213, 409, 20],
+        ["C", 238, 368, 20], ["O", 240, 385, 20], ["L", 243, 404, 20],
+        ["SIGNAL", 293, 67, 22, 90], ["DIM", 255, 176, 17, 36], ["RST", 359, 178, 17, 37], ["BRT", 380, 158, 17, 40],
+        ["PRIMARY", 487, 66, 22, 116], ["OFF", 437, 178, 17, 28], ["BRT", 554, 179, 17, 38],
+        ["FLOOD", 313, 238, 22, 83], ["OFF", 266, 343, 17, 30], ["BRT", 376, 343, 17, 38],
+        ["+", 403, 255, 16], ["STBY INST", 502, 240, 22, 131], ["OFF", 452, 347, 17, 28], ["BRT", 565, 347, 17, 38],
+        ["PRESS", 352, 389, 19, 64], ["TO", 355, 404, 19, 22], ["TEST", 355, 418, 19, 49],
+    ]
+    art = [
+        {"shape": "plate", "at": [26, 4, 566, 449]},
+        {"shape": "bracket", "at": [0, 36, 46, 62]}, {"shape": "bracket", "at": [558, 20, 61, 70]},
+        {"shape": "bracket", "at": [570, 390, 49, 66]}, {"shape": "bracket", "at": [34, 380, 52, 56]},
+        {"shape": "screw", "at": [12, 62, 16]}, {"shape": "screw", "at": [577, 57, 18]},
+        {"shape": "screw", "at": [598, 421, 17]}, {"shape": "screw", "at": [58, 405, 17]},
+        {"shape": "screw", "at": [55, 140, 9]}, {"shape": "screw", "at": [87, 345, 9]},
+        {"shape": "screw", "at": [547, 373, 9]}, {"shape": "screw", "at": [535, 209, 10]},
+        {"shape": "line", "at": [203, 68, 33, 272]},
+    ]
+    cpg_placard = [
+        ["INTR LT", 99, 19.5, 9.5, 45], ["SIGNAL", 57, 32, 8, 36], ["PRIMARY", 145, 32, 8, 45], ["FLOOD", 57, 97, 8, 33],
+        ["DIM", 35, 79.5, 6.5, 15], ["RST", 77, 78.5, 6.5, 16], ["BRT", 84, 68.5, 6.5, 16],
+        ["OFF", 123, 79.5, 6.5, 14], ["BRT", 165, 79.5, 6.5, 17], ["OFF", 33, 148.5, 6.5, 14], ["BRT", 76, 148.5, 6.5, 16],
+        ["PRESS", 127, 116, 7, 27], ["TO", 127, 122.5, 7, 9], ["TEST", 127, 129, 7, 21],
+    ]
+    cpg_art = [
+        {"shape": "plate", "at": [4, 4, 200, 166]},
+        {"shape": "screw", "at": [5, 49, 4.5]}, {"shape": "screw", "at": [192, 49, 4.5]},
+        {"shape": "screw", "at": [4, 122, 4.5]}, {"shape": "screw", "at": [191, 123, 4.5]},
+    ]
+    cpg_controls = intr_lt_controls({"SIGNAL": [35, 42, 40, 40], "PRIMARY": [123, 42, 40, 40], "FLOOD": [35, 111, 40, 40], "TEST": [140, 109, 28, 28]})
+    return (
+        panel_pages("EXT / INTR LT", {0: [7, 1, 1, 3]}, [619, 457], placard, art, controls)
+        + panel_pages("INTR LT", {1: [6, 1, 1, 3]}, [208, 174], cpg_placard, cpg_art, cpg_controls)
+    )
+
+
 VIEWS = [
     {
         "name": "COCKPIT",
@@ -235,6 +294,7 @@ VIEWS = [
     *tail_wheel_pages(),
     *emergency_pages(),
     *power_pages(),
+    *light_pages(),
     {
         "name": "Startup",
         "seats": [0],
