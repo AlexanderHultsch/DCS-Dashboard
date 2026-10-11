@@ -40,6 +40,7 @@ nav { display: flex; gap: 8px; flex: 1; }
 .tab.active { background: #f2f2f2; color: #111; border-color: #f2f2f2; }
 .icon { width: 1em; height: 1em; vertical-align: middle; pointer-events: none; }
 .icon.chev { width: 0.55em; height: 1.1em; margin-right: 0.35em; vertical-align: -0.19em; }
+.icon.spring { width: 2em; height: 0.8em; }
 .badge { padding: 14px 18px; border: 2px solid; border-radius: 6px; font-size: 16px; white-space: nowrap; }
 .badge.ok { color: #43a047; border-color: #43a047; }
 .badge.ro { color: #ffb300; border-color: #ffb300; }
@@ -218,7 +219,7 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .mart.ted text { font-size: 14px; }
 .mart.ted .lead { stroke-width: 1.4; }
 .mkey, .mknob { position: absolute; margin: 0; padding: 0; }
-.mkey::before, .mknob::before, .rhalf::before, .kkey::before, .pbtn::before, .ppos::before, .pcap::before, .pmark::before, .pchipb::before {
+.mkey::before, .mknob::before, .rhalf::before, .kkey::before, .pbtn::before, .ppos::before, .pstap::before, .pcap::before, .pmark::before, .pchipb::before {
   content: ""; position: absolute; left: 50%; top: 50%; width: var(--hw, 100%); height: var(--hh, 100%); transform: translate(-50%, -50%);
 }
 .mkey { font-stretch: condensed; letter-spacing: 0.02em; }
@@ -355,6 +356,9 @@ body.ro .pbox { opacity: 0.6; }
 .ppos { position: absolute; left: 0; width: 100%; margin: 0; padding: 0; background: none; border: 0; }
 .ppos:active { background: rgba(255, 255, 255, 0.12); }
 .ppos.pending { outline: 3px solid #ffb300; outline-offset: -3px; }
+.pstap { position: absolute; margin: 0; padding: 0; background: none; border: 0; border-radius: 50%; }
+.pstap:active { background: rgba(255, 255, 255, 0.12); }
+.pstap.pending { outline: 3px solid #ffb300; outline-offset: 2px; }
 .pgrip { fill: #3d4247; stroke: #9aa0a6; stroke-width: 2; }
 .pgrip.pending { stroke: #ffb300; stroke-width: 4; }
 .pdisp { overflow: hidden; container-type: size; background: #121a16; }
@@ -399,7 +403,7 @@ body.ro .pbox { opacity: 0.6; }
   transform-origin: 50% 0; transition: transform 0.25s;
 }
 .pctl.thru { pointer-events: none; }
-.thru .pcover { pointer-events: auto; }
+.thru .pcover, .thru .pstap { pointer-events: auto; }
 .pcover::after { content: ""; position: absolute; left: 30%; right: 30%; bottom: 7%; height: 6%; background: #4b5258; border-radius: 3px; }
 .pcover.open { transform: scaleY(0.16); }
 .pcover:active { filter: brightness(1.15); }
@@ -451,7 +455,18 @@ body.ro .pbox { opacity: 0.6; }
   position: fixed; z-index: 61; display: none; flex-direction: column; gap: 0; width: 420px; max-width: calc(100vw - 24px); height: 120px; padding: 8px 16px;
   background: #1b1d1f; border: 1px solid #3a3d40; border-radius: 6px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8);
 }
-body.knob-open #kscrim, body.knob-open #kbar { display: flex; }
+#chooser {
+  position: fixed; z-index: 61; display: none; flex-direction: column; align-items: center; gap: 6px; width: max-content; padding: 8px 12px 12px;
+  background: #1b1d1f; border: 1px solid #3a3d40; border-radius: 6px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8);
+}
+body.knob-open #kscrim, body.pick-open #kscrim, body.knob-open #kbar, body.pick-open #chooser { display: flex; }
+.ctitle { font-size: 16px; line-height: 24px; color: #ddd; white-space: nowrap; }
+.cbody { position: relative; }
+.cbody .pos {
+  position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-width: 64px; min-height: 64px; padding: 4px 12px; white-space: nowrap;
+}
+#chooser[aria-disabled="true"] .cbody { opacity: 0.4; }
 .khead { display: flex; align-items: center; gap: 12px; height: 48px; }
 .ktitle { flex: 1; font-size: 16px; color: #ddd; white-space: nowrap; }
 .kpct { font-size: 16px; color: #bbb; font-family: "Courier New", Consolas, monospace; }
@@ -583,6 +598,10 @@ body.settings-open #gear { display: none; }
   <div class="ktrack" id="ktrack"><div class="krail"></div><div class="khandle" id="khandle"></div></div>
   <div class="kstops" id="kstops"></div>
 </div>
+<div id="chooser" role="dialog">
+  <div class="ctitle" id="ctitle"></div>
+  <div class="cbody" id="cbody"></div>
+</div>
 <div id="portrait">TURN THE IPAD TO LANDSCAPE</div>
 <div id="toast" role="status"></div>
 <script>
@@ -619,6 +638,12 @@ const KNOB_TOL = 700;
 const TOUCH_MIN = 56;
 const GEAR_CLEAR = 44;
 const POPUP_GAP = 8;
+const PICK_SIZE = 64;
+const PICK_GAP = 8;
+const PICK_RADIUS = 90;
+const PICK_RADIUS_STEP = 20;
+const PICK_SPREAD_STEP = 0.05;
+const PICK_SPREAD_MAX = 5;
 const KIT_SCALE_MAX = 1.6;
 const GUARD_MS = 5000;
 const PULL_HOLD_MS = 600;
@@ -644,6 +669,7 @@ const ICONS = {
   'tri-down': '<svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="15,18 50,88 85,18" fill="currentColor"/></svg>',
   'tri-left': '<svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="86,15 16,50 86,85" fill="currentColor"/></svg>',
   'tri-right': '<svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="14,15 84,50 14,85" fill="currentColor"/></svg>',
+  spring: '<svg class="icon spring" viewBox="0 0 40 16" aria-hidden="true"><path d="M3 8h5l3-5 6 10 6-10 6 10 3-5h5"' + ICON_STROKE + '/></svg>',
 };
 const CUR_MIN = 160;
 const MPD_BOX = { x: 470, y: 25, w: 1060, h: 1065 };
@@ -719,6 +745,7 @@ let toastTimer = null;
 let mpdView = null;
 let kuView = null;
 let bar = null;
+let chooser = null;
 let serverSettings = null;
 let loggingPending = null;
 let wakeWanted = false;
@@ -906,6 +933,7 @@ function render() {
   });
   renderMpd();
   renderBar();
+  renderChooser();
   renderMap();
   renderPages();
   if (lifted && !can(lifted.c)) closeGuard();
@@ -1332,7 +1360,7 @@ function placePopup(anchor, width, height, prefer) {
 
 function openBar(c) {
   if (!can(c)) return;
-  closeBar();
+  closePopups();
   const mode = c.def.type === 'selector';
   bar = { c, mode, hold: null, holdAt: 0, dragging: false, stops: [] };
   const post = (value) => send({ id: c.def.id, value });
@@ -1367,6 +1395,96 @@ function openBar(c) {
 function closeBar() {
   bar = null;
   document.body.classList.remove('knob-open');
+}
+
+function closeChooser() {
+  chooser = null;
+  document.body.classList.remove('pick-open');
+}
+
+function closePopups() {
+  closeBar();
+  closeChooser();
+}
+
+function arcCentres(angles, w, h, radius) {
+  const mid = (Math.min(...angles) + Math.max(...angles)) / 2;
+  let points = [];
+  for (let spread = 1; spread <= PICK_SPREAD_MAX; spread += PICK_SPREAD_STEP) {
+    points = angles.map((a) => {
+      const rad = (mid + (a - mid) * spread) * Math.PI / 180;
+      return [radius * Math.sin(rad), -radius * Math.cos(rad)];
+    });
+    const clear = points.every(([x, y], i) => points.slice(i + 1).every(([u, v]) => Math.abs(x - u) >= w + PICK_GAP || Math.abs(y - v) >= h + PICK_GAP));
+    if (clear) break;
+  }
+  return points;
+}
+
+function layoutChooser(def, stops, body) {
+  const w = Math.max(PICK_SIZE, ...stops.map((btn) => btn.offsetWidth));
+  const h = PICK_SIZE;
+  let centres = def.positions.map((p, i) => (def.orient === 'h' ? [i * (w + PICK_GAP), 0] : [0, i * (h + PICK_GAP)]));
+  if (def.style === 'rotary') centres = arcCentres(def.positions.map((p) => p.angle), w, h, PICK_RADIUS + PICK_RADIUS_STEP * (Math.min(stops.length, 4) - 2));
+  const left = Math.min(...centres.map(([x]) => x)) - w / 2;
+  const top = Math.min(...centres.map(([, y]) => y)) - h / 2;
+  body.style.width = Math.max(...centres.map(([x]) => x)) + w / 2 - left + 'px';
+  body.style.height = Math.max(...centres.map(([, y]) => y)) + h / 2 - top + 'px';
+  stops.forEach((btn, i) => {
+    btn.style.width = w + 'px';
+    btn.style.height = h + 'px';
+    btn.style.left = centres[i][0] - w / 2 - left + 'px';
+    btn.style.top = centres[i][1] - h / 2 - top + 'px';
+  });
+}
+
+function freePosition(c, p) {
+  return can(c) && !c.busy && !p.disabled && readValue(c.def.id) !== p.value;
+}
+
+function selectPosition(c, p) {
+  if (!freePosition(c, p)) return;
+  run(c, { id: c.def.id, value: p.value }, p.value);
+}
+
+function openChooser(c, anchor) {
+  if (!can(c)) return;
+  closePopups();
+  const body = document.getElementById('cbody');
+  document.getElementById('ctitle').textContent = c.def.label;
+  body.replaceChildren();
+  const stops = c.def.positions.map((p) => {
+    const btn = make('button', p.disabled ? 'pos dis' : 'pos', p.label);
+    btn.type = 'button';
+    if (p.momentary) btn.insertAdjacentHTML('beforeend', ICONS.spring);
+    btn.addEventListener('click', () => {
+      if (p.disabled) return;
+      selectPosition(c, p);
+      closeChooser();
+    });
+    body.append(btn);
+    return btn;
+  });
+  chooser = { c, stops };
+  document.body.classList.add('pick-open');
+  layoutChooser(c.def, stops, body);
+  const card = document.getElementById('chooser');
+  const pos = placePopup(anchor.getBoundingClientRect(), card.offsetWidth, card.offsetHeight, 'center');
+  card.style.left = pos.left + 'px';
+  card.style.top = pos.top + 'px';
+  renderChooser();
+}
+
+function renderChooser() {
+  if (!chooser) return;
+  const { c, stops } = chooser;
+  const v = readValue(c.def.id);
+  document.getElementById('chooser').setAttribute('aria-disabled', String(!can(c)));
+  c.def.positions.forEach((p, i) => {
+    stops[i].classList.toggle('cur', v === p.value);
+    stops[i].classList.toggle('pending', c.pending === p.value);
+    stops[i].setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
+  });
 }
 
 function barFraction(e) {
@@ -1431,7 +1549,7 @@ function initBar() {
   const kclose = document.getElementById('kclose');
   kclose.innerHTML = ICONS.close;
   kclose.addEventListener('click', closeBar);
-  document.getElementById('kscrim').addEventListener('click', closeBar);
+  document.getElementById('kscrim').addEventListener('click', closePopups);
 }
 
 function buildRocker(def, cls) {
@@ -1650,7 +1768,7 @@ function buildPlateSwitch(def) {
   const horiz = def.orient === 'h';
   const kx = rotary ? def.knob[0] - ax : 0;
   const ky = rotary ? def.knob[1] - ay : 0;
-  const wrap = make('div', 'pctl');
+  const wrap = make('div', def.guard ? 'pctl' : 'pctl thru');
   wrap.insertAdjacentHTML('beforeend', '<svg class="pswitch" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">'
     + (rotary ? rotaryArt(kx, ky, def.knob[2]) : toggleArt(cx, cy, r)) + '</svg>');
   const lever = wrap.querySelector('.lv');
@@ -1658,21 +1776,36 @@ function buildPlateSwitch(def) {
   const pointer = wrap.querySelector('.pt');
   if (def.kit) wrap.querySelector('circle:not(.kn-shadow)').classList.add('k-body');
   const c = { def, el: wrap, busy: false, pending: null, buttons: [] };
-  const edges = positionEdges(def);
-  const free = (p) => can(c) && !c.busy && !p.disabled && readValue(def.id) !== p.value;
-  const items = def.positions.map((p, i) => {
-    const btn = make('button', 'ppos');
-    btn.type = 'button';
-    placeBand(btn, def, edges[i]);
-    btn.setAttribute('aria-label', p.label);
-    btn.addEventListener('click', () => {
-      if (def.guard || !free(p)) return;
-      run(c, { id: def.id, value: p.value }, p.value);
+  if (def.guard) {
+    const edges = positionEdges(def);
+    const items = def.positions.map((p, i) => {
+      const btn = make('button', 'ppos');
+      btn.type = 'button';
+      placeBand(btn, def, edges[i]);
+      btn.setAttribute('aria-label', p.label);
+      wrap.append(btn);
+      c.buttons.push(btn);
+      return { el: btn, ready: () => freePosition(c, p), fire: () => run(c, { id: def.id, value: p.value }, p.value) };
     });
-    wrap.append(btn);
-    c.buttons.push(btn);
-    return { el: btn, ready: () => free(p), fire: () => run(c, { id: def.id, value: p.value }, p.value) };
-  });
+    c.touchAt = ([x, y, tw, th]) => c.buttons.map((el, i) => {
+      const mid = (edges[i][0] + edges[i][1]) / 2;
+      const len = edges[i][1] - edges[i][0];
+      return horiz ? { el, cx: mid, cy: y + th / 2, w: len, h: th } : { el, cx: x + tw / 2, cy: mid, w: tw, h: len };
+    });
+    addGuard(c, items);
+  } else {
+    const tx = rotary ? def.knob[0] : ax + cx;
+    const ty = rotary ? def.knob[1] : ay + cy;
+    const d = (rotary ? def.knob[2] : r) * 2;
+    const tap = make('button', 'pstap');
+    tap.type = 'button';
+    tap.setAttribute('aria-label', def.label);
+    boxRect(tap, { x: ax, y: ay, w, h }, tx, ty, d, d);
+    tap.addEventListener('click', () => openChooser(c, tap));
+    wrap.append(tap);
+    c.buttons.push(tap);
+    c.touchAt = () => [{ el: tap, cx: tx, cy: ty, w: d, h: d }];
+  }
   c.update = () => {
     const idx = def.positions.findIndex((p) => p.value === readValue(def.id));
     if (rotary) {
@@ -1684,17 +1817,16 @@ function buildPlateSwitch(def) {
       tip.setAttribute(horiz ? 'cx' : 'cy', (horiz ? cx : cy) + d);
       lever.style.visibility = tip.style.visibility = idx < 0 ? 'hidden' : '';
     }
-    def.positions.forEach((p, i) => {
-      c.buttons[i].classList.toggle('pending', c.pending === p.value);
-      c.buttons[i].setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
-    });
+    if (def.guard) {
+      def.positions.forEach((p, i) => {
+        c.buttons[i].classList.toggle('pending', c.pending === p.value);
+        c.buttons[i].setAttribute('aria-disabled', String(!!p.disabled || !can(c) || c.busy));
+      });
+    } else {
+      c.buttons[0].classList.toggle('pending', c.pending !== null);
+      c.buttons[0].setAttribute('aria-disabled', String(!can(c)));
+    }
   };
-  c.touchAt = ([x, y, tw, th]) => c.buttons.map((el, i) => {
-    const mid = (edges[i][0] + edges[i][1]) / 2;
-    const len = edges[i][1] - edges[i][0];
-    return horiz ? { el, cx: mid, cy: y + th / 2, w: len, h: th } : { el, cx: x + tw / 2, cy: mid, w: tw, h: len };
-  });
-  if (def.guard) addGuard(c, items);
   return c;
 }
 
@@ -2565,7 +2697,7 @@ function showView(index) {
   mapView = null;
   plateView = null;
   knobGroups = {};
-  closeBar();
+  closePopups();
   closeGuard();
   closePages();
   lampBox.replaceChildren();
