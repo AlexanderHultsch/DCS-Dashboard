@@ -27,7 +27,13 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] GEORGE STORE TARGET while George tracks a target (the key works; without a tracked target George says he cannot).
 - [ ] GEORGE AIR AREA SEARCH in the air: does a target list appear?
 - [ ] GEORGE READY SYSTEMS / MASTER OFF on the ground, in both states: systems not started (George starts up and announces) and systems already started (George shuts down).
-- [ ] George ring commands: confirm that the ring really stays hidden after PHS SEARCH and STOP / TADS FWD (no problem reported so far).
+- [ ] George ring commands: confirm that the ring really stays hidden after STOP / TADS FWD (no problem reported so far).
+- [ ] GEORGE Target List: it appears with the ring left open after a search, and PREV TARGET / NEXT TARGET move through it.
+- [ ] GEORGE SELECT TARGET numbers the entries, and TRACK / ENGAGE starts the shoot-list sequence.
+- [ ] GEORGE ROE HOLD / FREE toggles (the ring text colour changes) and the ring stays open.
+- [ ] GEORGE FIRE gives consent in HOLD FIRE.
+- [ ] GEORGE EXIT LIST cancels the list and the shoot list.
+- [ ] GEORGE AIR AREA SEARCH, POINT SEARCH and PHS SEARCH still work with the changed sequence (Hide, Show first; the ring stays open).
 
 ### Needs a look on the iPad
 
@@ -46,7 +52,8 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] MASTER ZEROIZE has no photo and is a plain placard. The CP/G COMM and WIPER / DEFOG pages use the same drawings as the pilot's COMM and CENTER pages.
 - [ ] Grip controls with guards (CHOP, BUCS, emergency jettison) are not on the dashboard.
 - [ ] George: the FLIGHT and COMBAT commands of George as pilot are not on the dashboard until the ring mode is understood. Open questions for a later test: does the ring always open in the same mode? does Hide and Show reset a list or sub-menu?
-- [ ] George: no FIRE button, on purpose (a wrong tap can shoot).
+- [ ] George: the weapon-release buttons (FIRE, TRACK / ENGAGE, ROE HOLD / FREE, POINT SEARCH, SELECT TARGET) are unguarded on purpose for now. A guard for grid buttons would be a page change: first tap arms for 5 s, second tap fires.
+- [ ] George: the ROE state (HOLD FIRE or FREE FIRE) is not readable; read the colour of the ring text.
 - [ ] George: the ring state is not readable. The bridge assumes the ring is hidden at the start of a ring command and starts with Hide.
 - [ ] Open questions: radios on the dashboard (later?); which keyboard combinations for cockpit commands are used today (each one would become a button).
 

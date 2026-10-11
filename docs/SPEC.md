@@ -482,26 +482,46 @@ Every button is a `macro` control ([section 8](#8-the-bridge-interface)): a fixe
 
 | Button | Seat | Key sequence | Notes |
 | --- | --- | --- | --- |
-| PHS SEARCH | pilot | ring: Up, short | George searches with the PHS; works once George's systems are ready (on the ground with the systems not ready the ring shows the start-up layout instead) |
-| AIR AREA SEARCH | pilot | `george_multi`, long | George must not be tracking; area search works in the air only: on the ground the same press starts George's systems (READY SYSTEMS) or, when they are already started, shuts them down (MASTER OFF) |
-| POINT SEARCH | pilot | `george_multi`, short | George must not be tracking, and a TSD point must be selected |
+| PHS SEARCH | pilot | ring: Up, short, ring left open | George searches with the PHS; works once George's systems are ready (on the ground with the systems not ready the ring shows the start-up layout instead); the ring stays open so the Target List can appear |
+| AIR AREA SEARCH | pilot | Hide, Show, `george_multi`, long | George must not be tracking; area search works in the air only: on the ground the same press starts George's systems (READY SYSTEMS) or, when they are already started, shuts them down (MASTER OFF); the ring is opened first and stays open so the Target List can appear |
+| POINT SEARCH | pilot | Hide, Show, `george_multi`, short | George must not be tracking, and a TSD point must be selected; the ring is opened first and stays open so the Target List can appear |
 | STORE TARGET | pilot | `george_store`, short | George stores a point only while he is tracking a target, otherwise he says he cannot; works without the ring (the ring does not open) |
 | STOP / TADS FWD | pilot | ring: Down, short | cancels any task of George, including an engagement |
 | WEAPON NEXT | pilot | ring: Left, short, ring left open | cycles NO WPN, GUN, MSL, RKT; the ring stays shown so the selection can be read in it |
 | READY SYSTEMS / MASTER OFF | pilot | `george_multi`, long | on the ground George starts up his systems (TADS, lasers, displays) and announces when done, or, if they are already started, shuts them down; the same press as AIR AREA SEARCH, which one happens depends on whether the aircraft is on the ground |
+| ROE HOLD / FREE | pilot | ring: Up, long, ring left open | toggles George's rules of engagement between HOLD FIRE and FREE FIRE; the ring stays open: yellow text is HOLD FIRE, green text is FREE FIRE (there is no readback, read the colour) |
+| FIRE | pilot | `george_multi`, short | consent to fire the assigned weapon, also in HOLD FIRE |
+| PREV TARGET | pilot | `george_up`, short | moves to the previous entry of the Target List; the TADS slews to it |
+| NEXT TARGET | pilot | `george_down`, short | moves to the next entry of the Target List; the TADS slews to it |
+| EXIT LIST | pilot | `george_left`, short | leaves the Target List and cancels the shoot list |
+| SELECT TARGET | pilot | `george_multi`, short | adds the current entry to the shoot list or removes it (the entries are numbered in the list) |
+| TRACK / ENGAGE | pilot | `george_right`, short | tracks the current target; if it is on the shoot list, starts the multi-target sequence |
 | REQUEST CONTROL | CP/G | `george_request`, short | hands the flight controls to George and takes them back; works without the ring |
 | SHOW RING | both | Hide, Show | opens the ring |
 | HIDE RING | both | Hide | closes the ring and cancels a displayed Target, Search or Point list |
 
-**Typical order.** On the ground press READY SYSTEMS and wait for George's announcement; then use the search buttons in the air.
+**Typical order.** On the ground press READY SYSTEMS and wait for George's announcement. In the air start a search with AIR AREA SEARCH (or PHS SEARCH or POINT SEARCH).
 
-**Ring commands always start with Hide.** The bridge cannot read the state of the ring (George has no DCS-BIOS entry), so a ring command must not depend on it. The ring is opened and closed by two separate keys, Show and Hide, and Hide only acts while the ring is shown. A ring command is therefore Hide, Show, direction, Hide (`george_ring` in `aircraft/ah64d.py`): after Hide the ring is closed whatever it was before, Show opens it in a known state, the direction key acts on it, and the last Hide closes it again. WEAPON NEXT leaves out the last Hide. Pauses: 0.3 s after the first Hide, 0.4 s after Show, 0.3 s after the direction; a ring command takes about 1.4 s, plus the 0.3 s for bringing DCS to the front. While it runs the bridge holds the command lock, so no other command is sent in between.
+**Autonomous engagement.** When George reports targets, the Target List shows on the ring; it only appears if the ring is displayed when he detects them, which is why the three search buttons leave it open.
+
+1. WEAPON NEXT beforehand assigns NO WPN, GUN, MSL or RKT.
+2. PREV TARGET and NEXT TARGET move through the list; the TADS slews to the entry.
+3. SELECT TARGET adds the entry to the shoot list or removes it again; the entries are numbered in the list.
+4. ROE HOLD / FREE toggles the rules of engagement (the ring stays open; yellow text is HOLD FIRE, green text is FREE FIRE; there is no readback, read the colour).
+5. TRACK / ENGAGE tracks the current target or, if it is on the shoot list, starts the multi-target sequence. With FREE FIRE George engages each target at once and moves on to the next by himself; with HOLD FIRE he waits for FIRE before every engagement.
+6. FIRE gives consent to fire the assigned weapon, also in HOLD FIRE.
+7. EXIT LIST leaves the list and cancels the shoot list.
+
+The list buttons only press a direction key, with no Hide first, because Hide would cancel the list. They act on whatever the ring shows and do nothing while the ring is hidden.
+
+**Weapon release.** These buttons release weapons and have no cover or confirmation, by decision for now. POINT SEARCH, SELECT TARGET and FIRE are the same Multifunctional short press, so while George tracks a target with a weapon assigned and no list is shown they all mean "fire". SELECT TARGET and the list buttons are meant to be used only while the Target List is on screen.
+
+**Ring commands always start with Hide.** The bridge cannot read the state of the ring (George has no DCS-BIOS entry), so a ring command must not depend on it. The ring is opened and closed by two separate keys, Show and Hide, and Hide only acts while the ring is shown. A ring command is therefore Hide, Show, direction, Hide (`george_ring` in `aircraft/ah64d.py`): after Hide the ring is closed whatever it was before, Show opens it in a known state, the direction key acts on it, and the last Hide closes it again. PHS SEARCH, WEAPON NEXT and ROE HOLD / FREE leave out the last Hide. Pauses: 0.3 s after the first Hide, 0.4 s after Show, 0.3 s after the direction; a ring command takes about 1.4 s, plus the 0.3 s for bringing DCS to the front. While it runs the bridge holds the command lock, so no other command is sent in between.
 
 **Seats.** A button that works in one seat only (`seats`) is greyed in the other, as TAIL WHEEL is on FLIGHT; the bridge refuses it there. In the pilot seat George is the gunner, in the CP/G seat George is the pilot. SHOW RING and HIDE RING work in both seats.
 
 **Deliberately not on the page**
 
-- FIRE (Multifunctional, as consent to fire): what it does depends on George's state, and a wrong tap can shoot.
 - The FLIGHT and COMBAT commands of George as pilot: in the CP/G seat they depend on the ring mode (GND, FLT, H-B, CMBT, DEFN, cycled with Left, short), and the dashboard cannot read the current mode.
 
 **Binding the keys in DCS.** The keys are the `george_*` entries of `KEYS` ([section 3](#3-configuration)). Bind them once under Options, Controls: choose the aircraft in the dropdown, double-click the row of the command and press the keys. They are added to the DCS defaults (`LCtrl+V`, `W` `A` `S` `D`), which keep working. `LCtrl+LAlt` was chosen because no DCS default uses it, it is not an AltGr combination, and unlike Ctrl+Shift it does not switch the Windows keyboard layout. Request Aircraft Control already has plain `C` by default; the added key avoids a stray plain C.
@@ -685,7 +705,7 @@ Preparation: DCS in windowed or borderless mode, DCS-BIOS and the export script 
 7. **MPD, KU, TEDAC.** MPD: press buttons on both displays; the live labels follow page changes; the cursor pad moves the cursor in the right direction; the MODE knob works (NT through the INC / DEC fallback). KU: type a few characters, the scratchpad shows them. CP/G seat: spot-check the TEDAC buttons, knobs and rockers.
 8. **Guarded controls** (last). Station selects light their lamps and toggle back. ENG 1, APU and ENG 2 FIRE: lift the cover, tap once (RDY lamp on, fuel off), lift the cover again and tap again (safe); DCS's own cover opens with the tablet cover, and the log shows `cover open`, `pressed` and about 1 s later `cover closed`, without `not confirmed`. PRI and RES with a fire button armed, JETT with a station armed, ZEROIZE, MASTER ZEROIZE, CMWS JETT.
 
-9. **GEORGE.** Bind the keys in DCS first (the table in [GEORGE](#george)). Pilot seat with battery power: SHOW RING and HIDE RING (the ring opens and closes); PHS SEARCH and STOP / TADS FWD (the ring flashes open and closes again, George reacts); WEAPON NEXT (the ring stays open and the weapon label in the ring changes: NO WPN, GUN, MSL, RKT); STORE TARGET with a tracked target; AREA SEARCH and POINT SEARCH with George not tracking (POINT SEARCH needs a TSD point selected). CP/G seat: the pilot-only buttons are greyed; REQUEST CONTROL twice, George takes the flight controls, then gives them back.
+9. **GEORGE.** Bind the keys in DCS first (the table in [GEORGE](#george)). Pilot seat with battery power: SHOW RING and HIDE RING (the ring opens and closes); STOP / TADS FWD (the ring flashes open and closes again, George reacts); WEAPON NEXT (the ring stays open and the weapon label in the ring changes: NO WPN, GUN, MSL, RKT); PHS SEARCH, AIR AREA SEARCH and POINT SEARCH in the air with George not tracking (the ring stays open, a Target List appears when George reports targets; POINT SEARCH needs a TSD point selected); then PREV / NEXT TARGET, SELECT TARGET, TRACK / ENGAGE, ROE HOLD / FREE, FIRE and EXIT LIST on the list; STORE TARGET with a tracked target. CP/G seat: the pilot-only buttons are greyed; REQUEST CONTROL twice, George takes the flight controls, then gives them back.
 
 Done when a cold start to both power levers at FLY works from the tablet alone, the lamps match the cockpit, the CP/G seat shows only its own pages, and every control acts in both seats.
 

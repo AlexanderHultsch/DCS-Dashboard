@@ -5,7 +5,7 @@ A tablet dashboard for the **AH-64D Apache** in DCS World. A small Python bridge
 - **COCKPIT**: a map of the cockpit and one page per panel (POWER, FIRE, ARMAMENT, EUFD, COMM, lights and more), drawn like the real panels, for the pilot and the CP/G seat.
 - **FLIGHT, FIGHT**: power levers, symbology, trim display, weapons, sights, countermeasures.
 - **MPD, KU**: both MPD bezels with live button labels, the TEDAC (CP/G), the cursor pad and the keyboard unit.
-- **GEORGE**: direct buttons for the AI crew member (search, targets, weapon, request control).
+- **GEORGE**: direct buttons for the AI crew member (search, targets, engagement, request control).
 
 The dashboard follows the seat you are in. Everything is plain Python (standard library only) and one HTML file. Full description: [docs/SPEC.md](docs/SPEC.md).
 
