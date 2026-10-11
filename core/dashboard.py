@@ -3,12 +3,13 @@ import json
 import math
 import re
 import socket
+import sys
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from bridge import config, dcsbios, export, keys, log
+import config, dcsbios, export, keys, log
 
 LEVER_KEYS = {(0, 1): "idle", (1, 2): "up", (2, 1): "down", (1, 0): "off"}
 LEVER_WAIT = 1.0
@@ -34,7 +35,7 @@ TRIM_POLL = 0.05
 SEAT = "SEAT_POSITION"
 INDEX = Path(__file__).resolve().parent / "web" / "index.html"
 ICON = Path(__file__).resolve().parent / "web" / "apple-touch-icon.png"
-SETTINGS_FILE = Path(__file__).resolve().parent / "settings.json"
+SETTINGS_FILE = config.ROOT / "config" / "settings.json"
 
 ac = None
 cfg = {}
@@ -637,8 +638,9 @@ def lan_ip() -> str:
 
 def load_aircraft(value: str):
     name = re.sub(r"[^a-z0-9]", "", str(value).lower())
+    sys.path.insert(0, str(config.ROOT / "aircraft"))
     try:
-        return importlib.import_module("aircraft." + name)
+        return importlib.import_module(name)
     except ImportError:
         raise SystemExit(f"Unknown aircraft: {value}")
 
@@ -650,25 +652,25 @@ def main() -> None:
     log.setup(cfg["log"])
     settings = load_settings()
     log.set_file_logging(settings["logging"])
-    key_map = cfg.get("keys", {})
+    cfg["keys"] = {**ac.KEYS, **cfg.get("keys", {})}
+    key_map = cfg["keys"]
     try:
         for side in ("left", "right"):
             for step in LEVER_KEYS.values():
                 keys.parse(key_map[f"power_{side}_{step}"])
-        cfg["dcs"]["window_title"]
     except (KeyError, ValueError):
-        raise SystemExit("config.toml needs [dcs] window_title and the power_* keys, see config.example.toml.")
+        raise SystemExit("Invalid power_* key in [keys] of config/config.toml, see config/config.example.toml.")
     try:
         keys.parse(key_map["trim_reset"])
     except (KeyError, ValueError):
-        raise SystemExit("config.toml needs [keys] trim_reset, see config.example.toml.")
+        raise SystemExit("Invalid trim_reset key in [keys] of config/config.toml, see config/config.example.toml.")
     for view in ac.VIEWS:
         for control in view["controls"]:
             if control["type"] == "key":
                 try:
                     keys.parse(key_map[control["key"]])
                 except (KeyError, ValueError):
-                    raise SystemExit(f"config.toml needs [keys] {control['key']}, see config.example.toml.")
+                    raise SystemExit(f"Invalid {control['key']} key in [keys] of config/config.toml, see config/config.example.toml.")
     names = read_names()
     outputs, missing = dcsbios.load_outputs(dcsbios.json_path(cfg["dcs"]["saved_games"], ac.DCSBIOS_MODULE), names)
     if missing:

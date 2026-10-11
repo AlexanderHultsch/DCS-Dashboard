@@ -1,7 +1,7 @@
 -- DCS-Dashboard export script: sends flight data and MPD text over UDP to the Python bridge.
 -- Load it with this line at the end of Export.lua, after the DCS-BIOS line:
 --   dofile(lfs.writedir() .. [[Scripts\DCS-Dashboard-Export.lua]])
--- PORT must match [export] port in config.toml.
+-- PORT must match [export] port in config/config.toml.
 -- Once per minute of model time it writes one "export timing" line to the DCS log (dcs.log, source DCS-Dashboard).
 
 local PORT = 7790

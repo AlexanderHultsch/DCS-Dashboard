@@ -1,4 +1,4 @@
-"""Panel kit: the layout compiler of the cockpit panel pages (docs/COCKPIT_FIXES.md, sections 2 to 4 and 8).
+"""Panel kit: the layout compiler of the cockpit panel pages (docs/SPEC.md, section 7).
 
 Every size is in design units (du) and defined once, below. A page makes one Panel (plate width and height in
 du, even numbers), places parts by their centre on the 1 du grid and attaches labels to them; it never gives a

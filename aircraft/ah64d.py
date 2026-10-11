@@ -1,8 +1,23 @@
 import math
 
-from aircraft.panel_kit import PARTS, REF, Panel, PanelGroup
+from panel_kit import PARTS, REF, Panel, PanelGroup
 
 DCSBIOS_MODULE = "AH-64D"
+
+KEYS = {
+    "power_left_idle": "RAlt+Home",
+    "power_right_idle": "RShift+Home",
+    "power_left_up": "RAlt+PageUp",
+    "power_right_up": "RShift+PageUp",
+    "power_left_down": "RAlt+PageDown",
+    "power_right_down": "RShift+PageDown",
+    "power_left_off": "RAlt+End",
+    "power_right_off": "RShift+End",
+    "canopy": "LCtrl+C",
+    "monocle": "I",
+    "controls_overlay": "RCtrl+Enter",
+    "trim_reset": "LCtrl+T",
+}
 
 POWER_POSITIONS = [
     {"value": 0, "label": "OFF"},

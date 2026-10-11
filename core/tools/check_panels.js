@@ -1,4 +1,4 @@
-// Layout checker for the kit panel pages (docs/COCKPIT_FIXES.md, section 8).
+// Layout checker for the kit panel pages (docs/SPEC.md, section 7).
 //
 // Usage: open the dashboard, choose the seat, then paste this file into the browser console (or run it with a
 // browser tool that allows top-level await). It opens every kit page of the current seat through the long-hold

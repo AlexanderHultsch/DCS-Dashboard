@@ -1,0 +1,50 @@
+# Optional. Without a config/config.toml the dashboard runs with the defaults shown here.
+# To change something, copy this file to config/config.toml and keep only the lines you change.
+# config/config.toml is ignored by git, so your local paths stay private.
+
+[dcs]
+# DCS Saved Games folder. "auto" finds it (Saved Games\DCS or DCS.openbeta with DCS-BIOS installed).
+# Otherwise give the path, e.g. %USERPROFILE%\\Saved Games\\DCS
+saved_games = "auto"
+# Part of the DCS window title, used to bring DCS to the front before a keypress.
+window_title = "Digital Combat Simulator"
+# Aircraft profile, a file in aircraft/ (only "AH-64D" so far).
+aircraft = "AH-64D"
+
+[dcs_bios]
+# DCS-BIOS defaults
+export_multicast = "239.255.50.10"
+export_port = 5010
+command_port = 7778
+
+[export]
+# UDP port the export script sends to. Must match PORT in core/lua/DCS-Dashboard-Export.lua.
+port = 7790
+
+[dashboard]
+# Web server for the tablet. 0.0.0.0 = reachable from the local network.
+host = "0.0.0.0"
+port = 8080
+
+[log]
+file = "logs/dcs-dashboard.log"
+max_mb = 5
+# Active file plus 2 backups = 3 files of max_mb, about 15 MB in total.
+backups = 2
+
+# [keys]
+# DCS keybinds sent as keypresses. The defaults come from the aircraft file (aircraft/ah64d.py) and
+# match a standard DCS install; add a line here only for a key you rebound in DCS.
+# Modifiers and key are joined by "+".
+# power_left_idle = "RAlt+Home"
+# power_right_idle = "RShift+Home"
+# power_left_up = "RAlt+PageUp"
+# power_right_up = "RShift+PageUp"
+# power_left_down = "RAlt+PageDown"
+# power_right_down = "RShift+PageDown"
+# power_left_off = "RAlt+End"
+# power_right_off = "RShift+End"
+# canopy = "LCtrl+C"                  # DCS "Open/Close Cockpit Door"
+# monocle = "I"                       # DCS "IHADSS show"
+# controls_overlay = "RCtrl+Enter"    # DCS "Show controls indicator"
+# trim_reset = "LCtrl+T"              # DCS "Trimmer reset"
