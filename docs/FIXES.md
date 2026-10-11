@@ -22,12 +22,12 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] TEDAC and the KU in the CP/G seat.
 - [ ] CP/G power lever keys (`RAlt` / `RShift` with `Home` and so on): only tested in the pilot seat.
 - [ ] FRICT slider direction and the end of the SIGNAL knob sweep: taken from the photos, not from DCS.
-- [ ] GEORGE ring buttons (SHOW RING, HIDE RING): the ring opens and closes in both seats.
-- [ ] GEORGE search buttons (PHS SEARCH, AREA SEARCH, POINT SEARCH, STOP / TADS FWD): George reacts; AREA and POINT SEARCH only with George not tracking, POINT SEARCH with a TSD point selected.
-- [ ] GEORGE target and control buttons (STORE TARGET with a tracked target; REQUEST CONTROL twice in the CP/G seat: George takes the controls, then gives them back).
-- [ ] GEORGE WEAPON NEXT: the ring stays open and the weapon label changes (NO WPN, GUN, MSL, RKT).
-- [ ] George ring commands: confirm that Hide, Show, then the direction really leaves the ring hidden at the end, and that the pauses (0.3 / 0.4 / 0.3 s) are long enough; confirm that a long press of 1.2 s is accepted.
-- [ ] George keys bound exactly as in the table in [SPEC.md](SPEC.md) (section GEORGE), including the AH-64D George AI Helper entries.
+- [ ] GEORGE PHS SEARCH once George's systems are ready (on the ground with the systems not ready the ring shows the start-up layout, so Up does nothing useful).
+- [ ] GEORGE POINT SEARCH with a TSD point selected and George not tracking (without it: no effect).
+- [ ] GEORGE STORE TARGET while George tracks a target (the key works; without a tracked target George says he cannot).
+- [ ] GEORGE AIR AREA SEARCH in the air: does a target list appear?
+- [ ] GEORGE READY SYSTEMS / MASTER OFF on the ground, in both states: systems not started (George starts up and announces) and systems already started (George shuts down).
+- [ ] George ring commands: confirm that the ring really stays hidden after PHS SEARCH and STOP / TADS FWD (no problem reported so far).
 
 ### Needs a look on the iPad
 

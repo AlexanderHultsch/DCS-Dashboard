@@ -646,11 +646,12 @@ VIEWS = [
         ],
         "controls": [
             {"id": "george_phs", "label": "PHS SEARCH", "type": "macro", "steps": george_ring("george_up", GEORGE_SHORT), "seats": [0], "grid": [1, 1, 1, 1]},
-            {"id": "george_area", "label": "AREA SEARCH", "type": "macro", "steps": [["george_multi", GEORGE_LONG, 0]], "seats": [0], "grid": [1, 2, 1, 1]},
+            {"id": "george_area", "label": "AIR AREA SEARCH", "type": "macro", "steps": [["george_multi", GEORGE_LONG, 0]], "seats": [0], "grid": [1, 2, 1, 1]},
             {"id": "george_point", "label": "POINT SEARCH", "type": "macro", "steps": [["george_multi", GEORGE_SHORT, 0]], "seats": [0], "grid": [1, 3, 1, 1]},
             {"id": "george_store", "label": "STORE TARGET", "type": "macro", "steps": [["george_store", GEORGE_SHORT, 0]], "seats": [0], "grid": [2, 1, 1, 1]},
             {"id": "george_stop", "label": "STOP / TADS FWD", "type": "macro", "steps": george_ring("george_down", GEORGE_SHORT), "seats": [0], "grid": [2, 2, 1, 1]},
             {"id": "george_weapon", "label": "WEAPON NEXT", "type": "macro", "steps": george_ring("george_left", GEORGE_SHORT, keep=True), "seats": [0], "grid": [3, 1, 1, 1]},
+            {"id": "george_systems", "label": "READY SYSTEMS / MASTER OFF", "type": "macro", "steps": [["george_multi", GEORGE_LONG, 0]], "seats": [0], "grid": [3, 2, 1, 1]},
             {"id": "george_control", "label": "REQUEST CONTROL", "type": "macro", "steps": [["george_request", GEORGE_SHORT, 0]], "seats": [1], "grid": [1, 6, 1, 2]},
             {"id": "george_ring_show", "label": "SHOW RING", "type": "macro", "steps": [["george_hide", 0.1, 0.3], ["george_show", 0.1, 0]], "grid": [3, 6, 1, 1]},
             {"id": "george_ring_hide", "label": "HIDE RING", "type": "macro", "steps": [["george_hide", 0.1, 0]], "grid": [3, 7, 1, 1]},

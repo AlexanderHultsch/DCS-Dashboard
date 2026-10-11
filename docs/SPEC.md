@@ -482,15 +482,18 @@ Every button is a `macro` control ([section 8](#8-the-bridge-interface)): a fixe
 
 | Button | Seat | Key sequence | Notes |
 | --- | --- | --- | --- |
-| PHS SEARCH | pilot | ring: Up, short | George searches with the PHS |
-| AREA SEARCH | pilot | `george_multi`, long | George must not be tracking |
+| PHS SEARCH | pilot | ring: Up, short | George searches with the PHS; works once George's systems are ready (on the ground with the systems not ready the ring shows the start-up layout instead) |
+| AIR AREA SEARCH | pilot | `george_multi`, long | George must not be tracking; area search works in the air only: on the ground the same press starts George's systems (READY SYSTEMS) or, when they are already started, shuts them down (MASTER OFF) |
 | POINT SEARCH | pilot | `george_multi`, short | George must not be tracking, and a TSD point must be selected |
-| STORE TARGET | pilot | `george_store`, short | needs a target; works without the ring |
+| STORE TARGET | pilot | `george_store`, short | George stores a point only while he is tracking a target, otherwise he says he cannot; works without the ring (the ring does not open) |
 | STOP / TADS FWD | pilot | ring: Down, short | cancels any task of George, including an engagement |
 | WEAPON NEXT | pilot | ring: Left, short, ring left open | cycles NO WPN, GUN, MSL, RKT; the ring stays shown so the selection can be read in it |
+| READY SYSTEMS / MASTER OFF | pilot | `george_multi`, long | on the ground George starts up his systems (TADS, lasers, displays) and announces when done, or, if they are already started, shuts them down; the same press as AIR AREA SEARCH, which one happens depends on whether the aircraft is on the ground |
 | REQUEST CONTROL | CP/G | `george_request`, short | hands the flight controls to George and takes them back; works without the ring |
 | SHOW RING | both | Hide, Show | opens the ring |
 | HIDE RING | both | Hide | closes the ring and cancels a displayed Target, Search or Point list |
+
+**Typical order.** On the ground press READY SYSTEMS and wait for George's announcement; then use the search buttons in the air.
 
 **Ring commands always start with Hide.** The bridge cannot read the state of the ring (George has no DCS-BIOS entry), so a ring command must not depend on it. The ring is opened and closed by two separate keys, Show and Hide, and Hide only acts while the ring is shown. A ring command is therefore Hide, Show, direction, Hide (`george_ring` in `aircraft/ah64d.py`): after Hide the ring is closed whatever it was before, Show opens it in a known state, the direction key acts on it, and the last Hide closes it again. WEAPON NEXT leaves out the last Hide. Pauses: 0.3 s after the first Hide, 0.4 s after Show, 0.3 s after the direction; a ring command takes about 1.4 s, plus the 0.3 s for bringing DCS to the front. While it runs the bridge holds the command lock, so no other command is sent in between.
 
