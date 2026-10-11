@@ -1,6 +1,6 @@
 import math
 
-from aircraft.panel_kit import REF, Panel
+from aircraft.panel_kit import REF, Panel, PanelGroup
 
 DCSBIOS_MODULE = "AH-64D"
 
@@ -208,63 +208,45 @@ def power_pages() -> list[dict]:
     )
 
 
-def intr_lt_controls(spots: dict) -> list[dict]:
-    controls = [
-        {"id": f"{{seat}}_INTL_{name}_L_KNB", "label": name, "type": "knob", "step": KNOB_STEP, "sweep": sweep, "at": spots[name]}
-        for name, sweep in (("SIGNAL", [-129, 124]), ("PRIMARY", [-125, 125]), ("FLOOD", [-125, 125]))
-    ]
-    controls.append({"id": "{seat}_INTL_TEST_BTN", "label": "PRESS TO TEST", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_INTL_TEST_BTN", "color": "amber", "at": spots["TEST"]})
-    return controls
+def intr_lt_knob(p: Panel, name: str, sweep: list, cx: int, cy: int, preset: str, marks: tuple):
+    p.knob(name, "KNOB_M", cx, cy, {"id": f"{{seat}}_INTL_{name}_L_KNB", "label": name, "type": "knob", "step": KNOB_STEP, "sweep": sweep})
+    p.label(name, "NAME", name, "above")
+    p.knob_labels(name, preset, *marks)
+
+
+def intr_lt_test(p: Panel, cx: int, cy: int):
+    p.round("TEST", cx, cy, {"id": "{seat}_INTL_TEST_BTN", "label": "PRESS TO TEST", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_INTL_TEST_BTN", "color": "amber"})
+    p.label("PRESS TO\nTEST", "NAME", "TEST", "left")
 
 
 def light_pages() -> list[dict]:
-    controls = [
-        {"id": "PLT_EXTL_NAV_L_SW", "label": "NAV", "type": "selector", "positions": [{"value": 2, "label": "BRT", "y": 57}, {"value": 1, "label": "OFF", "y": 102}, {"value": 0, "label": "DIM", "y": 147}], "at": [85, 34, 73, 136]},
-        {"id": "PLT_EXTL_FROMATION_L_KNB", "label": "FORM", "type": "knob", "step": KNOB_STEP, "sweep": [-125, 125], "at": [90, 210, 100, 100]},
-        {"id": "PLT_EXTL_ACOL_L_SW", "label": "ANTI COL", "type": "selector", "positions": [{"value": 2, "label": "WHT", "y": 340}, {"value": 1, "label": "OFF", "y": 385}, {"value": 0, "label": "RED", "y": 430}], "at": [122, 317, 73, 136]},
-        {"id": "PLT_INTL_STBYINST_L_KNB", "label": "STBY INST", "type": "knob", "step": KNOB_STEP, "sweep": [-125, 125], "at": [459, 262, 92, 92]},
-        *intr_lt_controls({"SIGNAL": [254, 92, 92, 92], "PRIMARY": [446, 93, 92, 92], "FLOOD": [274, 258, 92, 92], "TEST": [388, 377, 68, 68]}),
-    ]
-    placard = [
-        ["EXT LT", 111, 37, 26, 102], ["INTR LT", 402, 35, 26, 118],
-        ["BRT", 115, 59, 18, 35], ["OFF", 60, 104, 18, 35], ["DIM", 125, 149, 18, 32],
-        ["N", 179, 83, 20], ["A", 182, 102, 20], ["V", 182, 122, 20],
-        ["FORM", 133, 192, 22, 66], ["OFF", 88, 303, 17, 30], ["BRT", 200, 304, 17, 37],
-        ["WHT", 151, 342, 17, 38], ["OFF", 98, 379, 18, 35], ["RED", 163, 426, 18, 35],
-        ["A", 206, 355, 20], ["N", 208, 373, 20], ["T", 210, 391, 20], ["I", 213, 409, 20],
-        ["C", 238, 368, 20], ["O", 240, 385, 20], ["L", 243, 404, 20],
-        ["SIGNAL", 293, 67, 22, 90], ["DIM", 255, 176, 17, 36], ["RST", 359, 178, 17, 37], ["BRT", 380, 158, 17, 40],
-        ["PRIMARY", 487, 66, 22, 116], ["OFF", 437, 178, 17, 28], ["BRT", 554, 179, 17, 38],
-        ["FLOOD", 313, 238, 22, 83], ["OFF", 266, 343, 17, 30], ["BRT", 376, 343, 17, 38],
-        ["+", 403, 255, 16], ["STBY INST", 502, 240, 22, 131], ["OFF", 452, 347, 17, 28], ["BRT", 565, 347, 17, 38],
-        ["PRESS", 352, 389, 19, 64], ["TO", 355, 404, 19, 22], ["TEST", 355, 418, 19, 49],
-    ]
-    art = [
-        {"shape": "plate", "at": [26, 4, 566, 449]},
-        {"shape": "bracket", "at": [0, 36, 46, 62]}, {"shape": "bracket", "at": [558, 20, 61, 70]},
-        {"shape": "bracket", "at": [570, 390, 49, 66]}, {"shape": "bracket", "at": [34, 380, 52, 56]},
-        {"shape": "screw", "at": [12, 62, 16]}, {"shape": "screw", "at": [577, 57, 18]},
-        {"shape": "screw", "at": [598, 421, 17]}, {"shape": "screw", "at": [58, 405, 17]},
-        {"shape": "screw", "at": [55, 140, 9]}, {"shape": "screw", "at": [87, 345, 9]},
-        {"shape": "screw", "at": [547, 373, 9]}, {"shape": "screw", "at": [535, 209, 10]},
-        {"shape": "line", "at": [203, 68, 33, 272]},
-    ]
-    cpg_placard = [
-        ["INTR LT", 99, 19.5, 9.5, 45], ["SIGNAL", 57, 32, 8, 36], ["PRIMARY", 145, 32, 8, 45], ["FLOOD", 57, 97, 8, 33],
-        ["DIM", 35, 79.5, 6.5, 15], ["RST", 77, 78.5, 6.5, 16], ["BRT", 84, 68.5, 6.5, 16],
-        ["OFF", 123, 79.5, 6.5, 14], ["BRT", 165, 79.5, 6.5, 17], ["OFF", 33, 148.5, 6.5, 14], ["BRT", 76, 148.5, 6.5, 16],
-        ["PRESS", 127, 116, 7, 27], ["TO", 127, 122.5, 7, 9], ["TEST", 127, 129, 7, 21],
-    ]
-    cpg_art = [
-        {"shape": "plate", "at": [4, 4, 200, 166]},
-        {"shape": "screw", "at": [5, 49, 4.5]}, {"shape": "screw", "at": [192, 49, 4.5]},
-        {"shape": "screw", "at": [4, 122, 4.5]}, {"shape": "screw", "at": [191, 123, 4.5]},
-    ]
-    cpg_controls = intr_lt_controls({"SIGNAL": [35, 42, 40, 40], "PRIMARY": [123, 42, 40, 40], "FLOOD": [35, 111, 40, 40], "TEST": [140, 109, 28, 28]})
-    return (
-        panel_pages("EXT / INTR LT", {0: [7, 1, 1, 3]}, [619, 457], placard, art, controls)
-        + panel_pages("INTR LT", {1: [6, 1, 1, 3]}, [208, 174], cpg_placard, cpg_art, cpg_controls)
-    )
+    p = Panel("EXT / INTR LT", 612, 456)
+    p.mark("EXT LT", "TITLE", 124, 52, "panel title")
+    p.mark("INTR LT", "TITLE", 410, 52, "panel title")
+    p.rule("EXT / INTR divider", 224, 72, 420)
+    p.toggle("NAV", 124, 132, {"id": "PLT_EXTL_NAV_L_SW", "label": "NAV", "type": "selector", "positions": [{"value": 2, "label": "BRT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "DIM"}]}, "above_left_below")
+    p.label("N\nA\nV", "POS", "NAV", "right")
+    p.knob("FORM", "KNOB_M", 124, 264, {"id": "PLT_EXTL_FROMATION_L_KNB", "label": "FORM", "type": "knob", "step": KNOB_STEP, "sweep": [-125, 125]})
+    p.label("FORM", "NAME", "FORM", "above")
+    p.knob_labels("FORM", "lower_sides", "OFF", "BRT")
+    p.toggle("ACOL", 124, 364, {"id": "PLT_EXTL_ACOL_L_SW", "label": "ANTI COL", "type": "selector", "positions": [{"value": 2, "label": "WHT"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "RED"}]}, "above_left_below")
+    p.label("A\nN\nT\nI", "POS", "ACOL", "right")
+    p.label("C\nO\nL", "POS", "ACOL", "right")
+    p.knob("STBY INST", "KNOB_M", 496, 256, {"id": "PLT_INTL_STBYINST_L_KNB", "label": "STBY INST", "type": "knob", "step": KNOB_STEP, "sweep": [-125, 125]})
+    p.label("STBY INST", "NAME", "STBY INST", "above")
+    p.knob_labels("STBY INST", "lower_sides", "OFF", "BRT")
+    intr_lt_knob(p, "SIGNAL", [-129, 124], 324, 144, "signal", ("DIM", "BRT", "RST"))
+    intr_lt_knob(p, "PRIMARY", [-125, 125], 496, 144, "lower_sides", ("OFF", "BRT"))
+    intr_lt_knob(p, "FLOOD", [-125, 125], 324, 256, "lower_sides", ("OFF", "BRT"))
+    p.mark("+", "SMALL", 410, 252, "panel mark as on the photo")
+    intr_lt_test(p, 440, 364)
+    c = Panel("INTR LT", 428, 360)
+    c.mark("INTR LT", "TITLE", "CX", 52, "panel title")
+    intr_lt_knob(c, "SIGNAL", [-129, 124], 116, 144, "signal", ("DIM", "BRT", "RST"))
+    intr_lt_knob(c, "PRIMARY", [-125, 125], 288, 144, "lower_sides", ("OFF", "BRT"))
+    intr_lt_knob(c, "FLOOD", [-125, 125], 116, 256, "lower_sides", ("OFF", "BRT"))
+    intr_lt_test(c, 360, 256)
+    return kit_pages("EXT / INTR LT", {0: [7, 1, 1, 3]}, p) + kit_pages("INTR LT", {1: [6, 1, 1, 3]}, c)
 
 
 def fire_button(label: str, name: str, lamp: str) -> dict:
@@ -315,63 +297,62 @@ def jettison_pages() -> list[dict]:
     return kit_pages("STORES JETT", {0: [6, 1, 1, 3], 1: [7, 1, 1, 3]}, p)
 
 
-def video_knob(name: str, label: str, at: list, group: str | None = None, mark: list | None = None, dot: list | None = None) -> dict:
-    knob = {"id": f"PLT_VIDEO_{name}", "label": label, "type": "knob", "step": KNOB_STEP, "sweep": [-130, 130], "at": at}
-    if group:
-        knob.update({"group": group, "mark": mark, "dot": dot})
-    return knob
+def video_knob(name: str, label: str, group: str | None = None) -> dict:
+    knob = {"id": f"PLT_VIDEO_{name}", "label": label, "type": "knob", "step": KNOB_STEP, "sweep": [-130, 130]}
+    return {**knob, "group": group} if group else knob
+
+
+def armament_plate(g: PanelGroup):
+    p = g.panel("ARMAMENT", 352, 244, 0, 0)
+    p.mark("ARMAMENT", "TITLE", "CX", 52, "panel title")
+    p.push("AS", 114, 158, {
+        "id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": MPD_BUTTON_HOLD,
+        "lamps": [
+            {"id": "{seat}_MASTER_ARM_ARM_L", "color": "amber", "legend": "ARM"},
+            {"id": "{seat}_MASTER_ARM_SAFE_L", "color": "green", "legend": "SAFE"},
+        ],
+    }, frame=True)
+    p.label("A/S", "NAME", "AS", "above")
+    p.push("GND", 238, 158, {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_GROUND_OVERRIDE_L", "color": "amber"}, frame=True)
+    p.label("GND ORIDE", "NAME", "GND", "above")
+    p.mark("+", "SMALL", "CX", 198, "panel mark as on the photo")
+
+
+def zeroize_plate(g: PanelGroup):
+    p = g.panel("MASTER ZEROIZE", 240, 244, 368, 0)
+    p.toggle("ZEROIZE", 120, 138, {
+        "id": "{seat}_INST_MZERO_SW", "label": "MASTER ZEROIZE", "type": "selector", "guard": True, "cover": "{seat}_INST_MZERO_CVR",
+        "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}],
+    }, "right_pair")
+    p.label("MASTER\nZEROIZE", "NAME", "ZEROIZE", "above")
+
+
+def video_plate(g: PanelGroup):
+    p = g.panel("VIDEO", 608, 340, 0, 260)
+    p.mark("VIDEO", "TITLE", "CX", 52, "panel title")
+    p.mark("+", "SMALL", 239, 138, "panel mark as on the photo")
+    p.knob("IHADSS", "KNOB_L", 174, 116, [video_knob("IHADSS_BRT", "IHADSS BRT", "IHADSS"), video_knob("IHADSS_CON", "IHADSS CON", "IHADSS")], ("BRT", "CON"))
+    p.label("IHADSS", "NAME", "IHADSS", "above")
+    p.knob_labels("IHADSS", "below_sides", "MIN", "MAX")
+    p.knob("SYM", "KNOB_M", 464, 104, video_knob("SYM_BRT", "SYM BRT"))
+    p.label("SYM BRT", "NAME", "SYM", "above")
+    p.knob_labels("SYM", "lower_sides", "MIN", "MAX")
+    p.round("ACM", 284, 220, {"id": "PLT_VIDEO_AUTO_CON", "label": "ACM", "type": "selector", "style": "cap", "positions": [{"value": 0, "label": "OFF"}, {"value": 1, "label": "ACM"}]})
+    p.label("ACM", "NAME", "ACM", "above")
+    p.knob("FLIR", "KNOB_L", 464, 228, [video_knob("FLIR_LVL", "FLIR LVL", "FLIR"), video_knob("FLIR_GAIN", "FLIR GAIN", "FLIR")], ("LVL", "GAIN"))
+    p.label("FLIR", "NAME", "FLIR", "above")
+    p.knob_labels("FLIR", "below_sides", "MIN", "MAX")
 
 
 def armament_pages() -> list[dict]:
-    controls = [
-        {
-            "id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": MPD_BUTTON_HOLD,
-            "lamps": [
-                {"id": "{seat}_MASTER_ARM_ARM_L", "color": "amber", "legend": "ARM"},
-                {"id": "{seat}_MASTER_ARM_SAFE_L", "color": "green", "legend": "SAFE"},
-            ],
-            "at": [81, 63, 60, 60],
-        },
-        {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_GROUND_OVERRIDE_L", "color": "amber", "at": [175.5, 63, 60, 60]},
-        {"id": "{seat}_INST_MZERO_SW", "label": "MASTER ZEROIZE", "type": "selector", "guard": True, "cover": "{seat}_INST_MZERO_CVR", "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}], "at": [376, 74, 60, 76]},
-    ]
-    placard = [
-        ["ARMAMENT", 156.4, 25.5, 20, 111], ["A/S", 111.5, 53, 16, 34], ["GND ORIDE", 203, 53.2, 16, 91], ["+", 158.7, 130.5, 11],
-        ["MASTER", 406, 30, 16, 64], ["ZEROIZE", 406, 50, 16, 76], ["ON", 459, 96, 12, 18], ["OFF", 460, 128, 12, 26],
-    ]
-    art = [
-        {"shape": "plate", "at": [10, 2, 302, 162]}, {"shape": "plate", "at": [331, 2, 150, 163]},
-        {"shape": "screw", "at": [32, 30, 9]}, {"shape": "screw", "at": [284, 31, 9]},
-        {"shape": "screw", "at": [66, 89, 8]}, {"shape": "screw", "at": [251, 89, 8]},
-        {"shape": "screw", "at": [34, 140, 9]}, {"shape": "screw", "at": [284, 140, 9]},
-        {"shape": "screw", "at": [345, 152, 6]}, {"shape": "screw", "at": [467, 152, 6]},
-        {"shape": "line", "at": [77.5, 63, 0, 63]}, {"shape": "line", "at": [77.5, 126, 67, 0]}, {"shape": "line", "at": [144.5, 63, 0, 63]},
-        {"shape": "line", "at": [172, 63, 0, 63]}, {"shape": "line", "at": [172, 126, 66, 0]}, {"shape": "line", "at": [238, 63, 0, 63]},
-    ]
-    video_controls = [
-        video_knob("IHADSS_BRT", "IHADSS BRT", [65, 212, 60, 60], "IHADSS", [24, 213, 38, 36], [57.2, 242.5, 10]),
-        video_knob("IHADSS_CON", "IHADSS CON", [65, 212, 60, 60], "IHADSS", [24, 249, 38, 36], [57.2, 255.5, 10]),
-        video_knob("SYM_BRT", "SYM BRT", [237.5, 223, 44, 44]),
-        {"id": "PLT_VIDEO_AUTO_CON", "label": "ACM", "type": "selector", "style": "cap", "positions": [{"value": 0, "label": "OFF"}, {"value": 1, "label": "ACM"}], "at": [132.5, 307.5, 47, 47]},
-        video_knob("FLIR_LVL", "FLIR LVL", [228.5, 315.5, 60, 60], "FLIR", [185.2, 313, 38, 35], [221.2, 344, 10]),
-        video_knob("FLIR_GAIN", "FLIR GAIN", [228.5, 315.5, 60, 60], "FLIR", [185.2, 348, 38, 36], [221.2, 356.3, 10]),
-    ]
-    video_placard = [
-        ["VIDEO", 160, 184.5, 18, 55], ["IHADSS", 111.3, 204.7, 16.5, 58], ["BRT", 35, 243.3, 11, 21], ["CON", 36.6, 255.7, 11, 24],
-        ["MIN", 68.5, 273, 11.5, 20.5], ["MAX", 122.4, 273, 11.5, 25], ["+", 155.3, 265.5, 11],
-        ["SYM BRT", 263.5, 210.8, 16, 69], ["MIN", 239.6, 268.8, 11.5, 20], ["MAX", 279.7, 268.3, 11.5, 24],
-        ["ACM", 154.3, 301, 16, 34], ["FLIR", 259, 301, 16, 34], ["LVL", 201.5, 344.5, 11, 20], ["GAIN", 200.2, 356.4, 11, 27],
-        ["MIN", 232, 374, 11.5, 20], ["MAX", 285, 374, 11.5, 24],
-    ]
-    video_art = [
-        {"shape": "plate", "at": [12, 168, 300, 213]},
-        {"shape": "screw", "at": [64, 187, 8]}, {"shape": "screw", "at": [249, 187, 8]},
-        {"shape": "screw", "at": [60, 292, 8]}, {"shape": "screw", "at": [292, 291, 8]},
-    ]
-    return (
-        panel_pages("ARMAMENT", {0: [2, 4, 1, 3]}, [481, 384], placard + video_placard, art + video_art, controls + video_controls)
-        + panel_pages("ARMAMENT", {1: [1, 6, 1, 2]}, [481, 168], placard, art, controls)
-    )
+    pilot = PanelGroup("ARMAMENT")
+    armament_plate(pilot)
+    zeroize_plate(pilot)
+    video_plate(pilot)
+    cpg = PanelGroup("ARMAMENT")
+    armament_plate(cpg)
+    zeroize_plate(cpg)
+    return kit_pages("ARMAMENT", {0: [2, 4, 1, 3]}, pilot) + kit_pages("ARMAMENT", {1: [1, 6, 1, 2]}, cpg)
 
 
 def eufd_rocker(name: str, at: list) -> dict:

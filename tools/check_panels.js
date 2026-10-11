@@ -2,9 +2,10 @@
 //
 // Usage: open the dashboard, choose the seat, then paste this file into the browser console (or run it with a
 // browser tool that allows top-level await). It opens every kit page of the current seat through the long-hold
-// page list of the COCKPIT tab, measures the drawn labels, parts, screws, ears and the plate, and prints a compact
-// JSON report. An empty "problems" object is the acceptance. Run it at 1180 x 820 and 1024 x 768 (reload after a
-// resize), in the pilot and in the CP/G seat.
+// page list of the COCKPIT tab, measures the drawn labels, parts, screws, ears and plates (a page of several panels
+// has one plate per panel, 16 du apart on a shared edge line) and prints a compact JSON report. An empty "problems"
+// object is the acceptance. Run it at 1180 x 820 and 1024 x 768 (reload after a resize), in the pilot and in the
+// CP/G seat.
 //
 // Geometry is compared in design units (du): css px divided by the page scale S (plate css width / plate box width).
 // A label box is its rendered text length by its font size (the uppercase text sits inside that height).
@@ -12,6 +13,7 @@ await (async () => {
   const LABEL_EDGE = 6;
   const PART_EDGE = 12;
   const EAR_CLEAR = 12;
+  const PLATE_GAP = 16;
   const COVER_MARGIN = 12;
   const TOUCH_MIN = 56;
   const TOUCH_OVERLAP = 6;
@@ -46,7 +48,6 @@ await (async () => {
     const S = o.width / bw;
     const du = (r, g = 0) => ({ x0: (r.left - o.left) / S - g, y0: (r.top - o.top) / S - g, x1: (r.right - o.left) / S + g, y1: (r.bottom - o.top) / S + g });
     const drawn = (el) => du(el.getBoundingClientRect(), (parseFloat(el.getAttribute('stroke-width')) || 0) / 2);
-    const plateEl = pbox.querySelector('.k-plate');
     const screws = [...pbox.querySelectorAll('.k-screw')].map((g) => {
       const box = du(g.querySelector('circle').getBoundingClientRect());
       return { size: g.dataset.size, box, x: (box.x0 + box.x1) / 2, y: (box.y0 + box.y1) / 2 };
@@ -73,7 +74,8 @@ await (async () => {
       const px = (b) => round((b.x1 - b.x0) * S) + 'x' + round((b.y1 - b.y0) * S);
       return { id, kind: el.dataset.kit, body, frames, pads, cover, near, outer: [near, ...pads].reduce(join), size: px(body), frameSize: frames.map(px), coverSize: cover ? px(cover) : null };
     });
-    return { S, bw, bh, rw, rh, plate: plateEl ? drawn(plateEl) : { x0: 0, y0: 0, x1: bw, y1: bh }, ears: [...pbox.querySelectorAll('.k-ear')].map(drawn), screws, labels, parts };
+    const plates = [...pbox.querySelectorAll('.k-plate')].map(drawn);
+    return { S, bw, bh, rw, rh, plates: plates.length ? plates : [{ x0: 0, y0: 0, x1: bw, y1: bh }], ears: [...pbox.querySelectorAll('.k-ear')].map(drawn), screws, labels, parts };
   }
 
   function touchAreas() {
@@ -100,6 +102,9 @@ await (async () => {
   function check(d) {
     const out = [];
     const info = [];
+    const centre = (b) => ({ x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 });
+    const onPlate = (b, pl) => centre(b).x >= pl.x0 && centre(b).x <= pl.x1 && centre(b).y >= pl.y0 && centre(b).y <= pl.y1;
+    const plateOf = (b) => d.plates.find((pl) => onPlate(b, pl)) || d.plates[0];
     d.labels.forEach((l, i) => {
       d.parts.forEach((p) => {
         if (overlap(l.box, p.near)) out.push('label ' + l.text + ' overlaps part ' + p.id);
@@ -112,28 +117,40 @@ await (async () => {
       });
       if (d.screws.some((s) => overlap(l.box, s.box))) out.push('label ' + l.text + ' overlaps a screw');
       if (d.ears.some((e) => overlap(l.box, grown(e, EAR_CLEAR)))) out.push('label ' + l.text + ' closer than ' + EAR_CLEAR + ' du to an ear');
-      if (edgeGap(l.box, d.plate) < LABEL_EDGE - TOL) out.push('label ' + l.text + ' closer than ' + LABEL_EDGE + ' du to the plate edge');
+      if (edgeGap(l.box, plateOf(l.box)) < LABEL_EDGE - TOL) out.push('label ' + l.text + ' closer than ' + LABEL_EDGE + ' du to the plate edge');
     });
     d.parts.forEach((p, i) => {
       d.parts.slice(i + 1).forEach((q) => {
         if (overlap(p.outer, q.outer)) out.push('parts ' + p.id + ' and ' + q.id + ' overlap');
       });
       if (d.ears.some((e) => overlap(p.outer, grown(e, EAR_CLEAR)))) out.push('part ' + p.id + ' closer than ' + EAR_CLEAR + ' du to an ear');
-      if (edgeGap(p.outer, d.plate) < PART_EDGE - TOL) out.push('part ' + p.id + ' closer than ' + PART_EDGE + ' du to the plate edge');
+      if (edgeGap(p.outer, plateOf(p.outer)) < PART_EDGE - TOL) out.push('part ' + p.id + ' closer than ' + PART_EDGE + ' du to the plate edge');
       const core = [p.body, ...p.frames].reduce(join);
       if (p.cover && !same(p.cover, grown(core, COVER_MARGIN))) out.push('cover of ' + p.id + ' ' + show(p.cover) + ' is not the part ' + show(core) + ' + ' + COVER_MARGIN + ' du');
     });
-    const corner = d.screws.filter((s) => s.size === 'L');
-    if (d.ears.length !== 4 || corner.length !== 4) out.push(d.ears.length + ' ears and ' + corner.length + ' corner screws, 4 each expected');
-    d.ears.forEach((e) => {
-      const cx = (e.x0 + e.x1) / 2;
-      const cy = (e.y0 + e.y1) / 2;
-      const hit = corner.filter((s) => s.x > e.x0 && s.x < e.x1 && s.y > e.y0 && s.y < e.y1);
-      if (hit.length !== 1 || Math.abs(hit[0].x - cx) > TOL || Math.abs(hit[0].y - cy) > TOL) out.push('corner screw not in the centre of the ear ' + show(e));
+    d.plates.forEach((pl, k) => {
+      const tag = d.plates.length > 1 ? 'plate ' + (k + 1) + ' ' + show(pl) + ': ' : '';
+      const ears = d.ears.filter((e) => onPlate(e, pl));
+      const corner = d.screws.filter((s) => s.size === 'L' && onPlate(s.box, pl));
+      if (ears.length !== 4 || corner.length !== 4) out.push(tag + ears.length + ' ears and ' + corner.length + ' corner screws, 4 each expected');
+      ears.forEach((e) => {
+        const cx = (e.x0 + e.x1) / 2;
+        const cy = (e.y0 + e.y1) / 2;
+        const hit = corner.filter((s) => s.x > e.x0 && s.x < e.x1 && s.y > e.y0 && s.y < e.y1);
+        if (hit.length !== 1 || Math.abs(hit[0].x - cx) > TOL || Math.abs(hit[0].y - cy) > TOL) out.push(tag + 'corner screw not in the centre of the ear ' + show(e));
+      });
+      if (distinct(corner.map((s) => s.x)).length !== 2 || distinct(corner.map((s) => s.y)).length !== 2) out.push(tag + 'corner screws not on two shared x and two shared y lines');
+      d.plates.slice(k + 1).forEach((other) => {
+        const dx = Math.max(other.x0 - pl.x1, pl.x0 - other.x1);
+        const dy = Math.max(other.y0 - pl.y1, pl.y0 - other.y1);
+        const edge = dx < 0 ? Math.abs(pl.x0 - other.x0) <= TOL || Math.abs(pl.x1 - other.x1) <= TOL : Math.abs(pl.y0 - other.y0) <= TOL || Math.abs(pl.y1 - other.y1) <= TOL;
+        if (dx < 0 && dy < 0) out.push(tag + 'plates overlap ' + show(other));
+        else if ((dx < 0 || dy < 0) && (Math.abs((dx < 0 ? dy : dx) - PLATE_GAP) > TOL || !edge)) out.push(tag + 'plate ' + show(other) + ' is not ' + PLATE_GAP + ' du away on a shared edge line');
+      });
     });
-    if (distinct(corner.map((s) => s.x)).length !== 2 || distinct(corner.map((s) => s.y)).length !== 2) out.push('corner screws not on two shared x and two shared y lines');
-    const xs = [d.plate.x0, d.plate.x1, (d.plate.x0 + d.plate.x1) / 2, ...corner.map((s) => s.x), ...d.parts.map((p) => (p.body.x0 + p.body.x1) / 2)];
-    const ys = [d.plate.y0, d.plate.y1, (d.plate.y0 + d.plate.y1) / 2, ...corner.map((s) => s.y), ...d.parts.map((p) => (p.body.y0 + p.body.y1) / 2)];
+    const corner = d.screws.filter((s) => s.size === 'L');
+    const xs = [...d.plates.flatMap((pl) => [pl.x0, pl.x1, (pl.x0 + pl.x1) / 2]), ...corner.map((s) => s.x), ...d.parts.map((p) => (p.body.x0 + p.body.x1) / 2)];
+    const ys = [...d.plates.flatMap((pl) => [pl.y0, pl.y1, (pl.y0 + pl.y1) / 2]), ...corner.map((s) => s.y), ...d.parts.map((p) => (p.body.y0 + p.body.y1) / 2)];
     d.screws.filter((s) => s.size !== 'L').forEach((s) => {
       const others = d.screws.filter((t) => t !== s);
       const onX = [...xs, ...others.map((t) => t.x)].some((v) => Math.abs(v - s.x) <= TOL);
@@ -184,7 +201,7 @@ await (async () => {
       p.frameSize.forEach((s) => note(p.kind + ' frame', s, name));
       if (p.coverSize) note(p.kind + (p.frameSize.length ? ' framed' : '') + ' cover', p.coverSize, name);
     });
-    report.pages[name] = { box: [d.bw, d.bh], S: Math.round(d.S * 10000) / 10000, parts };
+    report.pages[name] = { box: [d.bw, d.bh], S: Math.round(d.S * 10000) / 10000, plates: d.plates.map((pl) => [round(pl.x1 - pl.x0), round(pl.y1 - pl.y0)]), parts };
     if (out.length) report.problems[name] = out;
     if (info.length) report.info[name] = info;
   }

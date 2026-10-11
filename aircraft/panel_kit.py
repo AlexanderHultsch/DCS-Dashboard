@@ -10,7 +10,8 @@ placed only by naming an x line and a y line from the line table:
 
 Panel.build() checks the layout (LayoutError on a collision) and returns the page data in the format
 web/index.html draws: box [w, h], controls (the given control data plus "at", "kit" and, for a guarded part,
-"cover_at"), print ([text, x, y, size, width] or with a rotation) and art.
+"cover_at"; a dual-function knob also "mark" and "dot"), print ([text, x, y, size, width] or with a rotation) and art.
+A page with several physical panels is a PanelGroup: one Panel per plate at a page offset, 16 du apart.
 
     p = Panel("EMERGENCY", 580, 276)
     p.mark("EMERGENCY", "TITLE", "CX", 52, "panel title")
@@ -31,7 +32,7 @@ PARTS = {
     "PUSH_SMALL": {"w": 56, "h": 56},
     "ROUND": {"w": 64, "h": 64},
     "PLUNGER": {"w": 100, "h": 100},
-    # w / h: the ring; band: touch height per position until the switch chooser replaces the bands
+    # w / h: the ring; band: the touch square (a guarded switch has one band per position instead)
     "TOGGLE": {"w": 56, "h": 56, "lever": 40, "band": 60},
     "ROTARY": {"w": 100, "h": 100},
     "KNOB_L": {"w": 96, "h": 96},
@@ -41,7 +42,11 @@ PARTS = {
     "CHIP": {"w": 64, "h": 22},
     "SLIDER": {"w": 40, "h": 200},
     "LEVER": {"w": 40, "h": 200},
+    # selector dot of a dual-function knob; touch: square beside the knob (clear: its distance to the knob),
+    # pitch: centre distance of two marks, gap: dot centre to the knob edge
+    "MARK": {"w": 10, "h": 10, "touch": 56, "clear": 6, "pitch": 64, "gap": 14},
 }
+KNOBS = ("KNOB_L", "KNOB_M", "KNOB_S")
 GUARD_COVER = {"margin": 12, "frame": 14, "lock": 24}
 HAZARD_PAD = {"margin": 20, "period": 34, "border": 2}
 # dark housing around a part (and its cover); hazard strip: fixed width, as tall as the housing less the inset
@@ -55,12 +60,23 @@ SLOT_ANGLES = (15, 100, 65, 140)
 STYLES = {"TITLE": (32, 19), "NAME": (24, 14), "POS": (20, 12), "SMALL": (16, 10)}
 # a face legend is plain text, not stretched to a width: estimated in em per glyph for a wide sans font
 LEGEND_GLYPH = 0.74
-# position labels of a toggle, one (side, rotation) per position in the order of the positions (None: not printed)
+# position labels of a toggle, one (side, rotation) per position in the order of the positions (None: not printed);
+# along shifts a label along its side of the part and keeps it from pushing further labels out
 TOGGLE_LABELS = {
     "above_side_below": (("above", 0), ("right", 90), ("below", 0)),
+    "above_left_below": (("above", 0), ("left", 0), ("below", 0)),
     "above_below": (("above", 0), ("below", 0)),
     "left_right": (("left", 0), None, ("right", 0)),
+    "right_pair": (("right", 0, -24), ("right", 0, 24)),
 }
+# printed scale marks of a knob, one (side, along) per mark; along is a fraction of the knob half size (down or right is positive)
+KNOB_LABELS = {
+    "lower_sides": (("left", 0.7), ("right", 0.7)),
+    "below_sides": (("below", -0.6), ("below", 0.6)),
+    "signal": (("left", 0.7), ("right", -0.1), ("right", 0.7)),
+}
+GROUP_GAP = 16
+RULE_STROKE = 3
 
 
 class LayoutError(ValueError):
@@ -133,7 +149,7 @@ class Panel:
         part = {
             "name": name, "kind": kind, "cx": cx, "cy": cy, "control": control, "kit": {"part": kind},
             "body": body, "outer": body, "inner": body, "touch": body, "cover": None, "pad": None, "housing": None, "round": False,
-            "art": [], "edges": {},
+            "art": [], "edges": {}, "members": [control], "marks": [],
         }
         if control.get("guard"):
             part["cover"] = part["outer"] = part["inner"] = grow(body, GUARD_COVER["margin"])
@@ -167,13 +183,16 @@ class Panel:
         return part
 
     def toggle(self, name: str, cx: int, cy: int, control: dict, labels: str | None = None) -> dict:
-        """Toggle switch (ring and lever) with one touch band per position and optional position label preset."""
+        """Toggle switch (ring and lever): one touch square, or one band per position when guarded; optional position label preset."""
         spec = PARTS["TOGGLE"]
         part = self._part(name, "TOGGLE", cx, cy, control)
         part["kit"].update(ring=spec["w"], lever=spec["lever"])
         n = len(control["positions"])
         band = spec["band"]
-        part["touch"] = centred(cx, cy, *((band * n, band) if control.get("orient") == "h" else (band, band * n)))
+        if control.get("guard"):
+            part["touch"] = centred(cx, cy, *((band * n, band) if control.get("orient") == "h" else (band, band * n)))
+        else:
+            part["touch"] = centred(cx, cy, band, band)
         if labels:
             preset = TOGGLE_LABELS[labels]
             if len(preset) != n:
@@ -182,6 +201,43 @@ class Panel:
                 if spot:
                     self.label(position["label"], "POS", name, *spot)
         return part
+
+    def round(self, name: str, cx: int, cy: int, control: dict) -> dict:
+        """Round pushbutton or cap."""
+        return self._part(name, "ROUND", cx, cy, control)
+
+    def knob(self, name: str, kind: str, cx: int, cy: int, control: dict | list, marks: tuple = ()) -> dict:
+        """Knob. A dual-function knob takes a list of controls (the first is shown) and one selector mark text each;
+        the marks are stacked beside the knob on its left and choose the control."""
+        if kind not in KNOBS:
+            self.fail(f"knob {name}: {kind} is not one of {', '.join(KNOBS)}")
+        members = control if isinstance(control, list) else [control]
+        wanted = len(members) if len(members) > 1 else 0
+        if len(marks) != wanted:
+            self.fail(f"knob {name}: {len(members)} control(s) take {wanted} selector marks, got {len(marks)}")
+        part = self._part(name, kind, cx, cy, members[0])
+        part["members"] = members
+        spec = PARTS["MARK"]
+        left = int(part["body"][0])
+        for i, text in enumerate(marks):
+            y = cy + round((i - (len(marks) - 1) / 2) * spec["pitch"])
+            dot = self._part(f"{name}_{i}", "MARK", left - spec["gap"], y, {})
+            dot["touch"] = (left - spec["clear"] - spec["touch"], y - spec["touch"] / 2, left - spec["clear"], y + spec["touch"] / 2)
+            part["marks"].append(dot)
+            self.label(text, "POS", f"{name}_{i}", "left")
+        return part
+
+    def knob_labels(self, name: str, preset: str, *texts: str):
+        """Printed scale marks of a knob (OFF, BRT, MIN, MAX ...) from the preset of their arrangement on the photos."""
+        part = self.parts[name]
+        if part["kind"] not in KNOBS:
+            self.fail(f"knob labels: {name} is not a knob")
+        spots = KNOB_LABELS[preset]
+        if len(spots) != len(texts):
+            self.fail(f"knob label preset {preset} is for {len(spots)} marks, {name} got {len(texts)}")
+        half = PARTS[part["kind"]]["w"] // 2
+        for text, (side, along) in zip(texts, spots):
+            self.label(text, "POS", name, side, 0, round(along * half))
 
     def hazard(self, name: str, label: str | None = None, style: str = "NAME", side: str = "right") -> dict:
         """Striped pad around a part (or its cover), the part centred in it; optionally a label on a slot inside."""
@@ -243,33 +299,36 @@ class Panel:
         art = {"shape": "hazard", "at": xywh(grow(box, -border / 2)), "border": border, "period": HAZARD_PAD["period"]}
         self.decor.append({"name": f"strip {side} of {name}", "box": box, "art": art})
 
-    def label(self, text: str, style: str, part: str, side: str, rotate: int = 0):
-        """Label attached to a part, GAP du outside the part (and outside the labels already on that side)."""
+    def label(self, text: str, style: str, part: str, side: str, rotate: int = 0, along: int = 0):
+        """Label attached to a part, GAP du outside the part (and outside the labels already on that side). A label
+        with 'along' is shifted that many du along the side, sits on the part's own edge and pushes no other label out."""
         p = self.parts[part]
         if rotate and "\n" in text:
             self.fail(f"label {text!r}: only a single line can be rotated")
         w, h = text_size(text, style, rotate)
         x0, y0, x1, y1 = p["outer"]
-        edge = p["edges"].get(side)
+        edge = None if along else p["edges"].get(side)
         odd_w, odd_h = w % 2 / 2, h % 2 / 2
         if side == "above":
             bottom = (y0 if edge is None else edge) - GAP - odd_h
-            box = (p["cx"] - w / 2, bottom - h, p["cx"] + w / 2, bottom)
-            p["edges"][side] = box[1]
+            box = (p["cx"] + along - w / 2, bottom - h, p["cx"] + along + w / 2, bottom)
+            edge = box[1]
         elif side == "below":
             top = (y1 if edge is None else edge) + GAP + odd_h
-            box = (p["cx"] - w / 2, top, p["cx"] + w / 2, top + h)
-            p["edges"][side] = box[3]
+            box = (p["cx"] + along - w / 2, top, p["cx"] + along + w / 2, top + h)
+            edge = box[3]
         elif side == "left":
             right = (x0 if edge is None else edge) - GAP - odd_w
-            box = (right - w, p["cy"] - h / 2, right, p["cy"] + h / 2)
-            p["edges"][side] = box[0]
+            box = (right - w, p["cy"] + along - h / 2, right, p["cy"] + along + h / 2)
+            edge = box[0]
         elif side == "right":
             left = (x1 if edge is None else edge) + GAP + odd_w
-            box = (left, p["cy"] - h / 2, left + w, p["cy"] + h / 2)
-            p["edges"][side] = box[2]
+            box = (left, p["cy"] + along - h / 2, left + w, p["cy"] + along + h / 2)
+            edge = box[2]
         else:
             self.fail(f"label side {side!r} is not above, below, left or right")
+        if not along:
+            p["edges"][side] = edge
         self._add_label(text, style, box, rotate)
 
     def mark(self, text: str, style: str, x, y, reason: str, rotate: int = 0):
@@ -284,6 +343,13 @@ class Panel:
         if not (isinstance(cx, int) and isinstance(cy, int)):
             self.fail(f"free label {text!r} must sit on the 1 du grid, got ({cx}, {cy})")
         self._add_label(text, style, centred(cx, cy, *text_size(text, style, rotate)), rotate)
+
+    def rule(self, name: str, x: int, y0: int, y1: int):
+        """Printed vertical dividing line on the grid."""
+        if not all(isinstance(v, int) for v in (x, y0, y1)):
+            self.fail(f"rule {name} must sit on the 1 du grid, got x {x}, y {y0} to {y1}")
+        box = (x - RULE_STROKE / 2, y0, x + RULE_STROKE / 2, y1)
+        self.decor.append({"name": name, "box": box, "art": {"shape": "line", "at": [x, y0, 0, y1 - y0]}})
 
     def _add_label(self, text: str, style: str, box: tuple, rotate: int, inside: str | None = None):
         self.labels.append({"text": text, "style": style, "box": box, "rotate": rotate, "inside": inside})
@@ -371,10 +437,14 @@ class Panel:
         controls = []
         for p in self.parts.values():
             art += p["art"]
-            control = {**p["control"], "at": xywh(p["touch"]), "kit": p["kit"]}
-            if p["cover"]:
-                control["cover_at"] = xywh(p["cover"])
-            controls.append(control)
+            for i, member in enumerate(p["members"] if p["control"] else []):
+                control = {**member, "at": xywh(p["touch"]), "kit": p["kit"]}
+                if p["cover"]:
+                    control["cover_at"] = xywh(p["cover"])
+                if p["marks"]:
+                    mark = p["marks"][i]
+                    control["mark"], control["dot"] = xywh(mark["touch"]), [num(mark["cx"]), num(mark["cy"]), PARTS["MARK"]["w"]]
+                controls.append(control)
         art += [d["art"] for d in self.decor]
         printed = []
         for lab in self.labels:
@@ -385,5 +455,60 @@ class Panel:
                 printed.append([lab["text"], cx, num((y0 + y1) / 2), size, len(lab["text"]) * glyph, lab["rotate"]])
                 continue
             for i, line in enumerate(lab["text"].split("\n")):
-                printed.append([line, cx, num(y0 + size * i + size / 2), size, len(line) * glyph])
+                printed.append([line, cx, num(y0 + size * i + size / 2), size] + ([len(line) * glyph] if len(line) > 1 else []))
         return {"box": [self.w, self.h], "controls": controls, "print": printed, "art": art}
+
+
+def shifted(item, dx: int, dy: int, keys: tuple) -> dict:
+    out = dict(item)
+    for key in keys:
+        if key in out:
+            out[key] = [num(out[key][0] + dx), num(out[key][1] + dy), *out[key][2:]]
+    return out
+
+
+class PanelGroup:
+    """A page of several physical panels: one Panel (plate with its own ears and screws) per panel at a page offset.
+    Plates next to each other are exactly GROUP_GAP du apart and share an edge line; the page is at most REF."""
+
+    def __init__(self, name: str):
+        self.name = name
+        self.plates = []
+
+    def panel(self, name: str, w: int, h: int, x: int, y: int) -> Panel:
+        if not (isinstance(x, int) and isinstance(y, int)):
+            raise LayoutError(f"{self.name}: plate {name} must sit on the 1 du grid, got ({x}, {y})")
+        panel = Panel(f"{self.name} / {name}", w, h)
+        self.plates.append((panel, x, y))
+        return panel
+
+    def check(self):
+        problems = []
+        boxes = [(p.name, (x, y, x + p.w, y + p.h)) for p, x, y in self.plates]
+        for i, (name, a) in enumerate(boxes):
+            for other, b in boxes[i + 1:]:
+                dx, dy = max(b[0] - a[2], a[0] - b[2]), max(b[1] - a[3], a[1] - b[3])
+                if dx < 0 and dy < 0:
+                    problems.append(f"plates {name} and {other} overlap")
+                elif dx < 0 and (dy != GROUP_GAP or not (a[0] == b[0] or a[2] == b[2])):
+                    problems.append(f"plates {name} and {other} must be {GROUP_GAP} du apart and share a left or right edge line (gap {dy})")
+                elif dy < 0 and (dx != GROUP_GAP or not (a[1] == b[1] or a[3] == b[3])):
+                    problems.append(f"plates {name} and {other} must be {GROUP_GAP} du apart and share a top or bottom edge line (gap {dx})")
+        width, height = max(b[2] for _, b in boxes), max(b[3] for _, b in boxes)
+        if min(b[0] for _, b in boxes) or min(b[1] for _, b in boxes):
+            problems.append("the plates must start at 0, 0")
+        if width > REF[0] or height > REF[1]:
+            problems.append(f"page {width} x {height} du is bigger than {REF[0]} x {REF[1]}")
+        if problems:
+            raise LayoutError(f"{self.name}: " + "; ".join(problems))
+        return width, height
+
+    def build(self) -> dict:
+        width, height = self.check()
+        page = {"box": [width, height], "controls": [], "print": [], "art": []}
+        for panel, x, y in self.plates:
+            built = panel.build()
+            page["controls"] += [shifted(c, x, y, ("at", "cover_at", "mark", "dot")) for c in built["controls"]]
+            page["print"] += [[t, num(px + x), num(py + y), *rest] for t, px, py, *rest in built["print"]]
+            page["art"] += [shifted(a, x, y, ("at", "hole")) for a in built["art"]]
+        return page
