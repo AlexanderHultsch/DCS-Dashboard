@@ -1,6 +1,6 @@
 # Cockpit pages: fix round 1
 
-Spec for the fixes after the first test of the COCKPIT pages on the tablet ([COCKPIT.md](COCKPIT.md) describes the pages). Status: spec only, nothing built yet.
+Spec for the fixes after the first test of the COCKPIT pages on the tablet ([COCKPIT.md](COCKPIT.md) describes the pages). Status: updated after the first review (rectangular corner ears, no hold on covered controls, 1 du grid); building starts with this version.
 
 Sources: the 11 tablet screenshots of the pilot pages (iPad Air, no DCS data), the dashboard log and `dcs.log` of the same session, and the code.
 
@@ -33,7 +33,7 @@ Good news from the same session: the export timing line works. `dcs.log` shows a
 
 ## 3. The part kit (one place)
 
-All parts are defined once, in `aircraft/panel_kit.py` (the AH-64D file only places parts and sets text). The kit is sent to the page with the layout (`/layout` gets a `kit` entry), so the page has no hard-coded sizes. A page entry names a part and a centre point, never a size.
+All parts are defined once, in `aircraft/panel_kit.py` (the AH-64D file only places parts and sets text). The kit is a small layout compiler: a page entry names a part and a centre point, never a size, and the compiler writes the resolved geometry (boxes in du, label positions, plate, ears, screws) into the page data in the format the page already draws. The page therefore draws what it is given and has no hard-coded sizes.
 
 | Part | Size (du) | Used for |
 | --- | --- | --- |
@@ -49,6 +49,7 @@ All parts are defined once, in `aircraft/panel_kit.py` (the AH-64D file only pla
 | `SLIDER`, `LEVER` | track 40 x 200, slot per page | FRICT, power levers |
 | `GUARD_COVER` | the guarded part + 12 du on each side, frame 14 wide, padlock 24 | all guarded parts; derived from the part, never typed in |
 | `HAZARD_PAD` | the part (or its cover) + 20 du on each side | JETT pad, EMERG HYD pad, CMWS strip |
+| `EAR` | rectangular corner ear 52 x 52, flush in the plate corner, 2 border | the four corners of every plate, `SCREW_L` centred in it |
 | `SCREW_L` / `SCREW_M` / `SCREW_S` | 26 / 18 / 12 | section 4 |
 | Label styles | `TITLE` 32, `NAME` 24, `POS` 20, `SMALL` 16 | every printed text; one font, one weight per style |
 
@@ -56,12 +57,13 @@ Rules:
 
 - **A part carries its own frame, cover and legend.** A framed button is one part (button plus frame, centred by construction), a guarded part is one part (part plus cover), a hazard pad is sized from what is inside. Nothing is placed twice by hand.
 - **The same part is the same size everywhere**, on every page and both seats. A page cannot change a size; at most it picks the variant.
-- Parts sit on a **10 du grid**; centres are multiples of 5 du.
+- Parts sit on a **1 du grid** (whole-number centres), fine enough to follow the photos; plate sizes are multiples of 2 du. Screw alignment does not come from the grid but from the named lines in section 4.
 
 ## 4. Page frame and the screw system
 
-- A page has one **plate**: width and height in du (multiples of 10), corner radius 16, border 3, no ears (see decision 1). Content keeps at least 36 du from the plate edge.
-- **Outer screws** (`SCREW_L`): four, exactly on the corners of an inner rectangle 24 du from each edge. All four corner screws therefore share two x values and two y values, on every page.
+- A page has one **plate**: width and height in du (multiples of 2), corner radius 6 (nearly rectangular as on the photos), border 3. Content keeps at least 36 du from the plate edge and at least 12 du from every ear.
+- **Corner ears:** four identical rectangular `EAR` parts, one in each plate corner, flush with the plate edges. The photos show ears of different heights and some overlapping their neighbours; they are all the same here (the look should be tidy, screw alignment has priority).
+- **Outer screws** (`SCREW_L`): one in the centre of each ear, so exactly 26 du from the two plate edges of its corner. All four corner screws therefore share two x values and two y values, on every page.
 - **Edge screws** (`SCREW_M`, optional flag `edge_screws`): at the middle of the top and bottom edge, on the same horizontal lines as the corner screws (and optionally the left / right edge on the same vertical lines).
 - **Inner screws** (`SCREW_S`, optional): a page cannot give free coordinates. An inner screw is placed by naming two **lines** from the page's line table: the plate lines (`L`, `R`, `T`, `B`, `CX`, `CY`), the corner screw lines, or the centre line of a placed part (`part.cx`, `part.cy`). So an inner screw always shares an x or y with something visible.
 - **Rotation:** the three screw drawings are fixed; the slot angle comes from a short fixed list by position index (for example 15, 100, 65, 140 degrees), so a plate looks natural but never random.
@@ -89,7 +91,7 @@ Applies to the knob bar and to the new switch chooser (section 6).
 - The current position is highlighted (from the DCS readback). A position that cannot be used (`disabled`, for example EXT PWR, BRK) is greyed out and not selectable. A spring-return position (`momentary`) carries a small spring mark; selecting it runs the same press as today (the bridge holds it, then returns to rest).
 - A small title line shows the switch name (for example ENG START NO 1).
 - A tap on a position sends the command through the existing path (same confirmation and error toasts) and closes the chooser. A tap outside closes it without a command.
-- **Not changed:** guarded switches (ZEROIZE, MASTER ZEROIZE, CMWS JETT) keep cover, then press and hold (decision 2). The power levers, the FRICT slider, the rockers, buttons and the quick pages (FLIGHT, FIGHT, MPD, KU) are unchanged (decision 3).
+- **Not changed:** guarded switches (ZEROIZE, MASTER ZEROIZE, CMWS JETT) keep cover, then a single tap on the position (no hold, no chooser; see section 10b). The power levers, the FRICT slider, the rockers, buttons and the quick pages (FLIGHT, FIGHT, MPD, KU) are unchanged (decision 3).
 
 ## 7. Knob look
 
@@ -110,7 +112,7 @@ One shared drawing per knob size, so all knobs look the same family. Layers, bot
 - **Checker.** `tools/check_panels.js` runs in the browser console. For every page of the seat it measures all label, part, screw and plate boxes and reports:
   1. a label box overlapping a part, another label, a screw or the plate edge (closer than 6 du);
   2. a part overlapping a part or the plate edge (closer than 12 du);
-  3. outer screws not on the two shared x and two shared y lines; inner screws not on a named line (0.5 du tolerance);
+  3. outer screws not at the centre of their ear, or not on the two shared x and two shared y lines; a part or label closer than 12 du to an ear; inner screws not on a named line (0.5 du tolerance);
   4. parts of the same kind with different rendered sizes anywhere (all pages, both seats);
   5. touch areas under 56 css px, or touch areas overlapping by 6 px or more (guard covers excepted);
   6. a page wider or taller than 640 x 600 du.
@@ -146,7 +148,7 @@ Every page is re-laid on the kit and the frame, in this order. The notes list wh
 | `PLT_FIRE_ENG1_BTN` | `PLT_FIRE_ENG1_CVR` | `pressed, not confirmed` (twice) |
 | `PLT_CMWS_JETT` | `PLT_CMWS_JETT_CVR` | `1 sent, not confirmed` |
 
-So the tablet cover and the 1 second hold work (`guard open` is logged each time), but a command to a part that has a real cover does not take effect while DCS's own cover is closed. This answers the open point from the spec.
+So the tablet cover works (`guard open` is logged each time), but a command to a part that has a real cover does not take effect while DCS's own cover is closed. This answers the open point from the spec.
 
 **Fix.** The tablet cover also moves the real one:
 
@@ -155,6 +157,14 @@ So the tablet cover and the 1 second hold work (`guard open` is logged each time
 - The real cover is closed again by the bridge (not the page): after the guarded command was accepted and about 1 s later, or when the guard window runs out, even if the tablet is gone. The cover ids are read from DCS-BIOS like any other id (`read_names`), and the tablet cover follows the real cover's readback.
 - The log gets `cover open` and `cover closed` lines.
 - **Retest** in a throwaway mission, pilot and CP/G seat: ENG 1 FIRE, APU FIRE, ENG 2 FIRE (press arms, a second guarded press makes it safe), then PRI and RES (with a fire button armed), JETT with a station armed, MASTER ZEROIZE, CMWS JETT. Expected: `pressed` or `sent` without `not confirmed`, and the RDY lamp lights on the fire page. If ENG 1 is still `not confirmed` with the cover open, the next hypothesis is that the fire button's own value is not 1 while armed. The confirmation then uses the RDY lamp (`{S}_ENG_1_READY_L`) instead of the button.
+
+### 10b. Guard without the hold
+
+A guarded control already needs a deliberate first step: the cover has to be opened by hand. So the second step is a plain tap.
+
+- The 1 second hold and its ring are removed (`HOLD_MS`, the ring drawing in `addGuard`). With the cover open, one tap on the button, or on the position of a guarded switch (ZEROIZE, MASTER ZEROIZE, CMWS JETT), sends the command.
+- Everything else stays: the cover tap sends `guard open`, the cover closes after 5 seconds or after the tap, only one cover is open at a time, the bridge accepts a guarded command only inside its window and uses the window up. The long press of the COMM knobs (PULL) is a different feature and stays.
+- The docs that describe the hold (README, COCKPIT.md, STAGE3.md) are corrected in step 8.
 
 ## 11. Back button and glyphs
 
@@ -167,22 +177,22 @@ So the tablet cover and the 1 second hold work (`guard open` is logged each time
 Each step is checked in a browser against the simulated DCS-BIOS at 1180 x 820 and 1024 x 768, both seats, and the checker (section 8) from step 3 on. I review every step myself against the screenshots.
 
 1. **Back button and icons** (section 11). Small, no other change.
-2. **Real covers** (section 10), bridge and data. Retest list in DCS.
-3. **Kit and page frame**: `aircraft/panel_kit.py`, the `kit` entry in `/layout`, global scale, plate and screw system, the `place` function (section 5), `tools/check_panels.js`. Proof page: TAIL WHEEL / NVS and EMERGENCY re-laid on it.
+2. **Real covers and guard without hold** (sections 10 and 10b), bridge, data and page. Retest list in DCS.
+3. **Kit and page frame**: `aircraft/panel_kit.py` (the layout compiler, parts, plate, ears, screws), global scale in the page, the `place` function (section 5), `tools/check_panels.js`. Proof pages: TAIL WHEEL / NVS and EMERGENCY re-laid on it.
 4. **Knob look** (section 7) in the kit.
 5. **Pop-up placement** (section 5) for the knob bar.
 6. **Switch chooser** (section 6) replacing the touch bands.
 7. **Re-lay the other pages** (section 9) in this order: STORES JETT, FIRE, ARMAMENT, EXT / INTR LT, CMWS, POWER, COMM, CENTER, WIPER / DEFOG, EUFD, then the CP/G pages. Checker report empty after each.
 8. **Docs** (README, STAGE3, COCKPIT) and the test run on the tablet.
 
-## 13. Decisions for you
+## 13. Decisions
 
-1. **Corner ears (brackets).** Default: removed, so all plates look the same and the screws can be aligned. Alternative: four identical ears per plate, as a flag.
-2. **Guarded switches.** Default: cover, then press and hold on the position (no chooser). Alternative: cover, then the chooser, then the hold on the chosen position.
-3. **Power levers and FRICT.** Default: unchanged (tap the mark). Alternative: the chooser for the levers too.
-4. **Smaller small panels.** With one scale, TAIL WHEEL, FIRE, EMERGENCY and the CP/G panels no longer fill the screen. Default: yes, accepted.
-5. **Dial layout.** Default: rotary positions in the chooser sit on a small circle at their real angles. Alternative: a plain list in dial order.
-6. **Photo fidelity.** Arrangement and text follow the photos; positions snap to the 10 du grid and sizes come from the kit.
+1. **Corner ears.** Resolved: kept, rectangular, four identical ears per plate with the screw in the centre. The photos mostly show rectangular corner areas; where they overlap or differ in height they are made equal. Screw alignment has priority.
+2. **Guarded controls.** Resolved: cover, then a single tap, no hold, no chooser (section 10b).
+3. **Power levers and FRICT.** Default stands: unchanged (tap the mark).
+4. **Smaller small panels.** Default stands: with one scale the small panels no longer fill the screen.
+5. **Dial layout.** Default stands: rotary positions in the chooser sit on a small circle at their real angles.
+6. **Photo fidelity.** Resolved: arrangement and text follow the photos; positions sit on a 1 du grid, fine enough that every dial looks like its photo; sizes come from the kit.
 
 ## 14. Open points
 
