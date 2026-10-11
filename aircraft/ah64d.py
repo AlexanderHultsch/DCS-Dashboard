@@ -1,5 +1,7 @@
 import math
 
+from aircraft.panel_kit import REF, Panel
+
 DCSBIOS_MODULE = "AH-64D"
 
 POWER_POSITIONS = [
@@ -93,58 +95,47 @@ MASTER_LAMPS = [
 ]
 
 
-def panel_pages(name: str, cells: dict, box: list, placard: list, art: list, controls: list, indicators: list | None = None) -> list[dict]:
+def panel_pages(name: str, cells: dict, box: list, placard: list, art: list, controls: list, indicators: list | None = None, ref: tuple | None = None) -> list[dict]:
     return [
         {
             "name": name, "seats": [seat], "panel": True, "layout": "panel", "map": cell, "box": box,
             "lamps": MASTER_LAMPS, "print": placard, "art": art, "controls": controls,
             **({"indicators": indicators} if indicators else {}),
+            **({"kit": True, "ref": list(ref)} if ref else {}),
         }
         for seat, cell in cells.items()
     ]
 
 
+def kit_pages(name: str, cells: dict, panel: Panel) -> list[dict]:
+    page = panel.build()
+    return panel_pages(name, cells, page["box"], page["print"], page["art"], page["controls"], ref=REF)
+
+
 def tail_wheel_pages() -> list[dict]:
-    controls = [
-        {"id": "{seat}_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "color": "amber", "at": [130, 71, 88, 90]},
-        {"id": "{seat}_NVS_MODE", "label": "NVS MODE", "type": "selector", "positions": [{"value": 2, "label": "FIXED"}, {"value": 1, "label": "NORM"}, {"value": 0, "label": "OFF"}], "at": [410, 52, 80, 126]},
-    ]
-    placard = [
-        ["TAIL WHEEL", 177.5, 38, 30, 153], ["+", 83, 51, 16], ["NVS MODE", 456, 43, 30, 134],
-        ["FIXED", 449, 68.5, 21, 52], ["NORM", 497.5, 115, 21, 67, 90], ["OFF", 447, 165, 20, 36],
-    ]
-    art = [
-        {"shape": "plate", "at": [10, 6, 600, 196]},
-        {"shape": "bracket", "at": [9, 4, 44, 80]},
-        {"shape": "bracket", "at": [572, 128, 50, 74]},
-        {"shape": "screw", "at": [31, 60, 18]}, {"shape": "screw", "at": [61, 143, 14]},
-        {"shape": "screw", "at": [551, 68, 14]}, {"shape": "screw", "at": [594, 158, 18]},
-        {"shape": "outline", "at": [121, 63, 100, 101]},
-    ]
-    return panel_pages("TAIL WHEEL / NVS", {0: [2, 1, 1, 3], 1: [5, 1, 1, 3]}, [622, 216], placard, art, controls)
+    p = Panel("TAIL WHEEL / NVS", 600, 224)
+    p.mark("+", "SMALL", 69, 64, "panel mark as on the photo")
+    p.push("WHEEL", 177, 126, {"id": "{seat}_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "color": "amber"}, frame=True)
+    p.label("TAIL WHEEL", "TITLE", "WHEEL", "above")
+    p.toggle("NVS", 460, 132, {"id": "{seat}_NVS_MODE", "label": "NVS MODE", "type": "selector", "positions": [{"value": 2, "label": "FIXED"}, {"value": 1, "label": "NORM"}, {"value": 0, "label": "OFF"}]}, "above_side_below")
+    p.label("NVS MODE", "TITLE", "NVS", "above")
+    return kit_pages("TAIL WHEEL / NVS", {0: [2, 1, 1, 3], 1: [5, 1, 1, 3]}, p)
 
 
 def emergency_pages() -> list[dict]:
-    controls = [
-        {"id": "{seat}_EMERG_GUARD_BTN", "label": "GUARD", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_GUARD_L", "color": "green", "at": [103, 99, 84, 86]},
-        {"id": "{seat}_EMERG_XPNDR_BTN", "label": "XPNDR", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_XPNDR_L", "color": "green", "at": [213, 99, 86, 87]},
-        {"id": "{seat}_EMERG_ZERO_SW", "label": "ZEROIZE", "type": "selector", "guard": True, "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}], "at": [326, 96, 80, 88]},
-        {"id": "{seat}_EMERG_HYD_BTN", "label": "EMERG HYD", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_HYD_L", "color": "green", "at": [449, 115, 90, 89]},
-    ]
-    placard = [
-        ["EMERGENCY", 302.5, 32, 28, 188], ["+", 131, 51, 16], ["GUARD", 146.5, 80, 25, 83], ["XPNDR", 255.5, 81.5, 25, 81],
-        ["ZEROIZE", 364.5, 84, 25, 105], ["EMERG", 497, 60, 25, 84], ["HYD", 496.5, 84.5, 25, 49],
-    ]
-    art = [
-        {"shape": "plate", "at": [9, 4, 601, 228]},
-        {"shape": "bracket", "at": [9, 4, 44, 82]},
-        {"shape": "bracket", "at": [574, 166, 51, 66]},
-        {"shape": "screw", "at": [32, 60, 19]}, {"shape": "screw", "at": [72, 179, 15]},
-        {"shape": "screw", "at": [561, 72, 15]}, {"shape": "screw", "at": [598, 188, 18]},
-        {"shape": "outline", "at": [96, 90, 100, 98]}, {"shape": "outline", "at": [205, 91, 100, 101]},
-        {"shape": "hazard", "at": [427, 93, 139, 133], "hole": [445, 111, 98, 97]},
-    ]
-    return panel_pages("EMERGENCY", {0: [3, 1, 1, 3], 1: [2, 1, 1, 3]}, [625, 251], placard, art, controls)
+    p = Panel("EMERGENCY", 580, 276)
+    p.mark("EMERGENCY", "TITLE", "CX", 52, "panel title")
+    p.mark("+", "SMALL", 86, 68, "panel mark as on the photo")
+    p.push("GUARD", 114, 166,{"id": "{seat}_EMERG_GUARD_BTN", "label": "GUARD", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_GUARD_L", "color": "green"}, frame=True)
+    p.label("GUARD", "NAME", "GUARD", "above")
+    p.push("XPNDR", 230, 166,{"id": "{seat}_EMERG_XPNDR_BTN", "label": "XPNDR", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_XPNDR_L", "color": "green"}, frame=True)
+    p.label("XPNDR", "NAME", "XPNDR", "above")
+    p.toggle("ZEROIZE", 336, 156,{"id": "{seat}_EMERG_ZERO_SW", "label": "ZEROIZE", "type": "selector", "guard": True, "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}]})
+    p.label("ZEROIZE", "NAME", "ZEROIZE", "above")
+    p.push("HYD", 454, 178,{"id": "{seat}_EMERG_HYD_BTN", "label": "EMERG HYD", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_HYD_L", "color": "green"})
+    p.hazard("HYD")
+    p.label("EMERG\nHYD", "NAME", "HYD", "above")
+    return kit_pages("EMERGENCY", {0: [3, 1, 1, 3], 1: [2, 1, 1, 3]}, p)
 
 
 def lever(name: str, label: str, side: str, marks: list, at: list, handle: list) -> dict:
