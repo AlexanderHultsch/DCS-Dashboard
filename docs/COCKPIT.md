@@ -127,7 +127,7 @@ Further properties the panel pages use:
 | `angle` | per position of a `rotary` selector: pointer angle |
 | `y` / `x` | per position: where its mark is on the drawing, vertical or horizontal; the touch bands are split halfway between the marks |
 | `group`, `mark`, `dot` | dual-function knobs: members with the same `group` share one knob, and each member has a selector mark (`mark` for the touch area, `dot` for the dot). IHADSS BRT / CON and FLIR LVL / GAIN work this way |
-| `pull` | a knob's pull-to-disable id (the COMM volume knobs); the knob shows as pulled out when it reads 1 |
+| `pull` | a knob's pull-to-disable id (the COMM volume knobs); the knob shows as pulled out when it reads 1, and a 0.6 s hold on the knob toggles it |
 | `page`, `pages` | `display` with pages: `page` is the id that holds the page name, `pages` lists the ids shown for each name (CMWS) |
 
 Page definition. Panel pages are `VIEWS` entries flagged `"panel": True`, one entry per seat where the seats differ (built by `panel_pages` in `aircraft/ah64d.py`):
@@ -141,7 +141,7 @@ Page definition. Panel pages are `VIEWS` entries flagged `"panel": True`, one en
 
 The COCKPIT view (layout `map`) is one entry for both seats. It holds `links` (the map boxes that open the KU, MPD and TEDAC tabs, each with `view`, `side`, `seats` and `map`) and the canopy key. There is no `PANELS` table: the map cell is part of each page. A new aircraft file defines its own.
 
-Controls are placed with `at`, so the page is a 1:1 drawing of the panel with invisible touch areas of at least 56 px (as on the MPD page) and the knob pop-up bar for knobs.
+Controls are placed with `at`, so the page is a 1:1 drawing of the panel with invisible touch areas (56 px or more where the layout allows; the three-position toggle bands are about 40 to 50 px, the PULL chips are smaller) and the knob pop-up bar for knobs.
 
 ## Guarded controls
 
@@ -297,7 +297,7 @@ The master zeroize switch sits on the instrument panel next to the armament pane
 
 ### COMM (right console)
 
-Both seats, one drawing for both. The volume knobs of VHF, UHF, FM 1, FM 2, HF, VCR and ADF have a PULL chip (a `chip` control, the `pull` id of the knob) for the pull-to-disable position.
+Both seats, one drawing for both. The volume knobs of VHF, UHF, FM 1, FM 2, HF, VCR and ADF have a PULL chip (a `chip` control, the `pull` id of the knob) for the pull-to-disable position. The chips are small (about 16 to 18 px high, the SQL switches need the room); holding the knob for 0.6 s toggles the pull as well (a ring fills during the hold), a short tap on the knob opens the knob bar.
 
 | Label | Id | Type | Positions | Seats | Stage 2 |
 | --- | --- | --- | --- | --- | --- |
@@ -371,6 +371,6 @@ These controls were never sent before (they were skipped in Stage 2), so nothing
 - Lamp colours of the DISCH lights (manual does not say; check in DCS).
 - The master zeroize switch has no photo; MASTER ZEROIZE is a plain placard. The CP/G COMM and WIPER / DEFOG pages use the same drawings as the pilot's COMM and CENTER pages. The photos used for drawing the pages are kept outside the repo.
 - The FRICT slider direction and the end of the SIGNAL knob sweep were taken from the photo, not from DCS. Check them in DCS.
-- The five top-row PULL chips on COMM have a small touch area (about 16 to 18 px high) because the SQL switches need the room. A long press on the knob is the alternative if it proves too small.
+- The five top-row PULL chips on COMM are small (about 16 to 18 px high) because the SQL switches need the room. Holding the knob for 0.6 s toggles the pull instead; check in DCS that this is comfortable on the tablet.
 - The panel pages need a browser with CSS container queries: Safari / iPadOS 16 or newer, or current Chrome.
 - Grip controls with guards (CHOP, BUCS, emergency jettison) may follow later with the same guard mechanism.

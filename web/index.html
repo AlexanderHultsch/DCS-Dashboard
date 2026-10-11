@@ -617,6 +617,7 @@ const TOUCH_MIN = 56;
 const GEAR_CLEAR = 44;
 const GUARD_MS = 5000;
 const HOLD_MS = 1000;
+const PULL_HOLD_MS = 600;
 const LIST_HOLD_MS = 500;
 const PRINT_SIZE = 25;
 const LINE_COLS = 56;
@@ -1766,7 +1767,39 @@ function buildPlateKnob(def) {
     addMark(group, c);
   }
   const shown = () => (group ? group.members[knobChoice[group.name] || 0] : c);
-  btn.addEventListener('click', () => openBar(shown()));
+  const ring = make('span', 'gring');
+  ring.innerHTML = RING_ROUND;
+  ring.style.setProperty('--hold', PULL_HOLD_MS + 'ms');
+  wrap.append(ring);
+  let timer = null;
+  let held = false;
+  const stop = () => {
+    clearTimeout(timer);
+    timer = null;
+    ring.classList.remove('fill');
+  };
+  btn.addEventListener('pointerdown', (e) => {
+    stop();
+    held = false;
+    const pull = controls.find((x) => x.def.id === shown().def.pull);
+    if (!pull || !can(pull) || pull.busy) return;
+    try { btn.releasePointerCapture(e.pointerId); } catch (err) { /* not captured */ }
+    ring.classList.add('fill');
+    timer = setTimeout(() => {
+      stop();
+      held = true;
+      const next = readValue(pull.def.id) === 1 ? 0 : 1;
+      run(pull, { id: pull.def.id, value: next }, next);
+    }, PULL_HOLD_MS);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((type) => btn.addEventListener(type, stop));
+  btn.addEventListener('click', () => {
+    if (held) {
+      held = false;
+      return;
+    }
+    openBar(shown());
+  });
   c.update = () => {
     const s = shown();
     const v = readValue(s.def.id);

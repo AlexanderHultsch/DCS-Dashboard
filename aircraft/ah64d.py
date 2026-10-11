@@ -640,7 +640,7 @@ def comm_pages() -> list[dict]:
     for key, label, x, knob_x in radios:
         controls += comm_knob(key, label, [knob_x - 35, 69, 70, 70], [knob_x - 35, 141, 70, 17])
         controls.append({
-            "id": f"{{seat}}_COM_{key}_SQL", "label": f"{label} SQL", "type": "selector", "rest": 1, "hold": 0.5, "at": [x - 39, 160, 78, 142],
+            "id": f"{{seat}}_COM_{key}_SQL", "label": f"{label} SQL", "type": "selector", "rest": 1, "hold": 0.5, "at": [x - 39, 168, 78, 126],
             "positions": [
                 {"value": 2, "label": "ENABLE", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "DISABLE", "momentary": True},
             ],
@@ -649,7 +649,7 @@ def comm_pages() -> list[dict]:
         {"id": "{seat}_COM_MASTER_VOL", "label": "MASTER", "type": "knob", "step": KNOB_STEP, "sweep": [-150, 150], "at": [79, 294, 104, 104]},
         {"id": "{seat}_COM_SENS_KNB", "label": "SENS", "type": "knob", "step": KNOB_STEP, "sweep": [-150, 150], "at": [225, 309, 72, 72]},
         {
-            "id": "{seat}_COM_ICS_MODE", "label": "ICS", "type": "selector", "at": [350, 278, 80, 141],
+            "id": "{seat}_COM_ICS_MODE", "label": "ICS", "type": "selector", "at": [350, 289, 80, 119],
             "positions": [{"value": 2, "label": "PTT"}, {"value": 1, "label": "VOX"}, {"value": 0, "label": "HOT MIC"}],
         },
         {"id": "{seat}_COM_IDENT_BTN", "label": "IDENT", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD, "at": [487, 316, 68, 68]},

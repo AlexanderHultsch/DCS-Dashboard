@@ -208,7 +208,7 @@ Tablet browser  --GET /            -->  dashboard.py  (serves web/index.html)
 
 - **Polling, not WebSocket.** The page asks for `/state` five times per second. That is plenty for switches and lamps on the local network, and it keeps the bridge to the Python standard library (`http.server`). [SPEC.md](SPEC.md) says WebSocket; this replaces it for now. A WebSocket can come later if polling proves too slow.
 - **Threads.** One background thread reads the DCS-BIOS stream into the current values; the web server (`ThreadingHTTPServer`) answers each request in its own thread. A lock protects the values, a second lock makes sure only one command (or key sequence) is sent at a time.
-- **The view is data.** The controls of each view are one Python list in `dashboard.py`, served as `/layout`. The page draws whatever the lists contain. Adding a view later means adding a list, not new page code (unless a new control type is needed).
+- **The view is data.** The controls of each view are one Python list in `aircraft/ah64d.py`, served as `/layout`. The page draws whatever the lists contain. Adding a view later means adding a list, not new page code (unless a new control type is needed).
 - **Seat placeholder.** Ids in a view may contain `{seat}`. `/layout` serves them unexpanded and the page sends them unexpanded; the bridge expands them from the current seat (`PLT_` or `CPG_`) before it reads or sends.
 - **Only listed controls.** `/command` accepts only controls and positions from the view lists, refuses greyed positions, refuses the push button while its cover is closed, refuses commands of a view outside its seats (for example the POWER page controls of the pilot in the CP/G seat), and refuses displays (display only). Each refusal returns an error message the page shows briefly.
 - **Local network only, no login** (as in SPEC.md). The server listens on `[dashboard] host` and `port` from `config.toml` (default `0.0.0.0:8080`).
@@ -234,7 +234,8 @@ The rolling log gets the start, every command with its result (source `dash`), e
 ## Files
 
 ```
-dashboard.py        new: view list, DCS-BIOS thread, web server, command handling
+dashboard.py        new: DCS-BIOS thread, web server, command handling, guard window
+aircraft/ah64d.py   new: the AH-64D data: views, panel pages, controls, labels, positions
 web/index.html      new: the page; HTML, CSS and JavaScript in one file
 README.md           + "Run the dashboard"
 web/apple-touch-icon.png  home screen icon
@@ -287,7 +288,7 @@ Built and checked only against a fake DCS-BIOS in a browser (both seats, 1180 ×
 
 Each step is verified before the next one starts.
 
-1. `dashboard.py` without keys: view list, DCS-BIOS thread, `/layout`, `/state`, `/command` for DCS-BIOS controls. Check: against a fake DCS-BIOS, `/state` shows the seat and values, a command changes the fake's value, a greyed position, the closed APU cover and the CP/G seat are refused.
+1. `dashboard.py` without keys: DCS-BIOS thread, `/layout`, `/state`, `/command` for DCS-BIOS controls. Check: against a fake DCS-BIOS, `/state` shows the seat and values, a command changes the fake's value, a greyed position, the closed APU cover and the CP/G seat are refused.
 2. Power lever commands. Check: with key sending replaced by a recorder, every slider move from every position sends the right key sequence and waits for the readback.
 3. `web/index.html`. Check: in a browser against the fake DCS-BIOS at 1180 × 820 and 1024 × 768: all controls and lamps drawn with their positions, greyed positions not selectable, tapping a position changes it, CP/G seat shows read only, `NO DCS DATA` when the fake stops.
 4. Docs: README "Run the dashboard", SPEC.md points to this file and notes polling instead of WebSocket.
