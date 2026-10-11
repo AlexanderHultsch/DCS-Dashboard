@@ -317,6 +317,7 @@ body.ro .pbox { opacity: 0.6; }
 .part, .pswitch { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .part text { fill: #f2f2f2; text-anchor: middle; letter-spacing: 0; }
 .pctl { position: absolute; }
+.kdefs { position: absolute; width: 0; height: 0; }
 .pbtn {
   position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0;
   display: flex; align-items: center; justify-content: center;
@@ -624,6 +625,12 @@ const LIST_HOLD_MS = 500;
 const PRINT_SIZE = 25;
 const LINE_COLS = 56;
 const INDICATOR_FILL = ['#2b251c', '#8a4b10', '#ff9a1f'];
+const KNOB_LARGE = 44;
+const KNOB_RIDGES = 24;
+const KNOB_TONES = {
+  grey: { edge: '#050607', base: '#0b0c0d', rim: ['#444b51', '#1d2023', '#08090a'], ridge: ['#a0a7ad', '#4b5258'], cap: ['#eceff1', '#b9bfc4', '#80878d'], bevel: ['#f6f8f9', '#464c52'] },
+  dark: { edge: '#59616a', base: '#050505', rim: ['#3a4045', '#16181a', '#050506'], ridge: ['#626a71', '#2a2e32'], cap: ['#6c747b', '#32373c', '#121415'], bevel: ['#a2aab0', '#0e1011'] },
+};
 const MONO_FONT = '"Courier New", Consolas, monospace';
 const LAYOUT_CLASS = { panel: 'plate' };
 const PADLOCK = '<span class="glock"><svg viewBox="0 0 24 24" fill-rule="evenodd" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V11a1 1 0 0 0-1-1h-1V7a5 5 0 0 0-5-5zM9 10V7a3 3 0 0 1 6 0v3z"/></svg></span>';
@@ -1547,11 +1554,41 @@ function toggleArt(cx, cy, r) {
     + '<circle class="tip" cx="' + cx + '" cy="' + cy + '" r="7" fill="#e9edf0" stroke="#7b8288" stroke-width="2"/>';
 }
 
+function knobDefs() {
+  const stops = (colors) => colors.map((c, i) => '<stop offset="' + i / (colors.length - 1) + '" stop-color="' + c + '"/>').join('');
+  const tones = Object.keys(KNOB_TONES).map((name) => {
+    const t = KNOB_TONES[name];
+    return '<radialGradient id="kn-' + name + '-rim" cx="0.42" cy="0.38" r="0.72">' + stops(t.rim) + '</radialGradient>'
+      + '<linearGradient id="kn-' + name + '-ridge" x1="0" y1="0" x2="1" y2="1">' + stops(t.ridge) + '</linearGradient>'
+      + '<radialGradient id="kn-' + name + '-cap" cx="0.5" cy="0.5" r="0.55" fx="0.33" fy="0.27">' + stops(t.cap) + '</radialGradient>'
+      + '<linearGradient id="kn-' + name + '-bevel" x1="0" y1="0" x2="1" y2="1">' + stops(t.bevel) + '</linearGradient>';
+  });
+  return '<svg class="kdefs" aria-hidden="true"><defs>'
+    + '<radialGradient id="kn-cast"><stop offset="0.75" stop-color="#000" stop-opacity="0.7"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'
+    + tones.join('') + '</defs></svg>';
+}
+
+function knobFace(x, y, r, tone) {
+  const t = KNOB_TONES[tone];
+  const large = r >= KNOB_LARGE;
+  const n = (v) => Math.round(v * 100) / 100;
+  const disc = (f, attrs, dx = 0, dy = 0) => '<circle cx="' + n(x + dx * r) + '" cy="' + n(y + dy * r) + '" r="' + n(f * r) + '" ' + attrs + '/>';
+  const rim = (f) => disc(f, 'fill="url(#kn-' + tone + '-rim)" stroke="' + t.edge + '" stroke-width="' + n(0.02 * r) + '"');
+  const bar = (from, to, w, color) => '<line x1="' + x + '" y1="' + n(y - from * r) + '" x2="' + x + '" y2="' + n(y - to * r) + '" stroke="' + color + '" stroke-width="' + n(w * r) + '" stroke-linecap="round"/>';
+  const ring = 0.785;
+  const dash = (Math.PI * ring * r / KNOB_RIDGES).toFixed(3);
+  return disc(0.94, 'class="kn-shadow" fill="url(#kn-cast)"', 0.045, 0.055)
+    + (large ? rim(0.94) + rim(0.88) : rim(0.94))
+    + disc(ring, 'fill="none" stroke="' + t.base + '" stroke-width="' + n(0.2 * r) + '"')
+    + disc(ring, 'fill="none" stroke="url(#kn-' + tone + '-ridge)" stroke-width="' + n(0.17 * r) + '" stroke-dasharray="' + dash + ' ' + dash + '" stroke-dashoffset="' + dash / 2 + '"')
+    + disc(0.66, 'fill="url(#kn-' + tone + '-cap)"')
+    + disc(0.66, 'fill="none" stroke="url(#kn-' + tone + '-bevel)" stroke-width="' + n(0.04 * r) + '"')
+    + disc(0.615, 'fill="none" stroke="#000" stroke-opacity="0.16" stroke-width="' + n(0.05 * r) + '"')
+    + '<g class="pt">' + bar(0, 0.56, 0.16, t.base) + bar(0, 0.54, 0.07, '#e4e7e9') + bar(0.38, 0.54, 0.11, '#ffffff') + '</g>';
+}
+
 function rotaryArt(x, y, r) {
-  return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#16181a" stroke="#4b5258" stroke-width="4"/>'
-    + '<circle cx="' + x + '" cy="' + y + '" r="' + r * 0.86 + '" fill="#0d0e0f" stroke="#2b2f33" stroke-width="3"/>'
-    + '<line class="pt" x1="' + x + '" y1="' + y + '" x2="' + x + '" y2="' + (y - r * 0.9) + '" stroke="#d9dcdf" stroke-width="' + r * 0.12 + '" stroke-linecap="round"/>'
-    + '<circle cx="' + x + '" cy="' + y + '" r="' + r * 0.14 + '" fill="#d9dcdf"/>';
+  return knobFace(x, y, r, 'dark');
 }
 
 function positionEdges(def) {
@@ -1597,7 +1634,7 @@ function buildPlateSwitch(def) {
   const lever = wrap.querySelector('.lv');
   const tip = wrap.querySelector('.tip');
   const pointer = wrap.querySelector('.pt');
-  if (def.kit) wrap.querySelector('circle').classList.add('k-body');
+  if (def.kit) wrap.querySelector('circle:not(.kn-shadow)').classList.add('k-body');
   const c = { def, el: wrap, busy: false, pending: null, buttons: [] };
   const edges = positionEdges(def);
   const free = (p) => can(c) && !c.busy && !p.disabled && readValue(def.id) !== p.value;
@@ -1731,10 +1768,7 @@ function buildPlateSlider(def) {
 }
 
 function knobArt(r) {
-  return '<circle cx="' + r + '" cy="' + r + '" r="' + r * 0.97 + '" fill="#16181a" stroke="#4b5258" stroke-width="' + r * 0.05 + '"/>'
-    + '<circle cx="' + r + '" cy="' + r + '" r="' + r * 0.8 + '" fill="#aeb4ba" stroke="#6d747a" stroke-width="' + r * 0.03 + '"/>'
-    + '<g class="pt"><line x1="' + r + '" y1="' + r * 0.7 + '" x2="' + r + '" y2="' + r * 0.1 + '" stroke="#050505" stroke-width="' + r * 0.22 + '"/>'
-    + '<line x1="' + r + '" y1="' + r * 0.66 + '" x2="' + r + '" y2="' + r * 0.14 + '" stroke="#f2f2f2" stroke-width="' + r * 0.07 + '"/></g>';
+  return knobFace(r, r, r, 'grey');
 }
 
 function addMark(group, c) {
@@ -2737,6 +2771,7 @@ const wakeSupported = 'wakeLock' in navigator;
 const logButtons = buildSeg(document.getElementById('logseg'), setLogging);
 const wakeButtons = buildSeg(document.getElementById('wakeseg'), setWake);
 initBar();
+document.body.insertAdjacentHTML('beforeend', knobDefs());
 document.getElementById('pageclose').addEventListener('click', closePages);
 document.getElementById('pages').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) closePages();
