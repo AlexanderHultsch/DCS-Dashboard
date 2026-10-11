@@ -197,7 +197,7 @@ await (async () => {
     const parts = {};
     d.parts.forEach((p) => {
       parts[p.kind] = parts[p.kind] || p.size;
-      note(p.kind, p.size, name);
+      if (p.kind !== 'DISPLAY') note(p.kind, p.size, name);
       p.frameSize.forEach((s) => note(p.kind + ' frame', s, name));
       if (p.coverSize) note(p.kind + (p.frameSize.length ? ' framed' : '') + ' cover', p.coverSize, name);
     });

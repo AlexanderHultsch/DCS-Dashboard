@@ -1,6 +1,6 @@
 import math
 
-from aircraft.panel_kit import REF, Panel, PanelGroup
+from aircraft.panel_kit import PARTS, REF, Panel, PanelGroup
 
 DCSBIOS_MODULE = "AH-64D"
 
@@ -109,7 +109,7 @@ def panel_pages(name: str, cells: dict, box: list, placard: list, art: list, con
 
 def kit_pages(name: str, cells: dict, panel: Panel) -> list[dict]:
     page = panel.build()
-    return panel_pages(name, cells, page["box"], page["print"], page["art"], page["controls"], ref=REF)
+    return panel_pages(name, cells, page["box"], page["print"], page["art"], page["controls"], page["indicators"], ref=REF)
 
 
 def tail_wheel_pages() -> list[dict]:
@@ -355,147 +355,113 @@ def armament_pages() -> list[dict]:
     return kit_pages("ARMAMENT", {0: [2, 4, 1, 3]}, pilot) + kit_pages("ARMAMENT", {1: [1, 6, 1, 2]}, cpg)
 
 
-def eufd_rocker(name: str, at: list) -> dict:
-    return {"id": f"{{seat}}_EUFD_{name}", "label": name, "type": "hat", "ud": f"{{seat}}_EUFD_{name}", "hold": MPD_BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}, "at": at}
+# symbols of the EUFD keys: width, height and the paths (path, stroke, filled) in their own units
+EUFD_ENTER = (16, 8, [("M15 0V4.2H4", 1.6, False), ("M5.5 1.2L1 4.2L5.5 7.2Z", 1, True)])
+EUFD_STOPWATCH = (12, 16, [("M0.4 10a5.8 5.8 0 1 0 11.6 0a5.8 5.8 0 1 0-11.6 0M3.4 0.5H9M6.2 0.5V4.2M6.2 10L4.3 12.6", 1.6, False)])
+EUFD_SWAP = (14, 14, [("M0.9 5.9A6.2 6.2 0 0 1 11.75 3M13.1 8.1A6.2 6.2 0 0 1 2.25 11", 1.6, False), ("M12.5 3.9L12.9 1L9.5 3.8ZM1.5 10.1L1.1 13L4.45 10.2Z", 0.8, True)])
 
 
-def eufd_button(name: str, label: str, at: list) -> dict:
-    return {"id": f"{{seat}}_EUFD_{name}", "label": label, "type": "button", "style": "flat", "hold": MPD_BUTTON_HOLD, "at": at}
+def eufd_rocker(name: str) -> dict:
+    return {"id": f"{{seat}}_EUFD_{name}", "label": name, "type": "hat", "ud": f"{{seat}}_EUFD_{name}", "hold": MPD_BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}}
+
+
+def eufd_button(name: str, label: str) -> dict:
+    return {"id": f"{{seat}}_EUFD_{name}", "label": label, "type": "button", "style": "flat", "hold": MPD_BUTTON_HOLD}
 
 
 def eufd_pages() -> list[dict]:
-    controls = [
-        {"id": "{seat}_EUFD_DISPLAY", "label": "EUFD", "type": "display", "ids": [f"{{seat}}_EUFD_LINE{n}" for n in range(1, 15)], "at": [104, 14.5, 325, 169.5]},
-        eufd_rocker("WCA", [61, 27, 18.5, 63]),
-        eufd_rocker("IDM", [15, 71.5, 19, 63]),
-        eufd_rocker("RTS", [63, 114.5, 19, 63]),
-        {"id": "{seat}_EUFD_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135], "at": [455, 45, 47, 47]},
-        eufd_button("PRESET", "P", [451.5, 116.5, 19.5, 20]),
-        eufd_button("ENT", "ENTER", [501, 116.5, 22, 20.5]),
-        eufd_button("STOPWATCH", "STOPWATCH", [451, 168, 20, 18.5]),
-        eufd_button("SWAP", "SWAP", [501, 168, 20.5, 18.5]),
-    ]
-    placard = [
-        ["WCA", 70, 58.5, 13.5, 16.5], ["IDM", 24.5, 103, 13.5, 15], ["RTS", 72, 146, 13.5, 17],
-        ["BRT", 475, 42, 10, 17], ["P", 462.5, 127.8, 16.5, 7.5],
-    ]
-    art = [
-        {"shape": "plate", "at": [2, 2, 552, 193]},
-        {"shape": "slot", "at": [100, 13, 332, 173]},
-        {"shape": "bracket", "at": [61, 32, 18.5, 53]}, {"shape": "bracket", "at": [15, 76.5, 19, 53]}, {"shape": "bracket", "at": [63, 119.5, 19, 53]},
-        {"shape": "bracket", "at": [451.5, 116.5, 19.5, 20]}, {"shape": "bracket", "at": [501, 116.5, 22, 20.5]},
-        {"shape": "bracket", "at": [451, 168, 20, 18.5]}, {"shape": "bracket", "at": [501, 168, 20.5, 18.5]},
-        {"shape": "path", "at": [504.5, 124, 16, 8], "d": "M15 0V4.2H4", "width": 1.6},
-        {"shape": "path", "at": [504.5, 124, 16, 8], "d": "M5.5 1.2L1 4.2L5.5 7.2Z", "width": 1, "fill": True},
-        {"shape": "path", "at": [455, 169.5, 12.4, 16.2], "d": "M0.4 10a5.8 5.8 0 1 0 11.6 0a5.8 5.8 0 1 0-11.6 0M3.4 0.5H9M6.2 0.5V4.2M6.2 10L4.3 12.6", "width": 1.6},
-        {"shape": "path", "at": [503.5, 170.3, 14, 14], "d": "M0.9 5.9A6.2 6.2 0 0 1 11.75 3M13.1 8.1A6.2 6.2 0 0 1 2.25 11", "width": 1.6},
-        {"shape": "path", "at": [503.5, 170.3, 14, 14], "d": "M12.5 3.9L12.9 1L9.5 3.8ZM1.5 10.1L1.1 13L4.45 10.2Z", "width": 0.8, "fill": True},
-    ]
-    return panel_pages("EUFD", {0: [1, 7, 1, 3], 1: [1, 8, 1, 3]}, [556, 197], placard, art, controls)
+    p = Panel("EUFD", 640, 524)
+    p.display("DISPLAY", 320, 204, 568, 280, {"id": "{seat}_EUFD_DISPLAY", "label": "EUFD", "type": "display", "ids": [f"{{seat}}_EUFD_LINE{n}" for n in range(1, 15)]})
+    for name, x in (("WCA", 90), ("IDM", 154), ("RTS", 218)):
+        p.rocker(name, x, 428, eufd_rocker(name))
+    p.knob("BRT", "KNOB_L", 350, 440, {"id": "{seat}_EUFD_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label("BRT", "NAME", "BRT", "above")
+    p.push_small("PRESET", 484, 396, eufd_button("PRESET", "P"), "P")
+    p.push_small("ENT", 548, 396, eufd_button("ENT", "ENTER"), EUFD_ENTER)
+    p.push_small("STOPWATCH", 484, 460, eufd_button("STOPWATCH", "STOPWATCH"), EUFD_STOPWATCH)
+    p.push_small("SWAP", 548, 460, eufd_button("SWAP", "SWAP"), EUFD_SWAP)
+    return kit_pages("EUFD", {0: [1, 7, 1, 3], 1: [1, 8, 1, 3]}, p)
 
 
-THREAT_CENTER = (376, 95)
-
-
-def dial_point(radius: float, angle: float) -> tuple[float, float]:
+def dial_point(cx: int, cy: int, radius: float, angle: float) -> tuple[float, float]:
     rad = math.radians(angle)
-    return THREAT_CENTER[0] + radius * math.sin(rad), THREAT_CENTER[1] - radius * math.cos(rad)
+    return cx + radius * math.sin(rad), cy - radius * math.cos(rad)
 
 
-def threat_sector(name: str, label: str, angle: float) -> dict:
-    inner, outer, half = 28, 52, 20
-    pts = [dial_point(inner, angle - half), dial_point(outer, angle - half), dial_point(outer, angle + half), dial_point(inner, angle + half)]
+def threat_sector(name: str, label: str, angle: float, cx: int, cy: int) -> dict:
+    r = PARTS["DIAL"]["w"] // 2
+    inner, outer, half = r // 2, r - 4, 20
+    pts = [dial_point(cx, cy, inner, angle - half), dial_point(cx, cy, outer, angle - half), dial_point(cx, cy, outer, angle + half), dial_point(cx, cy, inner, angle + half)]
     x, y = min(p[0] for p in pts), min(p[1] for p in pts)
-    (ax, ay), (bx, by), (cx, cy), (dx, dy) = [(round(p[0] - x, 1), round(p[1] - y, 1)) for p in pts]
-    d = f"M{ax} {ay}L{bx} {by}A{outer} {outer} 0 0 1 {cx} {cy}L{dx} {dy}A{inner} {inner} 0 0 0 {ax} {ay}Z"
+    (ax, ay), (bx, by), (qx, qy), (dx, dy) = [(round(p[0] - x, 1), round(p[1] - y, 1)) for p in pts]
+    d = f"M{ax} {ay}L{bx} {by}A{outer} {outer} 0 0 1 {qx} {qy}L{dx} {dy}A{inner} {inner} 0 0 0 {ax} {ay}Z"
     return {
         "bright": f"PLT_CMWS_{name}_BRT_L", "dim": f"PLT_CMWS_{name}_DIM_L", "label": label, "shape": "sector", "d": d,
         "at": [round(x, 1), round(y, 1), round(max(p[0] for p in pts) - x, 1), round(max(p[1] for p in pts) - y, 1)],
     }
 
 
-def threat_letter(name: str, y: float) -> dict:
+def threat_letter(name: str, cx: int, cy: int) -> dict:
     return {
         "bright": f"PLT_CMWS_{name}_BRT_L", "dim": f"PLT_CMWS_{name}_DIM_L", "label": name, "shape": "letter", "text": name, "size": 17,
-        "at": [THREAT_CENTER[0] - 9, y - 9, 18, 18],
+        "at": [cx - 9, cy - 9, 18, 18],
     }
 
 
-def threat_dial_art() -> list[dict]:
-    r = 56
-    ticks = ""
-    for i in range(36):
-        a = math.radians(i * 10)
-        inner = r - (9 if i % 3 == 0 else 5)
-        ticks += f"M{round(r + inner * math.sin(a), 1)} {round(r - inner * math.cos(a), 1)}L{round(r + r * math.sin(a), 1)} {round(r - r * math.cos(a), 1)}"
-    at = [THREAT_CENTER[0] - r, THREAT_CENTER[1] - r, r * 2, r * 2]
-    return [
-        {"shape": "path", "at": at, "d": f"M0 {r}a{r} {r} 0 1 0 {r * 2} 0a{r} {r} 0 1 0 {-r * 2} 0", "width": 1.2},
-        {"shape": "path", "at": at, "d": ticks, "width": 1.2},
-    ]
+def threat_dial(p: Panel, name: str, cx: int, cy: int):
+    p.dial(name, cx, cy)
+    for sector, label, angle in (("FWD_LEFT", "FWD LEFT", -45), ("FWD_RIGHT", "FWD RIGHT", 45), ("AFT_RIGHT", "AFT RIGHT", 135), ("AFT_LEFT", "AFT LEFT", -135)):
+        p.indicator(name, threat_sector(sector, label, angle, cx, cy))
+    for letter, dy in (("D", -25), ("R", 25)):
+        p.indicator(name, threat_letter(letter, cx, cy + dy))
 
 
-def cmws_toggle(name: str, label: str, top: str, bottom: str, x: float, guard: bool = False) -> dict:
+def cmws_toggle(name: str, label: str, top: str, bottom: str, guard: bool = False) -> dict:
     return {
         "id": f"PLT_CMWS_{name}", "label": label, "type": "selector", "positions": [{"value": 1, "label": top}, {"value": 0, "label": bottom}],
-        "at": [x - 33, 344, 66, 96], **({"guard": True, "cover": f"PLT_CMWS_{name}_CVR"} if guard else {}),
+        **({"guard": True, "cover": f"PLT_CMWS_{name}_CVR"} if guard else {}),
     }
 
 
 def cmws_pages() -> list[dict]:
-    controls = [
-        {
-            "id": "PLT_CMWS_PW", "label": "PWR", "type": "selector", "style": "rotary", "rest": 1, "hold": 0.5, "knob": [124, 122, 36],
-            "positions": [
-                {"value": 0, "label": "OFF", "angle": 50, "y": 62}, {"value": 1, "label": "ON", "angle": 92, "y": 116},
-                {"value": 2, "label": "TEST", "momentary": True, "angle": 128, "y": 170},
-            ],
-            "at": [60, 34, 150, 170],
+    g = PanelGroup("CMWS")
+    u = g.panel("INDICATOR", 616, 288, 0, 0)
+    u.rotary("PWR", 114, 170, {
+        "id": "PLT_CMWS_PW", "label": "PWR", "type": "selector", "style": "rotary", "rest": 1, "hold": 0.5,
+        "positions": [
+            {"value": 0, "label": "OFF", "angle": 50}, {"value": 1, "label": "ON", "angle": 92},
+            {"value": 2, "label": "TEST", "momentary": True, "angle": 128},
+        ],
+    }, turned=("ON",))
+    u.label("PWR", "NAME", "PWR", "below")
+    u.display("STATUS", 284, 172, 104, 96, {
+        "id": "PLT_CMWS_STATUS", "label": "STATUS", "type": "display", "cols": 4, "page": "PLT_CMWS_PAGE",
+        "ids": [
+            "PLT_CMWS_PAGE", "PLT_CMWS_FLARE_LETTER", "PLT_CMWS_FLARE_COUNT", "PLT_CMWS_CHAFF_LETTER", "PLT_CMWS_CHAFF_COUNT",
+            "PLT_CMWS_BIT_LINE_1", "PLT_CMWS_BIT_LINE_2",
+        ],
+        "pages": {
+            "MAIN": [["PLT_CMWS_FLARE_LETTER", "PLT_CMWS_FLARE_COUNT"], ["PLT_CMWS_CHAFF_LETTER", "PLT_CMWS_CHAFF_COUNT"]],
+            "TEST": [["PLT_CMWS_BIT_LINE_1"], ["PLT_CMWS_BIT_LINE_2"]],
         },
-        {
-            "id": "PLT_CMWS_STATUS", "label": "STATUS", "type": "display", "cols": 4, "at": [215, 58, 100, 96], "page": "PLT_CMWS_PAGE",
-            "ids": [
-                "PLT_CMWS_PAGE", "PLT_CMWS_FLARE_LETTER", "PLT_CMWS_FLARE_COUNT", "PLT_CMWS_CHAFF_LETTER", "PLT_CMWS_CHAFF_COUNT",
-                "PLT_CMWS_BIT_LINE_1", "PLT_CMWS_BIT_LINE_2",
-            ],
-            "pages": {
-                "MAIN": [["PLT_CMWS_FLARE_LETTER", "PLT_CMWS_FLARE_COUNT"], ["PLT_CMWS_CHAFF_LETTER", "PLT_CMWS_CHAFF_COUNT"]],
-                "TEST": [["PLT_CMWS_BIT_LINE_1"], ["PLT_CMWS_BIT_LINE_2"]],
-            },
-        },
-        {"id": "PLT_CMWS_VOL", "label": "AUDIO", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135], "at": [454, 30, 60, 60]},
-        {"id": "PLT_CMWS_LAMP", "label": "LAMP", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135], "at": [457, 110, 60, 60]},
-        cmws_toggle("ARM", "ARM / SAFE", "ARM", "SAFE", 163),
-        cmws_toggle("MODE", "CMWS / NAV", "CMWS", "NAV", 275),
-        cmws_toggle("BYPASS", "BYPASS / AUTO", "BYPASS", "AUTO", 387),
-        cmws_toggle("JETT", "JETTISON", "ON", "OFF", 514, True),
-    ]
-    placard = [
-        ["OFF", 176, 77, 19, 38], ["ON", 190, 116, 19, 26, 90], ["TEST", 184, 161, 19, 44],
-        ["PWR", 181, 192, 21, 40], ["STATUS", 274, 190, 21, 64], ["THREAT", 385, 190, 21, 66],
-        ["AUDIO", 484, 100, 21, 48], ["LAMP", 487, 190, 21, 44], ["+", 534, 100, 14],
-        ["CMWS CONTROL PANEL", 263, 266, 25, 245], ["+", 225, 303, 16],
-        ["ARM", 163, 346, 20, 36], ["CMWS", 275, 342, 20, 50], ["BYPASS", 387, 342, 20, 66],
-        ["SAFE", 163, 444, 20, 40], ["NAV", 275, 444, 20, 30], ["AUTO", 387, 444, 20, 38],
-        ["JETTISON", 574, 380, 22, 118, 90],
-    ]
-    art = [
-        {"shape": "plate", "at": [4, 4, 620, 228]}, {"shape": "plate", "at": [4, 244, 620, 238]},
-        {"shape": "screw", "at": [32, 122, 13]}, {"shape": "screw", "at": [528, 52, 13]}, {"shape": "screw", "at": [604, 108, 14]},
-        {"shape": "screw", "at": [542, 176, 12]}, {"shape": "screw", "at": [132, 192, 11]},
-        {"shape": "screw", "at": [36, 332, 14]}, {"shape": "screw", "at": [44, 414, 14]},
-        {"shape": "screw", "at": [598, 302, 14]}, {"shape": "screw", "at": [606, 386, 14]},
-        {"shape": "glass", "at": [210, 22, 238, 146]},
-        *threat_dial_art(),
-        {"shape": "line", "at": [156.2, 95, 9.2, -7.7]}, {"shape": "line", "at": [166, 120.5, 12, -0.6]}, {"shape": "line", "at": [157.1, 147.9, 9.5, 7.3]},
-        {"shape": "hazard", "at": [432, 252, 56, 216], "period": 22},
-    ]
-    indicators = [
-        threat_sector("FWD_LEFT", "FWD LEFT", -45), threat_sector("FWD_RIGHT", "FWD RIGHT", 45),
-        threat_sector("AFT_RIGHT", "AFT RIGHT", 135), threat_sector("AFT_LEFT", "AFT LEFT", -135),
-        threat_letter("D", 70), threat_letter("R", 120),
-    ]
-    return panel_pages("CMWS", {0: [1, 10, 2, 3]}, [628, 486], placard, art, controls, indicators)
+    })
+    u.label("STATUS", "NAME", "STATUS", "below")
+    threat_dial(u, "THREAT", 406, 164)
+    u.label("THREAT", "NAME", "THREAT", "below")
+    u.knob("AUDIO", "KNOB_M", 516, 72, {"id": "PLT_CMWS_VOL", "label": "AUDIO", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    u.label("AUDIO", "NAME", "AUDIO", "below")
+    u.knob("LAMP", "KNOB_M", 516, 184, {"id": "PLT_CMWS_LAMP", "label": "LAMP", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    u.label("LAMP", "NAME", "LAMP", "below")
+    u.mark("+", "SMALL", 572, 120, "panel mark as on the photo")
+    c = g.panel("CONTROL PANEL", 616, 248, 0, 304)
+    c.mark("CMWS CONTROL PANEL", "TITLE", 240, 52, "panel title")
+    c.mark("+", "SMALL", 184, 100, "panel mark as on the photo")
+    for name, label, top, bottom, x in (("ARM", "ARM / SAFE", "ARM", "SAFE", 128), ("MODE", "CMWS / NAV", "CMWS", "NAV", 240), ("BYPASS", "BYPASS / AUTO", "BYPASS", "AUTO", 352)):
+        c.toggle(name, x, 140, cmws_toggle(name, label, top, bottom), "above_below")
+    c.toggle("JETT", 460, 150, cmws_toggle("JETT", "JETTISON", "ON", "OFF", True))
+    c.hazard("JETT")
+    c.label("JETTISON", "NAME", "JETT", "right", 90)
+    return kit_pages("CMWS", {0: [1, 10, 2, 3]}, g)
 
 
 def wiper_plate(seat: str, dx: int = 0, dy: int = 0) -> tuple[list, list, list]:

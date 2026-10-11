@@ -2506,7 +2506,7 @@ function plateArt(a, kit) {
     return a.size ? '<g class="k-screw" data-size="' + a.size + '">' + screw + '</g>' : screw;
   }
   if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : '');
-  if (a.shape === 'glass') return rect(8, 'fill="#121a16" stroke="#3a3f44" stroke-width="3"');
+  if (a.shape === 'glass') return rect(8, 'fill="#121a16" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : '');
   if (a.shape === 'line') return '<line x1="' + x + '" y1="' + y + '" x2="' + (x + w) + '" y2="' + (y + h) + '" stroke="#e8e8e8" stroke-width="3"/>';
   if (a.shape === 'arrow') {
     const tip = a.up ? y : y + h;
@@ -2515,8 +2515,12 @@ function plateArt(a, kit) {
       + '" fill="none" stroke="#e8e8e8" stroke-width="3"/>';
   }
   if (a.shape === 'path') {
-    return '<path transform="translate(' + x + ' ' + y + ')" d="' + a.d + '" fill="' + (a.fill ? '#e8e8e8' : 'none') + '" stroke="#e8e8e8" stroke-width="' + a.width
-      + '" stroke-linecap="round" stroke-linejoin="round"/>';
+    return '<path' + (kit && a.part ? ' data-kit="' + a.part + '" data-id="' + a.name + '"' : '') + ' transform="translate(' + x + ' ' + y + ')' + (a.scale ? ' scale(' + a.scale + ')' : '')
+      + '" d="' + a.d + '" fill="' + (a.fill ? '#e8e8e8' : 'none') + '" stroke="#e8e8e8" stroke-width="' + a.width + '" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+  if (a.shape === 'text') {
+    return '<text x="' + x + '" y="' + y + '" dy="0.35em" font-size="' + a.size + '"'
+      + (a.width ? ' textLength="' + a.width + '" lengthAdjust="spacingAndGlyphs"' : '') + '>' + a.text + '</text>';
   }
   if (a.shape === 'hazard') {
     const box = (bx, by, bw, bh) => 'M' + bx + ' ' + by + 'h' + bw + 'v' + bh + 'h' + -bw + 'z';

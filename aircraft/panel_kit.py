@@ -2,7 +2,7 @@
 
 Every size is in design units (du) and defined once, below. A page makes one Panel (plate width and height in
 du, even numbers), places parts by their centre on the 1 du grid and attaches labels to them; it never gives a
-size. The plate brings four identical corner ears with a SCREW_L in the centre of each. Further screws are
+size, except for a display (a glass screen with live text), whose size the content decides. The plate brings four identical corner ears with a SCREW_L in the centre of each. Further screws are
 placed only by naming an x line and a y line from the line table:
 
     x lines: L R (plate edges), CX (middle), SL SR (corner screws), NAME.cx (every placed part)
@@ -10,7 +10,8 @@ placed only by naming an x line and a y line from the line table:
 
 Panel.build() checks the layout (LayoutError on a collision) and returns the page data in the format
 web/index.html draws: box [w, h], controls (the given control data plus "at", "kit" and, for a guarded part,
-"cover_at"; a dual-function knob also "mark" and "dot"), print ([text, x, y, size, width] or with a rotation) and art.
+"cover_at"; a dual-function knob also "mark" and "dot"; a rotary also "knob"), indicators (the lamps and letters
+of a dial), print ([text, x, y, size, width] or with a rotation) and art.
 A page with several physical panels is a PanelGroup: one Panel per plate at a page offset, 16 du apart.
 
     p = Panel("EMERGENCY", 580, 276)
@@ -20,6 +21,8 @@ A page with several physical panels is a PanelGroup: one Panel per plate at a pa
     p.screw("S", "GUARD.cx", "SB")
     page = p.build()
 """
+
+import math
 
 REF = (640, 600)
 GAP = 8
@@ -34,12 +37,15 @@ PARTS = {
     "PLUNGER": {"w": 100, "h": 100},
     # w / h: the ring; band: the touch square (a guarded switch has one band per position instead)
     "TOGGLE": {"w": 56, "h": 56, "lever": 40, "band": 60},
-    "ROTARY": {"w": 100, "h": 100},
+    # w / h: the tick ring; knob: the knob diameter; tick: inner and outer radius of the ticks
+    "ROTARY": {"w": 100, "h": 100, "knob": 72, "tick": (42, 50)},
     "KNOB_L": {"w": 96, "h": 96},
     "KNOB_M": {"w": 72, "h": 72},
     "KNOB_S": {"w": 56, "h": 56},
-    "ROCKER": {"w": 52, "h": 100},
+    # two halves of 60 du are 57 px at the scale of a 1024 x 768 screen: the touch minimum is 56 px
+    "ROCKER": {"w": 52, "h": 120},
     "CHIP": {"w": 64, "h": 22},
+    "DIAL": {"w": 112, "h": 112},
     "SLIDER": {"w": 40, "h": 200},
     "LEVER": {"w": 40, "h": 200},
     # selector dot of a dual-function knob; touch: square beside the knob (clear: its distance to the knob),
@@ -47,6 +53,8 @@ PARTS = {
     "MARK": {"w": 10, "h": 10, "touch": 56, "clear": 6, "pitch": 64, "gap": 14},
 }
 KNOBS = ("KNOB_L", "KNOB_M", "KNOB_S")
+# DISPLAY has no size here: the page gives it; inset: glass border and padding between the glass and its text
+DISPLAY = {"inset": 6, "border": 3}
 GUARD_COVER = {"margin": 12, "frame": 14, "lock": 24}
 HAZARD_PAD = {"margin": 20, "period": 34, "border": 2}
 # dark housing around a part (and its cover); hazard strip: fixed width, as tall as the housing less the inset
@@ -75,6 +83,10 @@ KNOB_LABELS = {
     "below_sides": (("below", -0.6), ("below", 0.6)),
     "signal": (("left", 0.7), ("right", -0.1), ("right", 0.7)),
 }
+# symbols of a small key are given in their own units and drawn at this scale
+GLYPH_SCALE = 2
+# the dial face: stroke, a tick every 10 degrees, every third one longer
+DIAL_FACE = {"stroke": 2, "long": 9, "short": 5}
 GROUP_GAP = 16
 RULE_STROKE = 3
 
@@ -111,6 +123,12 @@ def xywh(box):
     return [num(box[0]), num(box[1]), num(box[2] - box[0]), num(box[3] - box[1])]
 
 
+def legend(text, style, cx, cy):
+    """Text drawn by a part itself (a rocker name, a key letter), centred on the part."""
+    size, glyph = STYLES[style]
+    return {"shape": "text", "at": [cx, cy], "text": text, "size": size, **({"width": len(text) * glyph} if len(text) > 1 else {})}
+
+
 def text_size(text, style, rotate):
     size, glyph = STYLES[style]
     lines = text.split("\n")
@@ -130,6 +148,7 @@ class Panel:
         self.parts = {}
         self.labels = []
         self.decor = []
+        self.indicators = []
         self.screws = []
         for y in ("ST", "SB"):
             for x in ("SL", "SR"):
@@ -138,18 +157,18 @@ class Panel:
     def fail(self, message: str):
         raise LayoutError(f"{self.name}: {message}")
 
-    def _part(self, name: str, kind: str, cx: int, cy: int, control: dict) -> dict:
+    def _part(self, name: str, kind: str, cx: int, cy: int, control: dict, size: tuple | None = None) -> dict:
         if name in self.parts or "." in name:
             self.fail(f"part name {name!r} is taken or has a dot")
         if not (isinstance(cx, int) and isinstance(cy, int)):
             self.fail(f"part {name} must sit on the 1 du grid, got ({cx}, {cy})")
         if "at" in control:
             self.fail(f"part {name}: the kit sizes and places the control, remove its 'at'")
-        body = centred(cx, cy, PARTS[kind]["w"], PARTS[kind]["h"])
+        body = centred(cx, cy, *(size or (PARTS[kind]["w"], PARTS[kind]["h"])))
         part = {
             "name": name, "kind": kind, "cx": cx, "cy": cy, "control": control, "kit": {"part": kind},
             "body": body, "outer": body, "inner": body, "touch": body, "cover": None, "pad": None, "housing": None, "round": False,
-            "art": [], "edges": {}, "members": [control], "marks": [],
+            "art": [], "edges": {}, "members": [control], "marks": [], "knob": None,
         }
         if control.get("guard"):
             part["cover"] = part["outer"] = part["inner"] = grow(body, GUARD_COVER["margin"])
@@ -205,6 +224,71 @@ class Panel:
     def round(self, name: str, cx: int, cy: int, control: dict) -> dict:
         """Round pushbutton or cap."""
         return self._part(name, "ROUND", cx, cy, control)
+
+    def push_small(self, name: str, cx: int, cy: int, control: dict, glyph) -> dict:
+        """Small flat key. The glyph is a letter or a symbol (width, height, [(path, stroke, filled)]) in its own units."""
+        part = self._part(name, "PUSH_SMALL", cx, cy, control)
+        part["art"].append({"shape": "bracket", "at": xywh(part["body"])})
+        if isinstance(glyph, str):
+            part["art"].append(legend(glyph, "TITLE", cx, cy))
+        else:
+            w, h, paths = glyph
+            at = xywh(centred(cx, cy, w * GLYPH_SCALE, h * GLYPH_SCALE))
+            part["art"] += [{"shape": "path", "at": at, "d": d, "width": stroke, "scale": GLYPH_SCALE, **({"fill": True} if filled else {})} for d, stroke, filled in paths]
+        return part
+
+    def rocker(self, name: str, cx: int, cy: int, control: dict) -> dict:
+        """Vertical rocker with an up and a down half; its name (the control label) is printed between the two arrows."""
+        part = self._part(name, "ROCKER", cx, cy, control)
+        part["art"] += [{"shape": "bracket", "at": xywh(part["body"])}, legend(control["label"], "POS", cx, cy)]
+        return part
+
+    def rotary(self, name: str, cx: int, cy: int, control: dict, turned: tuple = ()) -> dict:
+        """Rotary selector: a dark knob inside a ring of ticks, one tick per position angle. The position labels sit outside
+        the ring on the side the angle points to, level with the end of their tick; the texts in turned are rotated."""
+        spec = PARTS["ROTARY"]
+        part = self._part(name, "ROTARY", cx, cy, control)
+        part["knob"] = [cx, cy, spec["knob"] // 2]
+        inner, outer = spec["tick"]
+        for position in control["positions"]:
+            angle = math.radians(position["angle"])
+            dx, dy = math.sin(angle), -math.cos(angle)
+            part["art"].append({"shape": "line", "at": [round(cx + inner * dx, 1), round(cy + inner * dy, 1), round((outer - inner) * dx, 1), round((outer - inner) * dy, 1)]})
+            if abs(dx) >= abs(dy):
+                side, along = ("right" if dx > 0 else "left"), round(outer * dy)
+            else:
+                side, along = ("below" if dy > 0 else "above"), round(outer * dx)
+            self.label(position["label"], "POS", name, side, 90 if position["label"] in turned else 0, along)
+        return part
+
+    def display(self, name: str, cx: int, cy: int, w: int, h: int, control: dict) -> dict:
+        """Glass screen with live text: the only part whose size (even du) the page chooses. The control is the text area, the glass less its inset."""
+        if w % 2 or h % 2:
+            self.fail(f"display {name}: {w} x {h} du must be even")
+        part = self._part(name, "DISPLAY", cx, cy, control, (w, h))
+        part["touch"] = grow(part["body"], -DISPLAY["inset"])
+        part["art"].append({"shape": "glass", "at": xywh(grow(part["body"], -DISPLAY["border"] / 2)), "for": control["id"]})
+        return part
+
+    def dial(self, name: str, cx: int, cy: int) -> dict:
+        """Round indicator face with a ring of ticks. Its lamps and letters are added with indicator()."""
+        part = self._part(name, "DIAL", cx, cy, {})
+        r, face = PARTS["DIAL"]["w"] // 2, DIAL_FACE
+        ticks = ""
+        for i in range(36):
+            a = math.radians(i * 10)
+            inner = r - (face["long"] if i % 3 == 0 else face["short"])
+            ticks += f"M{round(r + inner * math.sin(a), 1)} {round(r - inner * math.cos(a), 1)}L{round(r + r * math.sin(a), 1)} {round(r - r * math.cos(a), 1)}"
+        d = f"M0 {r}a{r} {r} 0 1 0 {r * 2} 0a{r} {r} 0 1 0 {-r * 2} 0" + ticks
+        part["art"].append({"shape": "path", "at": xywh(part["body"]), "d": d, "width": face["stroke"], "part": "DIAL", "name": name})
+        return part
+
+    def indicator(self, name: str, indicator: dict):
+        """Lamp or letter of a dial: its box ('at') must lie inside the dial."""
+        x, y, w, h = indicator["at"]
+        if not within((x, y, x + w, y + h), self.parts[name]["body"]):
+            self.fail(f"indicator {indicator['label']!r} is not inside {name}")
+        self.indicators.append(indicator)
 
     def knob(self, name: str, kind: str, cx: int, cy: int, control: dict | list, marks: tuple = ()) -> dict:
         """Knob. A dual-function knob takes a list of controls (the first is shown) and one selector mark text each;
@@ -441,6 +525,8 @@ class Panel:
                 control = {**member, "at": xywh(p["touch"]), "kit": p["kit"]}
                 if p["cover"]:
                     control["cover_at"] = xywh(p["cover"])
+                if p["knob"]:
+                    control["knob"] = p["knob"]
                 if p["marks"]:
                     mark = p["marks"][i]
                     control["mark"], control["dot"] = xywh(mark["touch"]), [num(mark["cx"]), num(mark["cy"]), PARTS["MARK"]["w"]]
@@ -456,7 +542,7 @@ class Panel:
                 continue
             for i, line in enumerate(lab["text"].split("\n")):
                 printed.append([line, cx, num(y0 + size * i + size / 2), size] + ([len(line) * glyph] if len(line) > 1 else []))
-        return {"box": [self.w, self.h], "controls": controls, "print": printed, "art": art}
+        return {"box": [self.w, self.h], "controls": controls, "indicators": self.indicators, "print": printed, "art": art}
 
 
 def shifted(item, dx: int, dy: int, keys: tuple) -> dict:
@@ -505,10 +591,11 @@ class PanelGroup:
 
     def build(self) -> dict:
         width, height = self.check()
-        page = {"box": [width, height], "controls": [], "print": [], "art": []}
+        page = {"box": [width, height], "controls": [], "indicators": [], "print": [], "art": []}
         for panel, x, y in self.plates:
             built = panel.build()
-            page["controls"] += [shifted(c, x, y, ("at", "cover_at", "mark", "dot")) for c in built["controls"]]
+            page["controls"] += [shifted(c, x, y, ("at", "cover_at", "mark", "dot", "knob")) for c in built["controls"]]
+            page["indicators"] += [shifted(i, x, y, ("at",)) for i in built["indicators"]]
             page["print"] += [[t, num(px + x), num(py + y), *rest] for t, px, py, *rest in built["print"]]
             page["art"] += [shifted(a, x, y, ("at", "hole")) for a in built["art"]]
         return page
