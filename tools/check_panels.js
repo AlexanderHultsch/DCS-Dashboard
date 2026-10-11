@@ -120,7 +120,8 @@ await (async () => {
       });
       if (d.ears.some((e) => overlap(p.outer, grown(e, EAR_CLEAR)))) out.push('part ' + p.id + ' closer than ' + EAR_CLEAR + ' du to an ear');
       if (edgeGap(p.outer, d.plate) < PART_EDGE - TOL) out.push('part ' + p.id + ' closer than ' + PART_EDGE + ' du to the plate edge');
-      if (p.cover && !same(p.cover, grown(p.body, COVER_MARGIN))) out.push('cover of ' + p.id + ' ' + show(p.cover) + ' is not the part ' + show(p.body) + ' + ' + COVER_MARGIN + ' du');
+      const core = [p.body, ...p.frames].reduce(join);
+      if (p.cover && !same(p.cover, grown(core, COVER_MARGIN))) out.push('cover of ' + p.id + ' ' + show(p.cover) + ' is not the part ' + show(core) + ' + ' + COVER_MARGIN + ' du');
     });
     const corner = d.screws.filter((s) => s.size === 'L');
     if (d.ears.length !== 4 || corner.length !== 4) out.push(d.ears.length + ' ears and ' + corner.length + ' corner screws, 4 each expected');
@@ -181,7 +182,7 @@ await (async () => {
       parts[p.kind] = parts[p.kind] || p.size;
       note(p.kind, p.size, name);
       p.frameSize.forEach((s) => note(p.kind + ' frame', s, name));
-      if (p.coverSize) note(p.kind + ' cover', p.coverSize, name);
+      if (p.coverSize) note(p.kind + (p.frameSize.length ? ' framed' : '') + ' cover', p.coverSize, name);
     });
     report.pages[name] = { box: [d.bw, d.bh], S: Math.round(d.S * 10000) / 10000, parts };
     if (out.length) report.problems[name] = out;

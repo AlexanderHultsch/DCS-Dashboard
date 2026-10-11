@@ -343,11 +343,11 @@ body.ro .pbox { opacity: 0.6; }
 .pbtn.lit.c-green::after { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8), inset 0 0 0 1px #000; }
 .pbtn.lit.c-amber::after { background: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8), inset 0 0 0 1px #000; }
 .plamp {
-  position: absolute; left: 13%; right: 13%; z-index: 1; display: flex; align-items: center; justify-content: center;
+  position: absolute; left: var(--fi, 13%); right: var(--fi, 13%); z-index: 1; display: flex; align-items: center; justify-content: center;
   font-size: var(--lf, calc(var(--bh) * 0.04)); letter-spacing: 0.02em; color: #7d858c; pointer-events: none;
 }
-.plamp.up { top: 13%; bottom: 51%; }
-.plamp.low { top: 51%; bottom: 13%; }
+.plamp.up { top: var(--fi, 13%); bottom: 50%; }
+.plamp.low { top: 50%; bottom: var(--fi, 13%); }
 .plamp.lit { color: #111; }
 .plamp.lit.c-green { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8); }
 .plamp.lit.c-amber { background: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8); }
@@ -421,8 +421,8 @@ body.ro .pbox { opacity: 0.6; }
 }
 .gcover.round { border-radius: 50%; }
 .gcover.round::before {
-  padding: 0; -webkit-mask: radial-gradient(closest-side, transparent calc(100% - max(8px, 15cqmin)), #000 calc(100% - max(8px, 15cqmin) + 1px));
-  mask: radial-gradient(closest-side, transparent calc(100% - max(8px, 15cqmin)), #000 calc(100% - max(8px, 15cqmin) + 1px));
+  padding: 0; -webkit-mask: radial-gradient(closest-side, transparent calc(100% - var(--gf, max(8px, 15cqmin))), #000 calc(100% - var(--gf, max(8px, 15cqmin)) + 1px));
+  mask: radial-gradient(closest-side, transparent calc(100% - var(--gf, max(8px, 15cqmin))), #000 calc(100% - var(--gf, max(8px, 15cqmin)) + 1px));
 }
 .gcover:active { filter: brightness(1.15); }
 .gcover.open { transform: perspective(400px) rotateX(100deg); opacity: 0; pointer-events: none; }
@@ -1664,8 +1664,10 @@ function buildPlateButton(def) {
   if (def.legend) btn.append(make('span', 'plegend', def.legend));
   if (def.kit) {
     btn.classList.add('k-body');
-    btn.style.setProperty('--fi', (1 - def.kit.face / def.at[2]) * 50 + '%');
-    btn.style.setProperty('--lf', 'calc(var(--du) * ' + def.kit.legend_size + ')');
+    if (def.kit.face) {
+      btn.style.setProperty('--fi', (1 - def.kit.face / def.at[2]) * 50 + '%');
+      btn.style.setProperty('--lf', 'calc(var(--du) * ' + def.kit.legend_size + ')');
+    }
   }
   const halves = (def.lamps || []).map((l, i) => {
     const half = make('span', 'plamp ' + (i ? 'low' : 'up') + ' c-' + l.color, l.legend);
@@ -2503,7 +2505,7 @@ function plateArt(a, kit) {
       + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.4" transform="rotate(' + (a.rot !== undefined ? a.rot : (x + y) % 90) + ' ' + x + ' ' + y + ')"/>';
     return a.size ? '<g class="k-screw" data-size="' + a.size + '">' + screw + '</g>' : screw;
   }
-  if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"');
+  if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : '');
   if (a.shape === 'glass') return rect(8, 'fill="#121a16" stroke="#3a3f44" stroke-width="3"');
   if (a.shape === 'line') return '<line x1="' + x + '" y1="' + y + '" x2="' + (x + w) + '" y2="' + (y + h) + '" stroke="#e8e8e8" stroke-width="3"/>';
   if (a.shape === 'arrow') {
@@ -2518,7 +2520,9 @@ function plateArt(a, kit) {
   }
   if (a.shape === 'hazard') {
     const box = (bx, by, bw, bh) => 'M' + bx + ' ' + by + 'h' + bw + 'v' + bh + 'h' + -bw + 'z';
-    return '<path' + tag('k-pad') + ' d="' + box(x, y, w, h) + (a.hole ? box(...a.hole) : '') + '" fill="url(#phaz)" fill-rule="evenodd" stroke="#111" stroke-width="' + (a.border || 2) + '"/>';
+    const disc = (bx, by, bw) => 'M' + bx + ' ' + (by + bw / 2) + 'a' + bw / 2 + ' ' + bw / 2 + ' 0 1 0 ' + bw + ' 0a' + bw / 2 + ' ' + bw / 2 + ' 0 1 0 ' + -bw + ' 0z';
+    const hole = a.hole ? (a.round ? disc(...a.hole) : box(...a.hole)) : '';
+    return '<path' + tag('k-pad') + ' d="' + box(x, y, w, h) + hole + '" fill="url(#phaz)" fill-rule="evenodd" stroke="#111" stroke-width="' + (a.border || 2) + '"/>';
   }
   return '';
 }

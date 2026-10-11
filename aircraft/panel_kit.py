@@ -44,6 +44,9 @@ PARTS = {
 }
 GUARD_COVER = {"margin": 12, "frame": 14, "lock": 24}
 HAZARD_PAD = {"margin": 20, "period": 34, "border": 2}
+# dark housing around a part (and its cover); hazard strip: fixed width, as tall as the housing less the inset
+HOUSING = {"margin": 12, "border": 3}
+HAZARD_STRIP = {"w": 32, "inset": 8}
 PLATE = {"radius": 6, "border": 3}
 EAR = {"w": 52, "h": 52, "border": 2}
 SCREWS = {"L": 26, "M": 18, "S": 12}
@@ -52,10 +55,11 @@ SLOT_ANGLES = (15, 100, 65, 140)
 STYLES = {"TITLE": (32, 19), "NAME": (24, 14), "POS": (20, 12), "SMALL": (16, 10)}
 # a face legend is plain text, not stretched to a width: estimated in em per glyph for a wide sans font
 LEGEND_GLYPH = 0.74
-# position labels of a toggle, one (side, rotation) per position in the order of the positions
+# position labels of a toggle, one (side, rotation) per position in the order of the positions (None: not printed)
 TOGGLE_LABELS = {
     "above_side_below": (("above", 0), ("right", 90), ("below", 0)),
     "above_below": (("above", 0), ("below", 0)),
+    "left_right": (("left", 0), None, ("right", 0)),
 }
 
 
@@ -109,6 +113,7 @@ class Panel:
         self.ears = [(x, y, x + EAR["w"], y + EAR["h"]) for y in (0, h - EAR["h"]) for x in (0, w - EAR["w"])]
         self.parts = {}
         self.labels = []
+        self.decor = []
         self.screws = []
         for y in ("ST", "SB"):
             for x in ("SL", "SR"):
@@ -127,7 +132,8 @@ class Panel:
         body = centred(cx, cy, PARTS[kind]["w"], PARTS[kind]["h"])
         part = {
             "name": name, "kind": kind, "cx": cx, "cy": cy, "control": control, "kit": {"part": kind},
-            "body": body, "outer": body, "inner": body, "touch": body, "cover": None, "pad": None, "art": [], "edges": {},
+            "body": body, "outer": body, "inner": body, "touch": body, "cover": None, "pad": None, "housing": None, "round": False,
+            "art": [], "edges": {},
         }
         if control.get("guard"):
             part["cover"] = part["outer"] = part["inner"] = grow(body, GUARD_COVER["margin"])
@@ -147,9 +153,17 @@ class Panel:
                 self.fail(f"legend {text!r} of {name} is wider than the {spec['face']} du face")
         if frame:
             box = centred(cx, cy, spec["frame"], spec["frame"])
-            part["outer"] = part["inner"] = union(part["outer"], box)
+            part["outer"] = part["inner"] = union(part["body"], box)
+            if part["cover"]:
+                part["cover"] = part["outer"] = part["inner"] = grow(part["outer"], GUARD_COVER["margin"])
             stroke = spec["frame_stroke"]
             part["art"].append({"shape": "outline", "at": xywh(grow(box, -stroke / 2)), "stroke": stroke, "for": control["id"]})
+        return part
+
+    def plunger(self, name: str, cx: int, cy: int, control: dict) -> dict:
+        """Round plunger pushbutton; a guarded one gets a round cover."""
+        part = self._part(name, "PLUNGER", cx, cy, control)
+        part["round"] = True
         return part
 
     def toggle(self, name: str, cx: int, cy: int, control: dict, labels: str | None = None) -> dict:
@@ -164,8 +178,9 @@ class Panel:
             preset = TOGGLE_LABELS[labels]
             if len(preset) != n:
                 self.fail(f"label preset {labels} is for {len(preset)} positions, {name} has {n}")
-            for position, (side, rotate) in zip(control["positions"], preset):
-                self.label(position["label"], "POS", name, side, rotate)
+            for position, spot in zip(control["positions"], preset):
+                if spot:
+                    self.label(position["label"], "POS", name, *spot)
         return part
 
     def hazard(self, name: str, label: str | None = None, style: str = "NAME", side: str = "right") -> dict:
@@ -193,11 +208,40 @@ class Panel:
         part["pad"] = part["outer"] = pad
         border = HAZARD_PAD["border"]
         art = [{"shape": "hazard", "at": xywh(grow(pad, -border / 2)), "hole": xywh(inner), "border": border, "period": HAZARD_PAD["period"], "for": part["control"]["id"]}]
+        if part["round"]:
+            art[0]["round"] = True
         if slot:
             art.append({"shape": "slot", "at": xywh(slot)})
             self._add_label(label, style, grow(slot, -GAP / 2), 0, inside=name)
         part["art"][:0] = art
         return part
+
+    def housing(self, name: str) -> dict:
+        """Dark housing around a part (and its cover), the part centred in it; labels attach outside it."""
+        part = self.parts[name]
+        if part["pad"] or part["edges"]:
+            self.fail(f"the housing of {name} comes once, without a hazard pad and before its labels")
+        box = grow(part["outer"], HOUSING["margin"])
+        part["housing"] = part["pad"] = part["outer"] = box
+        part["art"].append({"shape": "slot", "at": xywh(grow(box, -HOUSING["border"] / 2)), "for": part["control"]["id"]})
+        return part
+
+    def strip(self, name: str, side: str):
+        """Decorative hazard strip against the left or right side of a housing, as tall as the housing less the inset."""
+        part = self.parts[name]
+        if not part["housing"]:
+            self.fail(f"hazard strip: {name} has no housing")
+        x0, y0, x1, y1 = part["housing"]
+        w, inset = HAZARD_STRIP["w"], HAZARD_STRIP["inset"]
+        if side == "left":
+            box = (x0 - w, y0 + inset, x0, y1 - inset)
+        elif side == "right":
+            box = (x1, y0 + inset, x1 + w, y1 - inset)
+        else:
+            self.fail(f"strip side {side!r} is not left or right")
+        border = HAZARD_PAD["border"]
+        art = {"shape": "hazard", "at": xywh(grow(box, -border / 2)), "border": border, "period": HAZARD_PAD["period"]}
+        self.decor.append({"name": f"strip {side} of {name}", "box": box, "art": art})
 
     def label(self, text: str, style: str, part: str, side: str, rotate: int = 0):
         """Label attached to a part, GAP du outside the part (and outside the labels already on that side)."""
@@ -300,6 +344,14 @@ class Panel:
                     problems.append(f"{what} overlaps label {other['text']!r}")
             if any(overlaps(box, s["box"]) for s in self.screws):
                 problems.append(f"{what} overlaps a screw")
+            problems += [f"{what} overlaps {d['name']}" for d in self.decor if overlaps(box, d["box"])]
+        for i, d in enumerate(self.decor):
+            if not within(d["box"], content):
+                problems.append(f"{d['name']} in the {MARGIN} du plate margin")
+            if any(overlaps(d["box"], e) for e in near_ears):
+                problems.append(f"{d['name']} closer than {EAR_CLEAR} du to an ear")
+            problems += [f"{d['name']} overlaps part {p['name']}" for p in parts if overlaps(d["box"], p["outer"])]
+            problems += [f"{d['name']} overlaps {o['name']}" for o in self.decor[i + 1:] if overlaps(d["box"], o["box"])]
         for s in self.screws[4:]:
             what = f"screw {s['size']} at ({s['cx']}, {s['cy']})"
             if not within(s["box"], plate):
@@ -323,6 +375,7 @@ class Panel:
             if p["cover"]:
                 control["cover_at"] = xywh(p["cover"])
             controls.append(control)
+        art += [d["art"] for d in self.decor]
         printed = []
         for lab in self.labels:
             size, glyph = STYLES[lab["style"]]
