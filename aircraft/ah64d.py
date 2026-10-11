@@ -95,21 +95,17 @@ MASTER_LAMPS = [
 ]
 
 
-def panel_pages(name: str, cells: dict, box: list, placard: list, art: list, controls: list, indicators: list | None = None, ref: tuple | None = None) -> list[dict]:
+def kit_pages(name: str, cells: dict, panel: Panel) -> list[dict]:
+    page = panel.build()
     return [
         {
-            "name": name, "seats": [seat], "panel": True, "layout": "panel", "map": cell, "box": box,
-            "lamps": MASTER_LAMPS, "print": placard, "art": art, "controls": controls,
-            **({"indicators": indicators} if indicators else {}),
-            **({"kit": True, "ref": list(ref)} if ref else {}),
+            "name": name, "seats": [seat], "panel": True, "layout": "panel", "map": cell, "box": page["box"],
+            "lamps": MASTER_LAMPS, "print": page["print"], "art": page["art"], "controls": page["controls"],
+            **({"indicators": page["indicators"]} if page["indicators"] else {}),
+            "kit": True, "ref": list(REF),
         }
         for seat, cell in cells.items()
     ]
-
-
-def kit_pages(name: str, cells: dict, panel: Panel) -> list[dict]:
-    page = panel.build()
-    return panel_pages(name, cells, page["box"], page["print"], page["art"], page["controls"], page["indicators"], ref=REF)
 
 
 def tail_wheel_pages() -> list[dict]:

@@ -4,7 +4,7 @@ Spec of the COCKPIT part of Stage 3 ([STAGE3.md](STAGE3.md)): a **COCKPIT** tab 
 
 Status: built and tested in an isolated setup (simulated DCS-BIOS, no real DCS ports, checked in a browser). The real DCS test run is open. AH-64D only; the structure stays reusable for other aircraft.
 
-Fixes after the first test on the tablet (screws, sizes, pop-ups, switch chooser, real covers, back icon): [COCKPIT_FIXES.md](COCKPIT_FIXES.md).
+The fixes after the first test on the tablet (one set of parts and one scale for all pages, aligned screws, pop-ups at the control, the switch chooser, real covers, the back icon, the layout checker) are built, also in the isolated setup only: [COCKPIT_FIXES.md](COCKPIT_FIXES.md). This file describes the pages as they are now.
 
 Sources used: the DCS AH-64D Flight Manual (cockpit overview, pages 104 to 127), the DCS cockpit definition (`clickabledata.lua`), the DCS-BIOS module (`AH-64D.lua`, value and position tables) and the Stage 2 results. Controls are named by their DCS-BIOS id; `{S}` stands for `PLT` (pilot) or `CPG` (copilot/gunner).
 
@@ -19,13 +19,16 @@ Sources used: the DCS AH-64D Flight Manual (cockpit overview, pages 104 to 127),
 Tabs: **COCKPIT | FLIGHT | FIGHT | MPD | KU**. COCKPIT replaces the old STARTUP tab, which is removed. A STARTUP tab name saved in the browser opens COCKPIT.
 
 - **COCKPIT, tap:** the cockpit map of the current seat. Each box is a panel; tap a box to open its page.
-- **On a panel page** the COCKPIT tab reads `◀ COCKPIT`. One tap goes back to the map. It is always in the same place, so no extra button is needed on the page.
+- **On a panel page** the COCKPIT tab keeps its highlight and shows a back chevron (an SVG icon) before the word. One tap goes back to the map. It is always in the same place, so no extra button is needed on the page.
 - **COCKPIT, long hold (0.5 s):** a list of every page of the current seat, for jumping from page to page without the map.
 - The map boxes for the two MPDs, the TEDAC (CP/G only) and the KU open the existing MPD and KU tabs (MPD L, MPD R or TEDAC preselected).
 - A page that does not exist in the current seat is not shown (map and list), it is not greyed out. The map follows the seat badge, as the other views do.
 - When the seat changes while a panel page is open, the page of the same name for the new seat opens (POWER stays POWER, EMERGENCY stays EMERGENCY). If the new seat has no page of that name (for example CMWS, CENTER or EXT / INTR LT), the COCKPIT map of the new seat opens.
 - The MSTR WARN and MSTR CAUT lamps stay in the top row of the map and of every panel page.
 - `CANOPY` stays a small key button, on the map.
+- **Switches.** A tap on a switch (a toggle or a dial) opens a chooser at the switch: one big button per position, arranged like the switch (a column, a row, an arc for a dial), with the current position lit, a position that cannot be used greyed out and a spring-return position marked with a spring. Tap a position to set it. A tap outside closes the chooser without a command. The guarded switches have no chooser, see [Guarded controls](#guarded-controls). The power levers keep one touch band per mark; a tap on FRICT opens the knob bar.
+- **Knobs.** A tap on a knob opens a bar next to it: drag or tap the track. On COMM, holding a volume knob for 0.6 seconds pulls it out or pushes it in.
+- **Pop-ups** (the chooser and the knob bar) open at the control, not in the middle of the screen: the bar below its knob (above it if there is no room), the chooser centred on the switch. Both stay inside the screen, below the tab bar and clear of the gear.
 
 ## Cockpit map
 
@@ -94,7 +97,7 @@ The CP/G has no CMWS, no EXT LT, no VIDEO, no CHECK OVERSPEED / GENERATOR RESET 
 ## Naming convention
 
 - **Page name** = the placard of the panel in upper case (`FIRE DET/EXTG`, `STORES JETT`, `TAIL WHEEL / NVS`).
-- **Control label** = the text printed on the panel. A rocker is shown as `WCA ▲▼`, a knob by its name (`FLOOD`).
+- **Control label** = the text printed on the panel. A rocker shows its name between two arrows (`WCA`), a knob its name (`FLOOD`).
 - **Positions** are listed in the order printed on the panel, top to bottom or left to right, with all real positions, also unusable ones (greyed out).
 - **Control id** = the DCS-BIOS identifier with the seat as `{S}` (`{S}_FIRE_ENG1_BTN`). A function without a DCS-BIOS entry (keypress) uses a lower-case name from `[keys]` (`canopy`, `power_left`).
 - All text in English, as in the cockpit.
@@ -114,11 +117,22 @@ Every control is a data entry in `aircraft/ah64d.py` (the generic bridge and pag
 | `requires` | another control that must be in a position first (the APU cover) |
 | `seats` | `[0]` pilot, `[1]` CP/G, omitted = both |
 | `guard` (new) | `true` for a [guarded control](#guarded-controls) |
-| `at` (new) | position and size on the panel drawing, `[x, y, w, h]` in the pixels of the reference photo, scaled like the MPD, TEDAC and KU drawings |
 | `lamps` (new, per control) | two lamps on the face of a button, `{id, color, legend}`, upper and lower half (FIRE and RDY on the fire buttons, ARM and SAFE on A/S) |
 | `ids` (new, `display` only) | a display made of several DCS-BIOS strings (the 14 lines of the EUFD, the CMWS status) |
 
-Further properties the panel pages use:
+The kit writes these properties for every control of a panel page. A page never types them (the kit refuses a control that already has `at`):
+
+| Property | Meaning |
+| --- | --- |
+| `at` | the touch area of the control on its page, `[x, y, w, h]` in design units (du, see [Page layout](#page-layout)) |
+| `kit` | the part and the sizes the page draws it with: `part` (`PUSH`, `TOGGLE`, `KNOB_M`, ...) and, where they apply, `face`, `legend_size`, `ring`, `lever`, `slot`, `track`, `cover_frame`, `cover_lock` |
+| `cover_at` | guarded controls: the box of the cover, `[x, y, w, h]` in du (the part and 12 du on every side) |
+| `handle` | the power levers and the FRICT slider: `[x, w, h]` of the grip |
+| `knob` | a `rotary` selector: `[cx, cy, r]` of its knob |
+| `mark`, `dot` | the members of a dual-function knob: the touch box of the selector mark and its dot `[cx, cy, d]` |
+| `positions[].y` | the power levers: where the grip stands at that position (`x` is not used any more) |
+
+Further properties of the panel pages, set in `aircraft/ah64d.py`:
 
 | Property | Meaning |
 | --- | --- |
@@ -127,23 +141,47 @@ Further properties the panel pages use:
 | `orient: "h"` | a horizontal selector (FIRE TEST, GEN RST, the wiper switch, PARK BRAKE) |
 | `sweep` | knob: pointer angles in degrees at the minimum and at the maximum value |
 | `angle` | per position of a `rotary` selector: pointer angle |
-| `y` / `x` | per position: where its mark is on the drawing, vertical or horizontal; the touch bands are split halfway between the marks |
-| `group`, `mark`, `dot` | dual-function knobs: members with the same `group` share one knob, and each member has a selector mark (`mark` for the touch area, `dot` for the dot). IHADSS BRT / CON and FLIR LVL / GAIN work this way |
-| `pull` | a knob's pull-to-disable id (the COMM volume knobs); the knob shows as pulled out when it reads 1, and a 0.6 s hold on the knob toggles it |
+| `group` | dual-function knobs: members with the same `group` share one knob, and each member has a selector mark that the kit adds from the mark texts the page gives (`mark`, `dot`). IHADSS BRT / CON and FLIR LVL / GAIN work this way |
+| `pull` | a knob's pull-to-disable id, the id of its PULL chip (the COMM volume knobs; the kit sets it on the knob); the knob shows as pulled out when it reads 1, and a 0.6 s hold on the knob toggles it |
 | `page`, `pages` | `display` with pages: `page` is the id that holds the page name, `pages` lists the ids shown for each name (CMWS) |
 
-Page definition. Panel pages are `VIEWS` entries flagged `"panel": True`, one entry per seat where the seats differ (built by `panel_pages` in `aircraft/ah64d.py`):
+Page definition. Panel pages are `VIEWS` entries flagged `"panel": True`, one entry per seat where the seats differ. `kit_pages` in `aircraft/ah64d.py` writes the entry from a `Panel` (or a `PanelGroup` of several plates) of the panel kit (`aircraft/panel_kit.py`):
 
 ```
 {"name": "FIRE DET/EXTG", "seats": [1], "panel": True, "layout": "panel", "map": [row, col, rows, cols], "box": [w, h],
- "lamps": [...], "print": [...], "art": [...], "controls": [...], "indicators": [...]}
+ "lamps": [...], "print": [...], "art": [...], "controls": [...], "indicators": [...], "kit": True, "ref": [640, 600]}
 ```
 
-`map` is the cell on the cockpit map. `box` is the size of the drawing in photo pixels. `print` lists the placard text as `[text, x, y, size, width, rotation]`. `art` lists the drawn parts (plate, bracket, screw, slot, glass, line, arrow, path, outline, hazard). `lamps` is the top row with the master lamps. `indicators` (optional, page level) are free lamps drawn on the panel: the CMWS threat sectors and the D and R letters, each with a bright and a dim DCS-BIOS id.
+`map` is the cell on the cockpit map. `box` is the size of the page in du. `ref` is the 640 x 600 du budget the page scale is computed from; `kit` marks a page drawn by the kit. `print` lists the placard text as `[text, x, y, size, width, rotation]`. `art` lists the drawn parts (plate, ear, screw, bracket, outline, slot, glass, hazard, line, arrow, path, text). `lamps` is the top row with the master lamps. `indicators` (optional, page level) are free lamps drawn on the panel: the CMWS threat sectors and the D and R letters, each with a bright and a dim DCS-BIOS id.
 
-The COCKPIT view (layout `map`) is one entry for both seats. It holds `links` (the map boxes that open the KU, MPD and TEDAC tabs, each with `view`, `side`, `seats` and `map`) and the canopy key. There is no `PANELS` table: the map cell is part of each page. A new aircraft file defines its own.
+The COCKPIT view (layout `map`) is one entry for both seats. It holds `links` (the map boxes that open the KU, MPD and TEDAC tabs, each with `view`, `side`, `seats` and `map`) and the canopy key. The map cell of a panel page is its `map`. A new aircraft file defines its own.
 
-Controls are placed with `at`, so the page is a 1:1 drawing of the panel with invisible touch areas (56 px or more where the layout allows; the three-position toggle bands are about 40 to 50 px, the PULL chips are smaller) and the knob pop-up bar for knobs.
+## Page layout
+
+A panel page is laid out by the kit, not by photo coordinates. The photos only say what is on a panel, its text and the arrangement of the parts.
+
+- **Parts and units.** The aircraft file names a part (pushbutton, toggle, knob, rocker, ...) and its centre in design units (du). The kit gives the part its standard size, the same on every page and in both seats, attaches the labels, adds the plate with four identical corner ears and a screw in each ear, and checks the layout when the file is loaded. Sizes and rules: [COCKPIT_FIXES.md](COCKPIT_FIXES.md#3-the-part-kit-one-place).
+- **One scale.** Every page is drawn at the same scale S = min(area width / 640, area height / 600), at most 1.6: 1.045 at 1180 x 820, 0.958 at 1024 x 768.
+- **Touch areas.** At least 56 px where the neighbours allow: the page widens a smaller area and cuts it back where two areas would overlap (the PULL chip: 32 px; the knob buttons are widened to 56 px like the others). A switch has one touch area and opens the chooser. Only a guarded switch has one band per position, under its cover.
+- **Pop-ups.** The chooser and the knob bar open at the control and stay inside the screen (see [Navigation](#navigation)).
+- **Check.** `tools/check_panels.js` measures every page in the browser and reports overlaps, label and screw positions, part sizes and touch areas. It is run in the browser console, in both seats at 1180 x 820 and 1024 x 768.
+
+Page sizes in du (the plate, or the page of several plates):
+
+| Page | Size |
+| --- | --- |
+| TAIL WHEEL / NVS | 600 x 224 |
+| EMERGENCY | 580 x 276 |
+| STORES JETT | 556 x 408 |
+| FIRE DET/EXTG | 600 x 456 |
+| POWER | 640 x 600 (pilot), 312 x 576 (CP/G, the two levers) |
+| EXT / INTR LT | 612 x 456 (pilot), INTR LT 428 x 360 (CP/G) |
+| CMWS | 616 x 552 (two plates) |
+| ARMAMENT | 608 x 600 (pilot, three plates), 608 x 244 (CP/G, two plates) |
+| EUFD | 640 x 524 |
+| CENTER | 640 x 530 (three plates) |
+| COMM | 640 x 600 |
+| WIPER / DEFOG (CP/G) | 376 x 304 |
 
 ## Guarded controls
 
@@ -151,6 +189,8 @@ A guarded control can end the flight or cannot be undone in the mission: shut of
 
 1. **Lift the cover.** The control is covered by a red and white hazard-striped frame with a padlock. The middle of the frame is clear, so the lamps and the control underneath stay visible. Tap the cover to lift it. It closes again after 5 seconds, or after the press. Only one cover can be open at a time.
 2. **Tap the control.** One tap on the button, or on the position of a guarded switch, sends the command and the cover closes.
+
+The kit draws the cover from the part: the part (or its white frame) and 12 du on every side, a hazard frame 14 du wide, a padlock of 24 du (`cover_at`, never typed in). A guarded switch is the one switch without a chooser: under the cover each position is a touch band of its own (60 du, equal split), and a band sends its command once the cover is lifted. There are no other invisible bands on the panel pages, except the marks of the power levers.
 
 The bridge enforces it, so a second tab, a bug in the page or a stale tab cannot bypass it:
 
@@ -259,6 +299,8 @@ The master zeroize switch sits on the instrument panel next to the armament pane
 
 ### EUFD
 
+The display is on top and the controls sit in a row below it: the three rockers, the BRT knob and the four keys (the text size matters more than the photo layout).
+
 | Label | Id | Type | Positions | Seats | Stage 2 |
 | --- | --- | --- | --- | --- | --- |
 | display | `{S}_EUFD_LINE1` to `_LINE14` | display, `ids` | 14 lines of 56 characters, shown as on the real display | both | readable |
@@ -287,6 +329,8 @@ The master zeroize switch sits on the instrument panel next to the armament pane
 
 ### CENTER (pilot only, instrument panel)
 
+One wide plate (CHK OVSP TEST and GEN RST) over two plates (WINDSHIELD WIPER, and PARK BRAKE with ALT SET). The PARK BRAKE name is printed on two lines.
+
 | Label | Id | Type | Positions | Seats | Stage 2 |
 | --- | --- | --- | --- | --- | --- |
 | CHK OVSP TEST, CKT A | `PLT_CHK_OSPD_ENG_A` | selector, rest 1 | 2 ENG 1, 1 OFF, 0 ENG 2 (spring return) | PLT | ok |
@@ -299,7 +343,7 @@ The master zeroize switch sits on the instrument panel next to the armament pane
 
 ### COMM (right console)
 
-Both seats, one drawing for both. The volume knobs of VHF, UHF, FM 1, FM 2, HF, VCR and ADF have a PULL chip (a `chip` control, the `pull` id of the knob) for the pull-to-disable position. The chips are small (about 16 to 18 px high, the SQL switches need the room); holding the knob for 0.6 s toggles the pull as well (a ring fills during the hold), a short tap on the knob opens the knob bar.
+Both seats, one drawing for both. The volume knobs of VHF, UHF, FM 1, FM 2, HF, VCR and ADF have a PULL chip (a `chip` control, the `pull` id of the knob) for the pull-to-disable position. The chips are 64 x 22 du (about 21 to 23 px high) and hang under their knobs; their touch area is at least 32 px. Holding the knob for 0.6 s toggles the pull as well (a ring fills during the hold), a short tap on the knob opens the knob bar. The ICS name and its PTT label sit in the SOL row, between the FM 1 and FM 2 squelch switches; the switch itself, with VOX and HOT MIC, is below the row.
 
 | Label | Id | Type | Positions | Seats | Stage 2 |
 | --- | --- | --- | --- | --- | --- |
@@ -315,7 +359,7 @@ Both seats, one drawing for both. The volume knobs of VHF, UHF, FM 1, FM 2, HF, 
 
 ### WIPER / DEFOG (CP/G only)
 
-The same drawing as the wiper block of the pilot's CENTER page.
+The same drawing as the wiper block of the pilot's CENTER page. The position labels (PARK, OFF, LO, HI) are flat text in a fan above the dial.
 
 | Label | Id | Type | Positions | Seats | Stage 2 |
 | --- | --- | --- | --- | --- | --- |
@@ -347,32 +391,39 @@ Measured in the test setup with a simulated DCS-BIOS stream and a tablet polling
 One step at a time, each checked in a browser against a simulated DCS-BIOS (no real DCS ports). All steps are done and checked this way. The test run in DCS after each step is open.
 
 0. **Measure the export script.** Done. The Lua script times its own work and writes one summary line per minute to the DCS log (`dcs.log`, source DCS-Dashboard). Check: the line appears with a number in a DCS run (open).
-1. **Map, navigation, panel layout and guard**, with two small pages: TAIL WHEEL / NVS and EMERGENCY (it has a guarded control: ZEROIZE). Done. Includes the `panel` layout with `at` coordinates, the COCKPIT tab (tap, back, long hold list), the bridge guard window and its log lines. Check: map and list per seat, a guarded press only works after the cover is lifted, `refused: guard closed` otherwise, the window closes after 5 s, no scrolling, nothing under the gear.
+1. **Map, navigation, panel layout and guard**, with two small pages: TAIL WHEEL / NVS and EMERGENCY (it has a guarded control: ZEROIZE). Done. Includes the `panel` layout (laid out by the panel kit since step 7), the COCKPIT tab (tap, back, long hold list), the bridge guard window and its log lines. Check: map and list per seat, a guarded press only works after the cover is lifted, `refused: guard closed` otherwise, the window closes after 5 s, no scrolling, nothing under the gear.
 2. **POWER and EXT / INTR LT.** Done. Check: the cold start still works end to end; every position as in the tables.
 3. **FIRE DET/EXTG, ARMAMENT / VIDEO / MASTER ZEROIZE, STORES JETT.** Done. Check: lamps follow the simulated DCS-BIOS, the guard applies to the listed controls and no others.
 4. **EUFD (live text), CMWS, CENTER.** Done. Check: the 14 lines render as 56-character rows; CMWS counts match FIGHT.
 5. **COMM, and the CP/G WIPER / DEFOG page.** Done. Check: all 12 knobs reachable through the knob bar; the squelch switches are spring return.
 6. **Remove STARTUP, update README and STAGE3.md.** Done. The page falls back to COCKPIT for a saved STARTUP tab, and goes to the COCKPIT map when a seat change leaves a page with no page of the same name.
+7. **Fix round** ([COCKPIT_FIXES.md](COCKPIT_FIXES.md)). Done. The panel kit and its layout checker, one scale for all pages, every page laid out on the kit, pop-ups at the control, the switch chooser, the knob look, the real covers and the tap on a guarded control, SVG icons. Checked in the isolated setup, both seats at 1180 x 820 and 1024 x 768.
 
 Each step ends with a test run in DCS by the user (open).
 
-## Test run for the guarded controls
+## Test run
 
-These controls were never sent before (they were skipped in Stage 2), so nothing is known about how DCS reacts. Use a throwaway mission, cold and dark, and do these last, because several cannot be undone in the mission:
+The pages are checked in the isolated setup only. Test them in DCS and on the iPad in a throwaway mission, cold and dark. Do the guarded controls last, because several cannot be undone in the mission.
 
-1. Station selects: each lights its lamp and toggles back.
-2. ENG 1 FIRE, APU FIRE, ENG 2 FIRE: lift the cover, tap once (RDY lamp on, fuel off), lift the cover again and tap again (safe). The log shows `cover open`, `pressed` and about 1 second later `cover closed`, and `pressed` is not followed by `not confirmed`.
-3. PRI and RES discharge, with a fire button armed.
-4. JETT with a station armed.
-5. ZEROIZE, MASTER ZEROIZE, CMWS JETT: MASTER ZEROIZE and CMWS JETT open and close their real cover with the tablet cover.
+1. Chooser: tap NVS MODE, a squelch switch, ENG 1 START, the MSTR IGN dial and the wiper dial. The chooser opens at the switch, shows the positions like the switch, lights the current one and marks the spring-return ones. Pick a position: the switch follows DCS. A tap outside closes the chooser without a command.
+2. Knobs: tap EUFD BRT, a radio volume and a light knob. The bar opens next to the knob, inside the screen. Drag it: the knob follows DCS. Look at the knob grip.
+3. COMM: hold a radio volume knob for 0.6 seconds, the PULL chip changes between IN and OUT. A short tap opens the bar. Check that `PULL OUT` fits in its chip.
+4. Power levers and FRICT: tap each mark of both levers (the grip follows the readback), tap FRICT and drag the bar.
+5. Guarded controls, one by one. These were never sent before (they were skipped in Stage 2), so nothing is known about how DCS reacts:
+   1. Station selects: each lights its lamp and toggles back.
+   2. ENG 1 FIRE, APU FIRE, ENG 2 FIRE: lift the cover, tap once (RDY lamp on, fuel off), lift the cover again and tap again (safe). Watch DCS's own cover: it opens with the tablet cover. The log shows `cover open`, `pressed` and about 1 second later `cover closed`, and `pressed` is not followed by `not confirmed`.
+   3. PRI and RES discharge, with a fire button armed.
+   4. JETT with a station armed.
+   5. ZEROIZE, MASTER ZEROIZE, CMWS JETT: MASTER ZEROIZE and CMWS JETT open and close their real cover with the tablet cover.
 
 ## Open points
 
-- Are the fire buttons confirmed by their own readback once the real cover is open? Still to be tested in DCS (test run, step 2). If ENG 1 is still `not confirmed` with the cover open, the confirmation uses the RDY lamp (`{S}_ENG_1_READY_L`) instead of the button.
+- Are the fire buttons confirmed by their own readback once the real cover is open? Still to be tested in DCS (test run, item 5.2). If ENG 1 is still `not confirmed` with the cover open, the confirmation uses the RDY lamp (`{S}_ENG_1_READY_L`) instead of the button.
 - The CP/G power lever keys (`RAlt` / `RShift` with `Home` and so on) are only tested in the pilot seat.
 - Lamp colours of the DISCH lights (manual does not say; check in DCS).
-- The master zeroize switch has no photo; MASTER ZEROIZE is a plain placard. The CP/G COMM and WIPER / DEFOG pages use the same drawings as the pilot's COMM and CENTER pages. The photos used for drawing the pages are kept outside the repo.
+- The master zeroize switch has no photo; MASTER ZEROIZE is a plain placard. The CP/G COMM and WIPER / DEFOG pages use the same drawings as the pilot's COMM and CENTER pages. The photos used as the reference for the pages are kept outside the repo.
 - The FRICT slider direction and the end of the SIGNAL knob sweep were taken from the photo, not from DCS. Check them in DCS.
-- The five top-row PULL chips on COMM are small (about 16 to 18 px high) because the SQL switches need the room. Holding the knob for 0.6 s toggles the pull instead; check in DCS that this is comfortable on the tablet.
+- The PULL chips on COMM are 64 x 22 du (about 21 to 23 px) with a touch area of at least 32 px. The long press (0.6 s) on the knob is the large target; check on the tablet that this is comfortable, and that `PULL OUT` fits in the chip in the font the iPad uses (the checks used Arial Narrow and Arial).
+- Still to be seen on the iPad: the knob grip (ridge count, second rim of the large knobs), the chooser (button size, the arc of the dials, placement near the screen edges) and the places where the arrangement does not follow the photo: EUFD, CENTER, the ICS / PTT labels on COMM, the wiper labels, the PARK BRAKE name ([COCKPIT_FIXES.md](COCKPIT_FIXES.md#13-decisions), decisions 7 to 11).
 - The panel pages need a browser with CSS container queries: Safari / iPadOS 16 or newer, or current Chrome.
 - Grip controls with guards (CHOP, BUCS, emergency jettison) may follow later with the same guard mechanism.

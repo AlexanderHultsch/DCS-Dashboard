@@ -177,27 +177,13 @@ body.ro .panel { opacity: 0.6; }
 .keybtn .ks { font-size: 14px; color: #bbb; }
 .keybtn.pressed .ks { color: #111; }
 
-.knob {
-  position: relative; width: 100%; height: 100%; padding: 0 0 6%; background: none; border: 0;
-  display: flex; align-items: flex-end; justify-content: center;
-}
-.panel .knob { flex: 1; min-height: 56px; padding: 0; align-items: center; --kd: 48px; }
 .dial {
-  position: relative; flex: none; width: var(--kd); height: var(--kd); border-radius: 50%;
+  position: relative; border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #f3f5f7, #d9dde1 55%, #aab0b6);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
 .arm { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
 .arm::after { content: ""; position: absolute; left: 50%; top: 9%; width: 3px; height: 38%; margin-left: -1.5px; background: #17191b; border-radius: 2px; }
-.knob:active .dial { transform: scale(0.95); }
-.knob.pending .dial { box-shadow: 0 0 0 3px #ffb300, 0 2px 4px rgba(0, 0, 0, 0.65); }
-.kn-m, .kn-p {
-  position: absolute; bottom: calc(6% + var(--kd) / 2 - 0.5em); line-height: 1;
-  font-size: calc(var(--u) * 0.26); color: #5d656c;
-}
-.panel .kn-m, .panel .kn-p { bottom: calc(50% - 0.5em); }
-.kn-m { left: 6%; }
-.kn-p { right: 6%; }
 
 #controls.ku { display: flex; align-items: center; justify-content: center; }
 #controls.mpd { display: flex; align-items: stretch; justify-content: flex-start; gap: 16px; padding-bottom: 12px; }
@@ -219,7 +205,7 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .mart.ted text { font-size: 14px; }
 .mart.ted .lead { stroke-width: 1.4; }
 .mkey, .mknob { position: absolute; margin: 0; padding: 0; }
-.mkey::before, .mknob::before, .rhalf::before, .kkey::before, .pbtn::before, .ppos::before, .pstap::before, .pcap::before, .pmark::before, .pchipb::before {
+.mkey::before, .mknob::before, .rhalf::before, .kkey::before, .pbtn::before, .ppos::before, .pstap::before, .pcap::before, .pmark::before, .pchipb::before, .pslot::before {
   content: ""; position: absolute; left: 50%; top: 50%; width: var(--hw, 100%); height: var(--hh, 100%); transform: translate(-50%, -50%);
 }
 .mkey { font-stretch: condensed; letter-spacing: 0.02em; }
@@ -388,8 +374,8 @@ body.ro .pbox { opacity: 0.6; }
 .pcap.pending { outline: 3px solid #ffb300; outline-offset: 1px; }
 .pchip { container-type: size; }
 .pchipb {
-  position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; gap: 0.35em;
-  font-size: 66cqh; line-height: 1; white-space: nowrap; color: #e8e8e8; background: #101112; border: 2px solid #7d858c; border-radius: 999px;
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; gap: 0.25em;
+  font-size: 48cqh; letter-spacing: 0; line-height: 1; white-space: nowrap; color: #e8e8e8; background: #101112; border: 2px solid #7d858c; border-radius: 999px;
 }
 .pchipb::after { content: attr(data-legend); order: -1; color: #7d858c; }
 .pchipb.lit { color: #ffb300; border-color: #ffb300; }
@@ -649,7 +635,6 @@ const KIT_SCALE_MAX = 1.6;
 const GUARD_MS = 5000;
 const PULL_HOLD_MS = 600;
 const LIST_HOLD_MS = 500;
-const PRINT_SIZE = 25;
 const LINE_COLS = 56;
 const INDICATOR_FILL = ['#2b251c', '#8a4b10', '#ff9a1f'];
 const KNOB_LARGE = 44;
@@ -1234,26 +1219,6 @@ function buildKey(def) {
   return c;
 }
 
-function buildKnob(def) {
-  const arm = make('span', 'arm');
-  const dial = make('span', 'dial');
-  const btn = make('button', 'knob');
-  btn.type = 'button';
-  dial.append(arm);
-  btn.append(make('span', 'kn-m', '−'), dial, make('span', 'kn-p', '+'));
-  const el = make('div', 'panel');
-  el.append(make('div', 'title', def.label), btn);
-  const c = { def, el, busy: false, pending: null };
-  btn.addEventListener('click', () => openBar(c));
-  c.update = () => {
-    const v = readValue(def.id);
-    arm.style.visibility = typeof v === 'number' ? '' : 'hidden';
-    if (typeof v === 'number') arm.style.transform = 'rotate(' + (v / KNOB_MAX * 270 - 135) + 'deg)';
-    btn.setAttribute('aria-disabled', String(!can(c)));
-  };
-  return c;
-}
-
 function buildMpdKnob(def) {
   const arm = make('span', 'arm');
   const dial = make('span', 'dial');
@@ -1630,16 +1595,12 @@ function addGuard(c, items) {
   cover.type = 'button';
   cover.setAttribute('aria-label', 'Lift cover');
   cover.innerHTML = PADLOCK;
-  if (c.def.cover_at) {
-    const [x, y, w, h] = c.def.at;
-    const [gx, gy, gw, gh] = c.def.cover_at;
-    boxRect(cover, { x, y, w, h }, gx + gw / 2, gy + gh / 2, gw, gh);
-    cover.style.right = cover.style.bottom = 'auto';
-  }
-  if (c.def.kit && c.def.kit.cover_frame) {
-    cover.style.setProperty('--gf', 'calc(var(--du) * ' + c.def.kit.cover_frame + ')');
-    cover.style.setProperty('--gl', 'calc(var(--du) * ' + c.def.kit.cover_lock + ')');
-  }
+  const [x, y, w, h] = c.def.at;
+  const [gx, gy, gw, gh] = c.def.cover_at;
+  boxRect(cover, { x, y, w, h }, gx + gw / 2, gy + gh / 2, gw, gh);
+  cover.style.right = cover.style.bottom = 'auto';
+  cover.style.setProperty('--gf', 'calc(var(--du) * ' + c.def.kit.cover_frame + ')');
+  cover.style.setProperty('--gl', 'calc(var(--du) * ' + c.def.kit.cover_lock + ')');
   cover.addEventListener('click', async () => {
     if (c.busy) return;
     closeGuard();
@@ -1663,12 +1624,10 @@ function buildPlateButton(def) {
   c.el = make('div', 'pctl');
   c.el.append(btn);
   if (def.legend) btn.append(make('span', 'plegend', def.legend));
-  if (def.kit) {
-    btn.classList.add('k-body');
-    if (def.kit.face) {
-      btn.style.setProperty('--fi', (1 - def.kit.face / def.at[2]) * 50 + '%');
-      btn.style.setProperty('--lf', 'calc(var(--du) * ' + def.kit.legend_size + ')');
-    }
+  btn.classList.add('k-body');
+  if (def.kit.face) {
+    btn.style.setProperty('--fi', (1 - def.kit.face / def.at[2]) * 50 + '%');
+    btn.style.setProperty('--lf', 'calc(var(--du) * ' + def.kit.legend_size + ')');
   }
   const halves = (def.lamps || []).map((l, i) => {
     const half = make('span', 'plamp ' + (i ? 'low' : 'up') + ' c-' + l.color, l.legend);
@@ -1765,8 +1724,8 @@ function buildPlateSwitch(def) {
   const n = def.positions.length;
   const cx = w / 2;
   const cy = h / 2;
-  const r = def.kit ? def.kit.ring / 2 : Math.min(w, h) * 0.45;
-  const travel = def.kit ? def.kit.lever / 2 : r * 0.55;
+  const r = def.kit.ring / 2;
+  const travel = def.kit.lever / 2;
   const rotary = def.style === 'rotary';
   const horiz = def.orient === 'h';
   const kx = rotary ? def.knob[0] - ax : 0;
@@ -1777,7 +1736,7 @@ function buildPlateSwitch(def) {
   const lever = wrap.querySelector('.lv');
   const tip = wrap.querySelector('.tip');
   const pointer = wrap.querySelector('.pt');
-  if (def.kit) wrap.querySelector('circle:not(.kn-shadow)').classList.add('k-body');
+  wrap.querySelector('circle:not(.kn-shadow)').classList.add('k-body');
   const c = { def, el: wrap, busy: false, pending: null, buttons: [] };
   if (def.guard) {
     const edges = positionEdges(def);
@@ -1865,7 +1824,7 @@ function slotSvg(def) {
   const [x, y, w, h] = def.at;
   const [hx, hw, hh] = def.handle;
   return '<svg class="pswitch" viewBox="' + [x, y, w, h].join(' ') + '" aria-hidden="true">'
-    + plateArt({ shape: 'slot', at: def.kit.slot, body: true }, true)
+    + plateArt({ shape: 'slot', at: def.kit.slot, body: true })
     + '<rect class="pgrip" x="' + (hx - hw / 2) + '" y="0" width="' + hw + '" height="' + hh + '" rx="' + hh / 4 + '"/></svg>';
 }
 
@@ -2151,7 +2110,7 @@ function buildControl(def, layout) {
     if (layout === 'mpd') return buildMpdButton(def);
     return layout === 'ku' ? buildKuButton(def) : buildButton(def);
   }
-  if (def.type === 'knob') return layout ? buildMpdKnob(def) : buildKnob(def);
+  if (def.type === 'knob') return buildMpdKnob(def);
   if (def.type === 'stick') return buildStick(def);
   if (def.type === 'key') return buildKey(def);
   if (def.type === 'lever') return buildLever(def);
@@ -2500,21 +2459,20 @@ function fitKu() {
   spread(kuView.touch, s);
 }
 
-function plateArt(a, kit) {
+function plateArt(a) {
   const [x, y, w, h] = a.at;
-  const tag = (cls) => (kit && cls ? ' class="' + cls + '"' + (a.for ? ' data-for="' + a.for + '"' : '') : '');
+  const tag = (cls) => (cls ? ' class="' + cls + '"' + (a.for ? ' data-for="' + a.for + '"' : '') : '');
   const rect = (r, style, cls) => '<rect' + tag(cls) + ' x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + r + '" ' + style + '/>';
-  if (a.shape === 'plate') return rect(a.r !== undefined ? a.r : 12, 'fill="#26292c" stroke="#3d4348" stroke-width="' + (a.border || 3) + '"', 'k-plate');
+  if (a.shape === 'plate') return rect(a.r, 'fill="#26292c" stroke="#3d4348" stroke-width="' + a.border + '"', 'k-plate');
   if (a.shape === 'ear') return rect(a.r, 'fill="#33373b" stroke="#474e54" stroke-width="' + a.border + '"', 'k-ear');
   if (a.shape === 'bracket') return rect(6, 'fill="#33373b" stroke="#474e54" stroke-width="2"');
-  if (a.shape === 'outline') return rect(4, 'fill="none" stroke="#e8e8e8" stroke-width="' + (a.stroke || 3) + '"', 'k-frame');
+  if (a.shape === 'outline') return rect(4, 'fill="none" stroke="#e8e8e8" stroke-width="' + a.stroke + '"', 'k-frame');
   if (a.shape === 'screw') {
-    const screw = '<circle cx="' + x + '" cy="' + y + '" r="' + w + '" fill="#5b6269" stroke="#1a1c1e" stroke-width="2"/>'
-      + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.4" transform="rotate(' + (a.rot !== undefined ? a.rot : (x + y) % 90) + ' ' + x + ' ' + y + ')"/>';
-    return a.size ? '<g class="k-screw" data-size="' + a.size + '">' + screw + '</g>' : screw;
+    return '<g class="k-screw" data-size="' + a.size + '"><circle cx="' + x + '" cy="' + y + '" r="' + w + '" fill="#5b6269" stroke="#1a1c1e" stroke-width="2"/>'
+      + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.4" transform="rotate(' + a.rot + ' ' + x + ' ' + y + ')"/></g>';
   }
   if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : a.body ? 'k-body' : '');
-  if (a.shape === 'glass') return rect(8, 'fill="#121a16" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : '');
+  if (a.shape === 'glass') return rect(8, 'fill="#121a16" stroke="#3a3f44" stroke-width="3"', 'k-pad');
   if (a.shape === 'line') return '<line x1="' + x + '" y1="' + y + '" x2="' + (x + w) + '" y2="' + (y + h) + '" stroke="#e8e8e8" stroke-width="3"/>';
   if (a.shape === 'arrow') {
     const tip = a.up ? y : y + h;
@@ -2523,7 +2481,7 @@ function plateArt(a, kit) {
       + '" fill="none" stroke="#e8e8e8" stroke-width="3"/>';
   }
   if (a.shape === 'path') {
-    return '<path' + (kit && a.part ? ' data-kit="' + a.part + '" data-id="' + a.name + '"' : '') + ' transform="translate(' + x + ' ' + y + ')' + (a.scale ? ' scale(' + a.scale + ')' : '')
+    return '<path' + (a.part ? ' data-kit="' + a.part + '" data-id="' + a.name + '"' : '') + ' transform="translate(' + x + ' ' + y + ')' + (a.scale ? ' scale(' + a.scale + ')' : '')
       + '" d="' + a.d + '" fill="' + (a.fill ? '#e8e8e8' : 'none') + '" stroke="#e8e8e8" stroke-width="' + a.width + '" stroke-linecap="round" stroke-linejoin="round"/>';
   }
   if (a.shape === 'text') {
@@ -2534,36 +2492,33 @@ function plateArt(a, kit) {
     const box = (bx, by, bw, bh) => 'M' + bx + ' ' + by + 'h' + bw + 'v' + bh + 'h' + -bw + 'z';
     const disc = (bx, by, bw) => 'M' + bx + ' ' + (by + bw / 2) + 'a' + bw / 2 + ' ' + bw / 2 + ' 0 1 0 ' + bw + ' 0a' + bw / 2 + ' ' + bw / 2 + ' 0 1 0 ' + -bw + ' 0z';
     const hole = a.hole ? (a.round ? disc(...a.hole) : box(...a.hole)) : '';
-    return '<path' + tag('k-pad') + ' d="' + box(x, y, w, h) + hole + '" fill="url(#phaz)" fill-rule="evenodd" stroke="#111" stroke-width="' + (a.border || 2) + '"/>';
+    return '<path' + tag('k-pad') + ' d="' + box(x, y, w, h) + hole + '" fill="url(#phaz)" fill-rule="evenodd" stroke="#111" stroke-width="' + a.border + '"/>';
   }
   return '';
 }
 
 function plateSvg(view) {
   const [w, h] = view.box;
-  const kit = !!view.kit;
-  const text = (view.print || []).map(([t, x, y, size, width, rot]) => (
-    '<text' + (kit ? ' class="k-label"' : '') + ' x="' + x + '" y="' + y + '" dy="0.35em" font-size="' + (size || PRINT_SIZE) + '"'
+  const text = view.print.map(([t, x, y, size, width, rot]) => (
+    '<text class="k-label" x="' + x + '" y="' + y + '" dy="0.35em" font-size="' + size + '"'
     + (width ? ' textLength="' + width + '" lengthAdjust="spacingAndGlyphs"' : '')
     + (rot ? ' transform="rotate(' + rot + ' ' + x + ' ' + y + ')"' : '') + '>' + t + '</text>'
   ));
-  const stripe = ((view.art || []).find((a) => a.shape === 'hazard') || {}).period || 34;
+  const stripe = (view.art.find((a) => a.shape === 'hazard') || {}).period || 34;
   return '<svg class="part" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">'
     + '<defs><pattern id="phaz" patternUnits="userSpaceOnUse" width="' + stripe + '" height="' + stripe + '" patternTransform="rotate(45)">'
     + '<rect width="' + stripe / 2 + '" height="' + stripe + '" fill="#e0c21a"/><rect x="' + stripe / 2 + '" width="' + stripe / 2 + '" height="' + stripe + '" fill="#e4e4e0"/></pattern></defs>'
-    + (view.art || []).map((a) => plateArt(a, kit)).join('') + text.join('')
+    + view.art.map(plateArt).join('') + text.join('')
     + '</svg>';
 }
 
 function placePlate(box, cs) {
   const view = views[activeIndex];
-  const pbox = make('div', view.kit ? 'pbox kit' : 'pbox');
+  const pbox = make('div', 'pbox kit');
   pbox.insertAdjacentHTML('beforeend', plateSvg(view));
-  plateView = { pbox, box: view.box, ref: view.kit ? view.ref : null, touch: [] };
-  if (view.kit) {
-    pbox.dataset.box = view.box.join(' ');
-    pbox.dataset.ref = view.ref.join(' ');
-  }
+  pbox.dataset.box = view.box.join(' ');
+  pbox.dataset.ref = view.ref.join(' ');
+  plateView = { pbox, box: view.box, ref: view.ref, touch: [] };
   cs.forEach((c) => {
     const [x, y, w, h] = c.def.at;
     boxRect(c.el, { x: 0, y: 0, w: view.box[0], h: view.box[1] }, x + w / 2, y + h / 2, w, h);
@@ -2580,15 +2535,15 @@ function placePlate(box, cs) {
 function fitPlate() {
   if (!plateView) return;
   const [bw, bh] = plateView.box;
+  const [rw, rh] = plateView.ref;
   const [w, h] = innerSize(document.getElementById('controls'));
-  const ref = plateView.ref;
-  const s = ref ? Math.min(w / ref[0], h / ref[1], KIT_SCALE_MAX) : Math.min(w / bw, h / bh);
+  const s = Math.min(w / rw, h / rh, KIT_SCALE_MAX);
   if (!(s > 0)) return;
   const st = plateView.pbox.style;
   st.width = bw * s + 'px';
   st.height = bh * s + 'px';
   st.setProperty('--bh', bh * s + 'px');
-  if (ref) st.setProperty('--du', s + 'px');
+  st.setProperty('--du', s + 'px');
   spread(plateView.touch, s);
 }
 

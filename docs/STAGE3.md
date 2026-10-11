@@ -161,7 +161,7 @@ The CP/G's TEDAC display unit, laid out 1:1 after a photo like the MPD. All cont
 
 ### Knob bar
 
-Tapping a knob (MPD BRT / VID / MODE, KU BRT) opens a bar over the dashboard. BRT / VID / KU BRT: drag or tap the track; the bridge sets the absolute knob position (`{"value": 0..65535}`, at most every 100 ms while dragging). MODE: three stops DAY / NT / MONO. Tap outside or ✕ to close.
+Tapping a knob (MPD BRT / VID / MODE, KU BRT, the knobs of the COCKPIT pages) opens a bar at the knob: below it, above it if there is no room, always inside the screen. BRT / VID / KU BRT: drag or tap the track; the bridge sets the absolute knob position (`{"value": 0..65535}`, at most every 100 ms while dragging). MODE: three stops DAY / NT / MONO. Tap outside or ✕ to close.
 
 ## KU view
 
@@ -208,7 +208,7 @@ Tablet browser  --GET /            -->  dashboard.py  (serves web/index.html)
 
 - **Polling, not WebSocket.** The page asks for `/state` five times per second. That is plenty for switches and lamps on the local network, and it keeps the bridge to the Python standard library (`http.server`). [SPEC.md](SPEC.md) says WebSocket; this replaces it for now. A WebSocket can come later if polling proves too slow.
 - **Threads.** One background thread reads the DCS-BIOS stream into the current values; the web server (`ThreadingHTTPServer`) answers each request in its own thread. A lock protects the values, a second lock makes sure only one command (or key sequence) is sent at a time.
-- **The view is data.** The controls of each view are one Python list in `aircraft/ah64d.py`, served as `/layout`. The page draws whatever the lists contain. Adding a view later means adding a list, not new page code (unless a new control type is needed).
+- **The view is data.** The controls of each view are one Python list in `aircraft/ah64d.py`, served as `/layout`. The page draws whatever the lists contain. Adding a view later means adding a list, not new page code (unless a new control type is needed). The panel pages of the COCKPIT tab are written by the panel kit (`aircraft/panel_kit.py`): the aircraft file names a part and its centre, the kit gives it its standard size, places the labels, adds the plate and screws, and writes the page data ([COCKPIT_FIXES.md](COCKPIT_FIXES.md)).
 - **Seat placeholder.** Ids in a view may contain `{seat}`. `/layout` serves them unexpanded and the page sends them unexpanded; the bridge expands them from the current seat (`PLT_` or `CPG_`) before it reads or sends.
 - **Only listed controls.** `/command` accepts only controls and positions from the view lists, refuses greyed positions, refuses the push button while its cover is closed, refuses commands of a view outside its seats (for example the POWER page controls of the pilot in the CP/G seat), and refuses displays (display only). Each refusal returns an error message the page shows briefly.
 - **Local network only, no login** (as in SPEC.md). The server listens on `[dashboard] host` and `port` from `config.toml` (default `0.0.0.0:8080`).
@@ -234,10 +234,12 @@ The rolling log gets the start, every command with its result (source `dash`), e
 ## Files
 
 ```
-dashboard.py        new: DCS-BIOS thread, web server, command handling, guard window
-aircraft/ah64d.py   new: the AH-64D data: views, panel pages, controls, labels, positions
-web/index.html      new: the page; HTML, CSS and JavaScript in one file
-README.md           + "Run the dashboard"
+dashboard.py              new: DCS-BIOS thread, web server, command handling, guard window
+aircraft/ah64d.py         new: the AH-64D data: views, panel pages, controls, labels, positions
+aircraft/panel_kit.py     new: the layout compiler of the panel pages: parts, plates, ears, screws, labels, checks
+web/index.html            new: the page; HTML, CSS and JavaScript in one file
+tools/check_panels.js     new: the layout checker of the panel pages, run in the browser console
+README.md                 + "Run the dashboard"
 web/apple-touch-icon.png  home screen icon
 start_dashboard.bat       starts dashboard.py
 ```
@@ -252,7 +254,7 @@ Preparation: Stage 2 setup, DCS in windowed or borderless mode. PC and tablet on
 
 1. Start `python dashboard.py`. It prints the address to open, for example `http://<PC address>:8080`.
 2. Open the address on the iPad, add it to the home screen for full screen.
-3. AH-64D mission, cold and dark, pilot seat, COCKPIT tab. Start up using only the tablet: on POWER MSTR IGN BATT, APU cover OPEN, APU, wait for APU ON, ENG 1 START, ENG 1 power lever IDLE, ENG 2 START, ENG 2 power lever IDLE, both power levers FLY; on CENTER PARK BRAKE IN; on TAIL WHEEL / NVS TAIL WHEEL once. The test run of every page is in [COCKPIT.md](COCKPIT.md#test-run-for-the-guarded-controls).
+3. AH-64D mission, cold and dark, pilot seat, COCKPIT tab. Start up using only the tablet: on POWER MSTR IGN BATT, APU cover OPEN, APU, wait for APU ON, ENG 1 START, ENG 1 power lever IDLE, ENG 2 START, ENG 2 power lever IDLE, both power levers FLY; on CENTER PARK BRAKE IN; on TAIL WHEEL / NVS TAIL WHEEL once. The test run of every page is in [COCKPIT.md](COCKPIT.md#test-run).
 4. Move a few switches in the cockpit with the mouse and check the tablet follows.
 5. Switch to the CP/G seat while on a pilot-only page (for example CMWS): the page goes to the CP/G COCKPIT map, which has no CMWS, CENTER or EXT LT page.
 6. Keep the log.
@@ -278,7 +280,7 @@ Tested on Windows with an iPad Air. A cold start to both power levers at FLY wor
 
 ### COCKPIT tab
 
-Built and checked only against a fake DCS-BIOS in a browser (both seats). Not tested in DCS yet.
+Built and checked only against a fake DCS-BIOS in a browser (both seats, 1180 × 820 and 1024 × 768, layout checker report empty). Not tested in DCS yet.
 
 ### Fight view
 
@@ -300,6 +302,7 @@ Each step is verified before the next one starts.
 10. Startup and Flight views on a shared fixed grid, lit TAIL WHEEL button, symbology, monocle. Check: against the fake DCS-BIOS in both seats and in a browser (power levers and TAIL WHEEL at identical positions on both tabs). The Startup view was removed in step 12.
 11. Controls display: export script positions, export reader in dashboard.py, display on FLIGHT. Check: with a scratch export sender (values, stale state, busy port).
 12. COCKPIT tab with the cockpit map, the panel pages and the guarded controls; the Startup view removed. Steps and checks: [COCKPIT.md](COCKPIT.md#build-steps).
+13. Fix round after the first tablet test: the panel kit and its layout checker, one scale for all pages, the switch chooser, pop-ups at the control, real covers, a tap on a guarded control instead of the hold. Steps and checks: [COCKPIT_FIXES.md](COCKPIT_FIXES.md#12-build-steps).
 
 ## Open points
 
