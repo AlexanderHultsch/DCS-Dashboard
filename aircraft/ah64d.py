@@ -80,10 +80,10 @@ def tedac_controls() -> list[dict]:
         for name, label in (("FLIR_LEV", "LEV"), ("FLIR_GAIN", "GAIN"))
     ]
     controls += [
-        {"id": f"CPG_TEDAC_{name}", "label": label, "type": "hat", "ud": f"CPG_TEDAC_{name}", "hold": MPD_BUTTON_HOLD, "positions": {"up": "\u25b2", "down": "\u25bc"}, "side": "T", "seats": [1], "slot": name}
+        {"id": f"CPG_TEDAC_{name}", "label": label, "type": "hat", "ud": f"CPG_TEDAC_{name}", "hold": MPD_BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}, "side": "T", "seats": [1], "slot": name}
         for name, label in (("RF", "R/F"), ("EL", "EL"), ("SYM", "SYM"), ("BRT", "BRT"), ("CON", "CON"))
     ]
-    controls.append({"id": "CPG_TEDAC_AZ", "label": "AZ", "type": "hat", "lr": "CPG_TEDAC_AZ", "hold": MPD_BUTTON_HOLD, "positions": {"left": "\u25c0", "right": "\u25b6"}, "side": "T", "seats": [1], "slot": "AZ"})
+    controls.append({"id": "CPG_TEDAC_AZ", "label": "AZ", "type": "hat", "lr": "CPG_TEDAC_AZ", "hold": MPD_BUTTON_HOLD, "positions": {"left": "tri-left", "right": "tri-right"}, "side": "T", "seats": [1], "slot": "AZ"})
     return controls
 
 
@@ -405,7 +405,7 @@ def armament_pages() -> list[dict]:
 
 
 def eufd_rocker(name: str, at: list) -> dict:
-    return {"id": f"{{seat}}_EUFD_{name}", "label": name, "type": "hat", "ud": f"{{seat}}_EUFD_{name}", "hold": MPD_BUTTON_HOLD, "positions": {"up": "▲", "down": "▼"}, "at": at}
+    return {"id": f"{{seat}}_EUFD_{name}", "label": name, "type": "hat", "ud": f"{{seat}}_EUFD_{name}", "hold": MPD_BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}, "at": at}
 
 
 def eufd_button(name: str, label: str, at: list) -> dict:

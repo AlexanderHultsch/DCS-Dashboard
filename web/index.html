@@ -38,6 +38,8 @@ nav { display: flex; gap: 8px; flex: 1; }
   background: #26292c; border: 1px solid #555; border-radius: 6px; font-size: 16px;
 }
 .tab.active { background: #f2f2f2; color: #111; border-color: #f2f2f2; }
+.icon { width: 1em; height: 1em; vertical-align: middle; pointer-events: none; }
+.icon.chev { width: 0.55em; height: 1.1em; margin-right: 0.35em; vertical-align: -0.19em; }
 .badge { padding: 14px 18px; border: 2px solid; border-radius: 6px; font-size: 16px; white-space: nowrap; }
 .badge.ok { color: #43a047; border-color: #43a047; }
 .badge.ro { color: #ffb300; border-color: #ffb300; }
@@ -575,7 +577,7 @@ body.settings-open #gear { display: none; }
   <div class="khead">
     <span class="ktitle" id="ktitle"></span>
     <span class="kpct" id="kpct"></span>
-    <button id="kclose" type="button" aria-label="Close">&#x2715;</button>
+    <button id="kclose" type="button" aria-label="Close"></button>
   </div>
   <div class="ktrack" id="ktrack"><div class="krail"></div><div class="khandle" id="khandle"></div></div>
   <div class="kstops" id="kstops"></div>
@@ -627,6 +629,15 @@ const LAYOUT_CLASS = { panel: 'plate' };
 const PADLOCK = '<span class="glock"><svg viewBox="0 0 24 24" fill-rule="evenodd" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V11a1 1 0 0 0-1-1h-1V7a5 5 0 0 0-5-5zM9 10V7a3 3 0 0 1 6 0v3z"/></svg></span>';
 const RING_SQUARE = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="-3" y="-3" width="106" height="106" rx="8" pathLength="100"/></svg>';
 const RING_ROUND = '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" pathLength="100"/></svg>';
+const ICON_STROKE = ' fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
+const ICONS = {
+  'chev-left': '<svg class="icon chev" viewBox="0 0 10 20" aria-hidden="true"><path d="M7.5 2L2.5 10L7.5 18"' + ICON_STROKE + '/></svg>',
+  close: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5L19 19M19 5L5 19"' + ICON_STROKE + '/></svg>',
+  'tri-up': '<svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="15,86 50,16 85,86" fill="currentColor"/></svg>',
+  'tri-down': '<svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="15,18 50,88 85,18" fill="currentColor"/></svg>',
+  'tri-left': '<svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="86,15 16,50 86,85" fill="currentColor"/></svg>',
+  'tri-right': '<svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="14,15 84,50 14,85" fill="currentColor"/></svg>',
+};
 const CUR_MIN = 160;
 const MPD_BOX = { x: 470, y: 25, w: 1060, h: 1065 };
 const MPD_SCREEN = { x: 605, y: 165, w: 790, h: 787 };
@@ -711,6 +722,15 @@ function make(tag, cls, text) {
   if (cls) e.className = cls;
   if (text !== undefined) e.textContent = text;
   return e;
+}
+
+function setLabel(el, text, name) {
+  if (ICONS[text]) {
+    el.innerHTML = ICONS[text];
+    el.setAttribute('aria-label', name);
+  } else {
+    el.textContent = text;
+  }
 }
 
 function sleep(ms) {
@@ -970,7 +990,8 @@ function buildHat(def) {
     } else if (dir === 'hub') {
       cross.append(make('div', 'hub', '•'));
     } else {
-      const btn = make('button', 'pos', def.positions[dir]);
+      const btn = make('button', 'pos');
+      setLabel(btn, def.positions[dir], def.label + ' ' + dir);
       btn.type = 'button';
       btn.addEventListener('click', () => {
         if (!can(c) || c.busy) return;
@@ -1379,7 +1400,9 @@ function initBar() {
   });
   track.addEventListener('pointerup', endDrag);
   track.addEventListener('pointercancel', endDrag);
-  document.getElementById('kclose').addEventListener('click', closeBar);
+  const kclose = document.getElementById('kclose');
+  kclose.innerHTML = ICONS.close;
+  kclose.addEventListener('click', closeBar);
   document.getElementById('kscrim').addEventListener('click', closeBar);
 }
 
@@ -1390,7 +1413,8 @@ function buildRocker(def, cls) {
   const el = make('div', (plate ? cls : 'mkey fix') + ' rocker ' + (vertical ? 'v' : 'h'));
   const c = { def, el, busy: false, pending: null, vertical, halves: [], dirs };
   dirs.forEach((dir, i) => {
-    const half = make('button', 'rhalf ' + 'ab'[i], def.positions[dir]);
+    const half = make('button', 'rhalf ' + 'ab'[i]);
+    setLabel(half, def.positions[dir], def.label + ' ' + dir);
     half.type = 'button';
     half.addEventListener('click', () => {
       if (!can(c) || c.busy) return;
@@ -2498,7 +2522,8 @@ function updateTabs() {
   tabs.forEach(({ el, index }) => {
     const home = views[index].layout === 'map' && !!view.panel;
     el.classList.toggle('active', index === activeIndex || home);
-    el.textContent = (home ? '\u25c0 ' : '') + views[index].name.toUpperCase();
+    el.textContent = views[index].name.toUpperCase();
+    if (home) el.insertAdjacentHTML('afterbegin', ICONS['chev-left']);
   });
 }
 
