@@ -150,16 +150,16 @@ Controls are placed with `at`, so the page is a 1:1 drawing of the panel with in
 A guarded control can end the flight or cannot be undone in the mission: shut off an engine or the APU (the FIRE buttons stop the fuel flow), discharge an extinguisher bottle (primary and reserve), drop stores (JETT), wipe the radio and crypto data (zeroize), jettison the countermeasure flares. All of them are on the tablet, only on their own panel page (never on FLIGHT or FIGHT), and need two deliberate steps.
 
 1. **Lift the cover.** The control is covered by a red and white hazard-striped frame with a padlock. The middle of the frame is clear, so the lamps and the control underneath stay visible. Tap the cover to lift it. It closes again after 5 seconds, or after the press. Only one cover can be open at a time.
-2. **Press and hold for 1 second.** The button shows a ring filling up. Letting go early cancels; nothing is sent.
+2. **Tap the control.** One tap on the button, or on the position of a guarded switch, sends the command and the cover closes.
 
 The bridge enforces it, so a second tab, a bug in the page or a stale tab cannot bypass it:
 
 - Opening a cover sends `{"id": ..., "guard": "open"}`. The bridge opens a 5 second window for that id only.
 - A command for a guarded id is accepted only inside its window, and the window is used up by the press. Otherwise the answer is `refused: guard closed`.
-- Every guard event goes into the log: `guard open`, `pressed`, `refused: guard closed`.
+- Every guard event goes into the log: `guard open`, `pressed`, `refused: guard closed`, and for the parts with a real cover `cover open`, `cover closed` and `refused: cover did not open`.
 - The press itself uses the existing confirmed press: the bridge holds until DCS-BIOS shows the button, and the page shows the amber not-confirmed hint if it did not arrive.
 
-Where the real cockpit has a cover (FIRE ENG 1, APU and ENG 2, master zeroize, CMWS flare jettison), DCS-BIOS has a cover control (`{S}_FIRE_ENG1_CVR`, `_APU_CVR`, `_ENG2_CVR`, `{S}_INST_MZERO_CVR`, `PLT_CMWS_JETT_CVR`). The first version uses the tablet's own cover for all guarded controls. Whether DCS needs its real cover open for the button to react is checked in the test run (see open points), and if so the tablet cover also opens and closes the real one.
+Where the real cockpit has a cover (FIRE ENG 1, APU and ENG 2, master zeroize, CMWS flare jettison), DCS-BIOS has a cover control (`{S}_FIRE_ENG1_CVR`, `_APU_CVR`, `_ENG2_CVR`, `{S}_INST_MZERO_CVR`, `PLT_CMWS_JETT_CVR`). DCS does not react to the button while its own cover is closed (the first test: ENG 1 FIRE and CMWS JETT were sent but not confirmed). So these controls carry a `cover` property with that id, and the bridge opens and closes DCS's own cover for them. Lifting the tablet cover sets the real cover to 1 and waits up to 0.5 seconds for the DCS-BIOS readback; if it does not open, the answer is `refused: cover did not open` and the tablet cover stays shut. The bridge closes the real cover again about 1 second after the command was accepted, when the 5 second window runs out unused, or at once when another guarded control is lifted. PRI, RES, JETT and ZEROIZE have no cover in DCS-BIOS and only use the tablet cover.
 
 The guarded switches ZEROIZE, MASTER ZEROIZE and CMWS JETT list ON on top and OFF at the bottom.
 
@@ -361,14 +361,14 @@ Each step ends with a test run in DCS by the user (open).
 These controls were never sent before (they were skipped in Stage 2), so nothing is known about how DCS reacts. Use a throwaway mission, cold and dark, and do these last, because several cannot be undone in the mission:
 
 1. Station selects: each lights its lamp and toggles back.
-2. ENG 1 FIRE, APU FIRE, ENG 2 FIRE: press once (RDY lamp on, fuel off), press again (safe). Do it once with the real cover closed and once open, to find out whether DCS needs the real cover.
+2. ENG 1 FIRE, APU FIRE, ENG 2 FIRE: lift the cover, tap once (RDY lamp on, fuel off), lift the cover again and tap again (safe). The log shows `cover open`, `pressed` and about 1 second later `cover closed`, and `pressed` is not followed by `not confirmed`.
 3. PRI and RES discharge, with a fire button armed.
 4. JETT with a station armed.
-5. ZEROIZE, MASTER ZEROIZE, CMWS JETT, with and without the real cover.
+5. ZEROIZE, MASTER ZEROIZE, CMWS JETT: MASTER ZEROIZE and CMWS JETT open and close their real cover with the tablet cover.
 
 ## Open points
 
-- Does DCS need the real cover open for the fire, zeroize and CMWS jettison buttons? Still to be tested. Decides whether the tablet cover also moves the real one (test run, step 2 and 5).
+- Are the fire buttons confirmed by their own readback once the real cover is open? Still to be tested in DCS (test run, step 2). If ENG 1 is still `not confirmed` with the cover open, the confirmation uses the RDY lamp (`{S}_ENG_1_READY_L`) instead of the button.
 - The CP/G power lever keys (`RAlt` / `RShift` with `Home` and so on) are only tested in the pilot seat.
 - Lamp colours of the DISCH lights (manual does not say; check in DCS).
 - The master zeroize switch has no photo; MASTER ZEROIZE is a plain placard. The CP/G COMM and WIPER / DEFOG pages use the same drawings as the pilot's COMM and CENTER pages. The photos used for drawing the pages are kept outside the repo.

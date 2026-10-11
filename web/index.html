@@ -429,8 +429,8 @@ body.ro .pbox { opacity: 0.6; }
 .gring { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: none; pointer-events: none; z-index: 2; }
 .gring.fill { display: block; }
 .gring svg { width: 100%; height: 100%; overflow: visible; }
-.gring rect, .gring circle { fill: none; stroke: #ffb300; stroke-width: 6; stroke-dasharray: 100; stroke-dashoffset: 100; }
-.gring.fill rect, .gring.fill circle { animation: gfill var(--hold) linear forwards; }
+.gring circle { fill: none; stroke: #ffb300; stroke-width: 6; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.gring.fill circle { animation: gfill var(--hold) linear forwards; }
 @keyframes gfill { to { stroke-dashoffset: 0; } }
 
 #pages {
@@ -618,7 +618,6 @@ const KNOB_TOL = 700;
 const TOUCH_MIN = 56;
 const GEAR_CLEAR = 44;
 const GUARD_MS = 5000;
-const HOLD_MS = 1000;
 const PULL_HOLD_MS = 600;
 const LIST_HOLD_MS = 500;
 const PRINT_SIZE = 25;
@@ -627,7 +626,6 @@ const INDICATOR_FILL = ['#2b251c', '#8a4b10', '#ff9a1f'];
 const MONO_FONT = '"Courier New", Consolas, monospace';
 const LAYOUT_CLASS = { panel: 'plate' };
 const PADLOCK = '<span class="glock"><svg viewBox="0 0 24 24" fill-rule="evenodd" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v3H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V11a1 1 0 0 0-1-1h-1V7a5 5 0 0 0-5-5zM9 10V7a3 3 0 0 1 6 0v3z"/></svg></span>';
-const RING_SQUARE = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="-3" y="-3" width="106" height="106" rx="8" pathLength="100"/></svg>';
 const RING_ROUND = '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" pathLength="100"/></svg>';
 const ICON_STROKE = ' fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
 const ICONS = {
@@ -1469,7 +1467,6 @@ function closeGuard() {
   const { c, timer } = lifted;
   clearTimeout(timer);
   lifted = null;
-  c.stops.forEach((stop) => stop());
   c.cover.classList.remove('open');
 }
 
@@ -1479,7 +1476,7 @@ function openGuard(c) {
   c.cover.classList.add('open');
 }
 
-function addGuard(c, items, round) {
+function addGuard(c, items) {
   const cover = make('button', 'gcover');
   cover.type = 'button';
   cover.setAttribute('aria-label', 'Lift cover');
@@ -1490,31 +1487,13 @@ function addGuard(c, items, round) {
     if (await run(c, { id: c.def.id, guard: 'open' }, null)) openGuard(c);
   });
   c.cover = cover;
-  c.stops = [];
   c.el.append(cover);
   items.forEach(({ el, ready, fire }) => {
-    const ring = make('span', 'gring');
-    ring.innerHTML = round ? RING_ROUND : RING_SQUARE;
-    ring.style.setProperty('--hold', HOLD_MS + 'ms');
-    el.append(ring);
-    let timer = null;
-    const stop = () => {
-      clearTimeout(timer);
-      timer = null;
-      ring.classList.remove('fill');
-    };
-    c.stops.push(stop);
-    el.addEventListener('pointerdown', (e) => {
-      if (timer || !lifted || lifted.c !== c || !can(c) || c.busy || !ready()) return;
-      try { el.releasePointerCapture(e.pointerId); } catch (err) { /* not captured */ }
-      ring.classList.add('fill');
-      timer = setTimeout(() => {
-        stop();
-        closeGuard();
-        fire();
-      }, HOLD_MS);
+    el.addEventListener('click', () => {
+      if (!lifted || lifted.c !== c || !can(c) || c.busy || !ready()) return;
+      closeGuard();
+      fire();
     });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach((type) => el.addEventListener(type, stop));
   });
 }
 
@@ -1538,7 +1517,7 @@ function buildPlateButton(def) {
   };
   c.touchAt = ([x, y, w, h]) => [{ el: btn, cx: x + w / 2, cy: y + h / 2, w, h }];
   if (def.guard) {
-    addGuard(c, [{ el: btn, ready: () => true, fire: () => run(c, { id: def.id }, null) }], round);
+    addGuard(c, [{ el: btn, ready: () => true, fire: () => run(c, { id: def.id }, null) }]);
     if (round) c.cover.classList.add('round');
   }
   return c;
@@ -1638,7 +1617,7 @@ function buildPlateSwitch(def) {
     const len = edges[i][1] - edges[i][0];
     return horiz ? { el, cx: mid, cy: y + th / 2, w: len, h: th } : { el, cx: x + tw / 2, cy: mid, w: tw, h: len };
   });
-  if (def.guard) addGuard(c, items, true);
+  if (def.guard) addGuard(c, items);
   return c;
 }
 

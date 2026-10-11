@@ -278,7 +278,7 @@ def light_pages() -> list[dict]:
 
 def fire_button(label: str, name: str, lamp: str, at: list) -> dict:
     return {
-        "id": f"{{seat}}_FIRE_{name}_BTN", "label": label, "type": "button", "guard": True, "hold": MPD_BUTTON_HOLD,
+        "id": f"{{seat}}_FIRE_{name}_BTN", "label": label, "type": "button", "guard": True, "cover": f"{{seat}}_FIRE_{name}_CVR", "hold": MPD_BUTTON_HOLD,
         "lamps": [
             {"id": f"{{seat}}_{lamp}_FIRE_L", "color": "amber", "legend": "FIRE"},
             {"id": f"{{seat}}_{lamp}_READY_L", "color": "green", "legend": "RDY"},
@@ -363,7 +363,7 @@ def armament_pages() -> list[dict]:
             "at": [81, 63, 60, 60],
         },
         {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_GROUND_OVERRIDE_L", "color": "amber", "at": [175.5, 63, 60, 60]},
-        {"id": "{seat}_INST_MZERO_SW", "label": "MASTER ZEROIZE", "type": "selector", "guard": True, "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}], "at": [376, 74, 60, 76]},
+        {"id": "{seat}_INST_MZERO_SW", "label": "MASTER ZEROIZE", "type": "selector", "guard": True, "cover": "{seat}_INST_MZERO_CVR", "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}], "at": [376, 74, 60, 76]},
     ]
     placard = [
         ["ARMAMENT", 156.4, 25.5, 20, 111], ["A/S", 111.5, 53, 16, 34], ["GND ORIDE", 203, 53.2, 16, 91], ["+", 158.7, 130.5, 11],
@@ -487,7 +487,7 @@ def threat_dial_art() -> list[dict]:
 def cmws_toggle(name: str, label: str, top: str, bottom: str, x: float, guard: bool = False) -> dict:
     return {
         "id": f"PLT_CMWS_{name}", "label": label, "type": "selector", "positions": [{"value": 1, "label": top}, {"value": 0, "label": bottom}],
-        "at": [x - 33, 344, 66, 96], **({"guard": True} if guard else {}),
+        "at": [x - 33, 344, 66, 96], **({"guard": True, "cover": f"PLT_CMWS_{name}_CVR"} if guard else {}),
     }
 
 

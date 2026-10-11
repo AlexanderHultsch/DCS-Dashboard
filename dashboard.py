@@ -19,6 +19,8 @@ PRESS_MAX = 1.0
 CONFIRM_WAIT = 0.5
 CONFIRM_POLL = 0.02
 GUARD_WINDOW = 5.0
+COVER_CLOSE_DELAY = 1.0
+COVER_POLL = 0.05
 
 MPD_SEPARATOR = "-" * 41
 MPD_BUTTON = re.compile(r"^PB(\d+)_(?:bold_)?(\d+)$")
@@ -51,6 +53,7 @@ stick_last = {}
 trim = {}
 trim_switch = {}
 guard_open = {}
+real_cover = {}
 cmd_sock = None
 
 
@@ -98,6 +101,8 @@ def read_names() -> list[str]:
                 names += expand_all(control["lamp"])
             for lamp in control.get("lamps", []):
                 names += expand_all(lamp["id"])
+            if "cover" in control:
+                names += expand_all(control["cover"])
             if "requires" in control:
                 names += expand_all(control["requires"]["id"])
     return list(dict.fromkeys(names))
@@ -404,6 +409,37 @@ def hold_until(name: str, level, hold: float, limit: float) -> bool:
         time.sleep(CONFIRM_POLL)
 
 
+def open_real_cover(name: str) -> bool:
+    with command_lock:
+        send(name, 1)
+        opened = hold_until(name, 1, 0, CONFIRM_WAIT)
+        if not opened:
+            send(name, 0)
+    if opened:
+        with lock:
+            real_cover[name] = time.monotonic() + GUARD_WINDOW
+        log.line("dash", name, "cover open")
+    return opened
+
+
+def close_real_cover(due_only: bool = False) -> None:
+    now = time.monotonic()
+    with lock:
+        names = [name for name, close_at in real_cover.items() if not due_only or now >= close_at]
+        for name in names:
+            del real_cover[name]
+    for name in names:
+        with command_lock:
+            send(name, 0)
+        log.line("dash", name, "cover closed")
+
+
+def cover_watcher() -> None:
+    while True:
+        time.sleep(COVER_POLL)
+        close_real_cover(True)
+
+
 def command(body: dict) -> tuple[bool, str, bool | None]:
     identifier = body.get("id")
     value = body.get("value", "")
@@ -430,6 +466,10 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
             return False, "not guarded", None
         with lock:
             guard_open.clear()
+        close_real_cover()
+        if "cover" in control and not open_real_cover(expand(control["cover"], seat)):
+            return False, "cover did not open", None
+        with lock:
             guard_open[identifier] = time.monotonic()
         log.line("dash", expand(identifier, seat), "guard open")
         return True, "", None
@@ -438,6 +478,9 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
             opened = guard_open.pop(identifier, None)
         if opened is None or time.monotonic() - opened > GUARD_WINDOW:
             return False, "guard closed", None
+        with lock:
+            for cover in real_cover:
+                real_cover[cover] = time.monotonic() + COVER_CLOSE_DELAY
     name = expand(identifier, seat)
     if control["type"] in ("display", "controls"):
         return False, "display only", None
@@ -645,6 +688,7 @@ def main() -> None:
     if export_sock:
         threading.Thread(target=export_reader, args=(export_sock,), daemon=True).start()
     threading.Thread(target=trim_reset_watcher, daemon=True).start()
+    threading.Thread(target=cover_watcher, daemon=True).start()
     log.line("bridge", "start", f"dashboard on port {port}, DCS-BIOS {group}:{export_port}, commands to port {command_port}")
     print(f"Open http://{lan_ip()}:{port} on the tablet")
     try:
