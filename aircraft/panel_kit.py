@@ -2,7 +2,8 @@
 
 Every size is in design units (du) and defined once, below. A page makes one Panel (plate width and height in
 du, even numbers), places parts by their centre on the 1 du grid and attaches labels to them; it never gives a
-size, except for a display (a glass screen with live text), whose size the content decides. The plate brings four identical corner ears with a SCREW_L in the centre of each. Further screws are
+size, except for a display (a glass screen with live text), whose size the content decides, and the travel of the
+power levers (within limits). The plate brings four identical corner ears with a SCREW_L in the centre of each. Further screws are
 placed only by naming an x line and a y line from the line table:
 
     x lines: L R (plate edges), CX (middle), SL SR (corner screws), NAME.cx (every placed part)
@@ -10,8 +11,9 @@ placed only by naming an x line and a y line from the line table:
 
 Panel.build() checks the layout (LayoutError on a collision) and returns the page data in the format
 web/index.html draws: box [w, h], controls (the given control data plus "at", "kit" and, for a guarded part,
-"cover_at"; a dual-function knob also "mark" and "dot"; a rotary also "knob"), indicators (the lamps and letters
-of a dial), print ([text, x, y, size, width] or with a rotation) and art.
+"cover_at"; a dual-function knob also "mark" and "dot"; a rotary also "knob"; a power lever or the slider also
+"handle", a lever the "y" of every position; the flap of a button is a control of its own), indicators (the lamps and
+letters of a dial), print ([text, x, y, size, width] or with a rotation) and art.
 A page with several physical panels is a PanelGroup: one Panel per plate at a page offset, 16 du apart.
 
     p = Panel("EMERGENCY", 580, 276)
@@ -46,8 +48,10 @@ PARTS = {
     "ROCKER": {"w": 52, "h": 120},
     "CHIP": {"w": 64, "h": 22},
     "DIAL": {"w": 112, "h": 112},
-    "SLIDER": {"w": 40, "h": 200},
-    "LEVER": {"w": 40, "h": 200},
+    # w / h: the grip of a power lever and of the slider; it slides in a slot (the grip plus SLOT pad on every side)
+    "LEVER": {"w": 40, "h": 40},
+    # w / h: the slot of the slider; its grip is a LEVER grip
+    "SLIDER": {"w": 56, "h": 240},
     # selector dot of a dual-function knob; touch: square beside the knob (clear: its distance to the knob),
     # pitch: centre distance of two marks, gap: dot centre to the knob edge
     "MARK": {"w": 10, "h": 10, "touch": 56, "clear": 6, "pitch": 64, "gap": 14},
@@ -55,6 +59,12 @@ PARTS = {
 KNOBS = ("KNOB_L", "KNOB_M", "KNOB_S")
 # DISPLAY has no size here: the page gives it; inset: glass border and padding between the glass and its text
 DISPLAY = {"inset": 6, "border": 3}
+# slot of a lever or the slider: pad around the grip, border, tick beside a lever mark; reach: how far the touch area of the
+# levers goes past the end marks; travel: limits of the page's choice of the grip travel from LOCKOUT to OFF;
+# arrow: width of the arrow heads in the slider legend
+SLOT = {"pad": 8, "border": 3, "tick": 8, "reach": 44, "travel": (360, 440), "arrow": 16}
+# the plain cover of a button (a hinged flap, not a guard cover): the button plus this margin on every side
+FLAP = {"margin": 8}
 GUARD_COVER = {"margin": 12, "frame": 14, "lock": 24}
 HAZARD_PAD = {"margin": 20, "period": 34, "border": 2}
 # dark housing around a part (and its cover); hazard strip: fixed width, as tall as the housing less the inset
@@ -76,7 +86,11 @@ TOGGLE_LABELS = {
     "above_below": (("above", 0), ("below", 0)),
     "left_right": (("left", 0), None, ("right", 0)),
     "right_pair": (("right", 0, -24), ("right", 0, 24)),
+    "right_triple": (("right", 0, -28), ("right", 0, 0), ("right", 0, 28)),
 }
+# position labels of a rotary, each (circle radius, two words on two lines): ticks: level with the end of the tick;
+# fan: on a wider circle so that the labels stay clear of each other
+ROTARY_LABELS = {"ticks": (PARTS["ROTARY"]["tick"][1], False), "fan": (78, True)}
 # printed scale marks of a knob, one (side, along) per mark; along is a fraction of the knob half size (down or right is positive)
 KNOB_LABELS = {
     "lower_sides": (("left", 0.7), ("right", 0.7)),
@@ -168,7 +182,7 @@ class Panel:
         part = {
             "name": name, "kind": kind, "cx": cx, "cy": cy, "control": control, "kit": {"part": kind},
             "body": body, "outer": body, "inner": body, "touch": body, "cover": None, "pad": None, "housing": None, "round": False,
-            "art": [], "edges": {}, "members": [control], "marks": [], "knob": None,
+            "art": [], "edges": {}, "members": [control], "marks": [], "knob": None, "extras": [],
         }
         if control.get("guard"):
             part["cover"] = part["outer"] = part["inner"] = grow(body, GUARD_COVER["margin"])
@@ -178,8 +192,9 @@ class Panel:
         self.ys[name + ".cy"] = cy
         return part
 
-    def push(self, name: str, cx: int, cy: int, control: dict, frame: bool = False) -> dict:
-        """Square pushbutton (bezel and face, optional lamp legend), with the white frame centred on it."""
+    def push(self, name: str, cx: int, cy: int, control: dict, frame: bool = False, flap: dict | None = None) -> dict:
+        """Square pushbutton (bezel and face, optional lamp legend), with the white frame centred on it. A flap is the control
+        of a plain hinged cover: the button plus the FLAP margin on every side, centred on the button."""
         spec = PARTS["PUSH"]
         part = self._part(name, "PUSH", cx, cy, control)
         part["kit"].update(face=spec["face"], legend_size=spec["legend"])
@@ -193,6 +208,9 @@ class Panel:
                 part["cover"] = part["outer"] = part["inner"] = grow(part["outer"], GUARD_COVER["margin"])
             stroke = spec["frame_stroke"]
             part["art"].append({"shape": "outline", "at": xywh(grow(box, -stroke / 2)), "stroke": stroke, "for": control["id"]})
+        if flap:
+            part["outer"] = part["inner"] = grow(part["outer"], FLAP["margin"])
+            part["extras"].append((flap, part["outer"]))
         return part
 
     def plunger(self, name: str, cx: int, cy: int, control: dict) -> dict:
@@ -243,22 +261,24 @@ class Panel:
         part["art"] += [{"shape": "bracket", "at": xywh(part["body"])}, legend(control["label"], "POS", cx, cy)]
         return part
 
-    def rotary(self, name: str, cx: int, cy: int, control: dict, turned: tuple = ()) -> dict:
+    def rotary(self, name: str, cx: int, cy: int, control: dict, turned: tuple = (), labels: str = "ticks") -> dict:
         """Rotary selector: a dark knob inside a ring of ticks, one tick per position angle. The position labels sit outside
-        the ring on the side the angle points to, level with the end of their tick; the texts in turned are rotated."""
+        the ring on the side the angle points to, placed by the ROTARY_LABELS preset; the texts in turned are rotated."""
         spec = PARTS["ROTARY"]
         part = self._part(name, "ROTARY", cx, cy, control)
         part["knob"] = [cx, cy, spec["knob"] // 2]
         inner, outer = spec["tick"]
+        reach, split = ROTARY_LABELS[labels]
         for position in control["positions"]:
             angle = math.radians(position["angle"])
             dx, dy = math.sin(angle), -math.cos(angle)
             part["art"].append({"shape": "line", "at": [round(cx + inner * dx, 1), round(cy + inner * dy, 1), round((outer - inner) * dx, 1), round((outer - inner) * dy, 1)]})
             if abs(dx) >= abs(dy):
-                side, along = ("right" if dx > 0 else "left"), round(outer * dy)
+                side, along = ("right" if dx > 0 else "left"), round(reach * dy)
             else:
-                side, along = ("below" if dy > 0 else "above"), round(outer * dx)
-            self.label(position["label"], "POS", name, side, 90 if position["label"] in turned else 0, along)
+                side, along = ("below" if dy > 0 else "above"), round(reach * dx)
+            text = position["label"].replace(" ", "\n") if split else position["label"]
+            self.label(text, "POS", name, side, 90 if position["label"] in turned else 0, along)
         return part
 
     def display(self, name: str, cx: int, cy: int, w: int, h: int, control: dict) -> dict:
@@ -322,6 +342,61 @@ class Panel:
         half = PARTS[part["kind"]]["w"] // 2
         for text, (side, along) in zip(texts, spots):
             self.label(text, "POS", name, side, 0, round(along * half))
+
+    def levers(self, name: str, cx: int, cy: int, travel: int, controls: tuple, marks: tuple, names: tuple, left_marks: tuple = ()):
+        """The two power levers: one slot each, side by side with cx between them, a LEVER grip in each. The grips travel
+        travel du (the page's choice within the SLOT limits) from the top mark (the last position) to the bottom mark (the
+        first), a mark at every position at a distance that follows the position value, so the grip stands level with the
+        mark text of its position. A tick sits on the outer side of each slot at every mark, the mark texts (one per position,
+        None: not printed) right of the right slot and, if given, left of the left slot, the lever names below the slots
+        (moved apart if wider than the slots). A lever touches in one band per mark, from its slot to the end of its mark
+        texts. Parts: NAME_1 (left), NAME_2. The lever geometry is in page coordinates: use it on a Panel, not in a PanelGroup."""
+        lo, hi = SLOT["travel"]
+        positions = controls[0]["positions"]
+        if travel % 2 or not lo <= travel <= hi:
+            self.fail(f"levers {name}: travel {travel} must be even and within {lo} to {hi} du")
+        if controls[1]["positions"] != positions or len(marks) != len(positions) or (left_marks and len(left_marks) != len(positions)):
+            self.fail(f"levers {name}: both levers and all mark texts need the same positions")
+        grip, pad, tick = PARTS["LEVER"], SLOT["pad"], SLOT["tick"]
+        w, h = grip["w"] + 2 * pad, travel + grip["h"] + 2 * pad
+        top, bottom = cy - travel // 2, cy + travel // 2
+        ys = [bottom - round(travel * p["value"] / positions[-1]["value"]) for p in positions]
+        for side, (control, texts) in enumerate(zip(controls, (left_marks, marks))):
+            x = cx + (2 * side - 1) * (w // 2)
+            lever = {**control, "positions": [{**p, "y": y} for p, y in zip(positions, ys)], "handle": [x, grip["w"], grip["h"]]}
+            part = self._part(f"{name}_{side + 1}", "LEVER", x, cy, lever, (w, h))
+            x0, y0, x1, y1 = part["body"]
+            part["kit"].update(slot=xywh(grow(part["body"], -SLOT["border"] / 2)))
+            part["outer"] = (x0 - tick * (1 - side), y0, x1 + tick * side, y1)
+            part["art"] += [{"shape": "line", "at": [x1 if side else x0 - tick, y, tick, 0]} for y in ys]
+            widest = max((text_size(t, "POS", 0)[0] for t in texts if t), default=0)
+            reach = tick + (GAP + widest if widest else 0)
+            part["touch"] = (x0 - reach if side == 0 else x0, top - SLOT["reach"], x1 if side == 0 else x1 + reach, bottom + SLOT["reach"])
+            for text, y in zip(texts, ys):
+                if text:
+                    self.label(text, "POS", part["name"], "right" if side else "left", 0, y - cy)
+            self.label(names[side], "POS", part["name"], "below", 0, (2 * side - 1) * max(0, (text_size(names[side], "POS", 0)[0] - (w - GAP)) // 2))
+
+    def slider(self, name: str, cx: int, cy: int, control: dict, top: str, bottom: str, word: str) -> dict:
+        """Slider: a LEVER grip in a slot, the value from 0 at the bottom to the maximum at the top. The legend sits right of the
+        slot in one centred column, GAP du between its items: the top text level with the top of the slot, an arrow up, the
+        word spelled downwards, an arrow down and the bottom text level with the bottom of the slot."""
+        spec, grip = PARTS["SLIDER"], PARTS["LEVER"]
+        part = self._part(name, "SLIDER", cx, cy, {**control, "handle": [cx, grip["w"], grip["h"]]})
+        x0, y0, x1, y1 = part["body"]
+        reach = SLOT["pad"] + grip["h"] / 2
+        part["kit"].update(slot=xywh(grow(part["body"], -SLOT["border"] / 2)), track=[num(y0 + reach), num(y1 - reach)])
+        letters = "\n".join(word)
+        (tw, th), (lw, lh), (bw, bh) = (text_size(t, "POS", 0) for t in (top, letters, bottom))
+        mid = x1 + GAP + max(tw, lw, bw) / 2
+        arrow = (spec["h"] - th - bh - lh - 4 * GAP) / 2
+        self._add_label(top, "POS", centred(mid, y0 + th / 2, tw, th), 0)
+        self._add_label(letters, "POS", centred(mid, cy, lw, lh), 0)
+        self._add_label(bottom, "POS", centred(mid, y1 - bh / 2, bw, bh), 0)
+        head = SLOT["arrow"]
+        part["art"].append({"shape": "arrow", "at": [num(mid - head / 2), num(y0 + th + GAP), head, num(arrow)], "up": True})
+        part["art"].append({"shape": "arrow", "at": [num(mid - head / 2), num(cy + lh / 2 + GAP), head, num(arrow)]})
+        return part
 
     def hazard(self, name: str, label: str | None = None, style: str = "NAME", side: str = "right") -> dict:
         """Striped pad around a part (or its cover), the part centred in it; optionally a label on a slot inside."""
@@ -531,6 +606,7 @@ class Panel:
                     mark = p["marks"][i]
                     control["mark"], control["dot"] = xywh(mark["touch"]), [num(mark["cx"]), num(mark["cy"]), PARTS["MARK"]["w"]]
                 controls.append(control)
+            controls += [{**extra, "at": xywh(box), "kit": {"part": "FLAP"}} for extra, box in p["extras"]]
         art += [d["art"] for d in self.decor]
         printed = []
         for lab in self.labels:

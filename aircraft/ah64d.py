@@ -138,74 +138,51 @@ def emergency_pages() -> list[dict]:
     return kit_pages("EMERGENCY", {0: [3, 1, 1, 3], 1: [2, 1, 1, 3]}, p)
 
 
-def lever(name: str, label: str, side: str, marks: list, at: list, handle: list) -> dict:
-    return {
-        "id": name, "label": label, "type": "lever", "readback": f"{{seat}}_ENG_{side[0].upper()}_PW_LVR", "side": side,
-        "positions": [{**p, "y": y} for p, y in zip(POWER_POSITIONS, marks)], "handle": handle, "at": at,
-    }
+def lever(name: str, label: str, side: str) -> dict:
+    return {"id": name, "label": label, "type": "lever", "readback": f"{{seat}}_ENG_{side[0].upper()}_PW_LVR", "side": side, "positions": POWER_POSITIONS}
+
+
+def power_levers() -> tuple:
+    return lever("power_left", "PWR LVR NO 1", "left"), lever("power_right", "PWR LVR NO 2", "right")
+
+
+# printed marks of the power levers in the order of POWER_POSITIONS
+LEVER_MARKS = ("OFF", "IDLE", "FLY", "LOCK\nOUT")
+LEVER_NAMES = ("NO. 1", "NO. 2")
 
 
 def power_pages() -> list[dict]:
-    pilot_levers = [628, 497, 188, 128]
-    cpg_levers = [214, 166, 43, 20]
-    controls = [
-        {"id": "PLT_ROTOR_BRK", "label": "RTR BRK", "type": "selector", "positions": [{"value": 2, "label": "OFF", "y": 99}, {"value": 1, "label": "BRK", "disabled": True, "y": 128}, {"value": 0, "label": "LOCK", "y": 160}], "at": [128, 60, 64, 136]},
-        {
-            "id": "PLT_MASTER_IGN_SW", "label": "MSTR IGN", "type": "selector", "style": "rotary", "knob": [160, 274, 72],
-            "positions": [{"value": 0, "label": "OFF", "angle": 66, "y": 235}, {"value": 1, "label": "BATT", "angle": 90, "y": 272}, {"value": 2, "label": "EXT PWR", "disabled": True, "angle": 118, "y": 345}],
-            "at": [70, 196, 235, 160],
-        },
-        {"id": "PLT_APU_BTN", "label": "APU", "type": "button", "hold": 0.3, "requires": {"id": "PLT_APU_BTN_CVR", "value": 1}, "lamp": "PLT_APU_L", "legend": "ON", "color": "green", "at": [132, 438, 50, 66]},
-        {"id": "PLT_APU_BTN_CVR", "label": "APU COVER", "type": "selector", "style": "cover", "positions": [{"value": 0, "label": "CLOSED"}, {"value": 1, "label": "OPEN"}], "at": [104, 405, 119, 128]},
-        {"id": "PLT_ENG1_START", "label": "ENG 1 START", "type": "selector", "rest": 1, "hold": 0.5, "positions": ENGINE_START_POSITIONS, "at": [60, 535, 64, 150]},
-        {"id": "PLT_ENG2_START", "label": "ENG 2 START", "type": "selector", "rest": 1, "hold": 0.5, "positions": ENGINE_START_POSITIONS, "at": [186, 535, 64, 150]},
-        lever("power_left", "PWR LVR NO 1", "left", pilot_levers, [300, 98, 87, 596], [358, 54, 40]),
-        lever("power_right", "PWR LVR NO 2", "right", pilot_levers, [387, 98, 160, 596], [424, 54, 40]),
-        {"id": "PLT_PW_LVR_FRIC", "label": "FRICT", "type": "knob", "style": "slider", "step": KNOB_STEP, "at": [425, 235, 115, 260]},
-    ]
-    placard = [
-        ["POWER", 397, 40, 30, 100], ["RTR BRK", 164, 70, 24, 105],
-        ["OFF", 224, 99, 19, 36], ["BRK", 228, 128, 19, 38], ["LOCK", 237, 160, 19, 52],
-        ["MSTR IGN", 157, 184, 26, 117],
-        ["OFF", 262, 229, 19, 36], ["BATT", 279, 272, 19, 48], ["EXT", 254, 316, 19, 33], ["PWR", 254, 336, 19, 38], ["+", 231, 363, 16],
-        ["APU", 162, 390, 26, 50],
-        ["ENG START", 157, 548, 26, 146], ["START", 158, 568, 17, 62], ["OFF", 155, 607, 19, 37], ["IGN ORIDE", 158, 660, 17, 94],
-        ["NO 1", 84, 691, 20, 52], ["NO 2", 210, 691, 20, 56],
-        ["LOCK", 509, 122, 19, 50], ["OUT", 505, 139, 19, 38], ["FLY", 497, 188, 19, 36], ["IDLE", 495, 497, 19, 44], ["OFF", 487, 628, 19, 33],
-        ["NO 1", 358, 694, 20, 52], ["NO 2", 423, 694, 20, 58],
-        ["INC", 556, 236, 18, 36], ["F", 553, 318, 20], ["R", 553, 341, 20], ["I", 553, 364, 20], ["C", 553, 388, 20], ["T", 553, 411, 20], ["DECR", 560, 489, 19, 56],
-    ]
-    art = [
-        {"shape": "plate", "at": [4, 4, 612, 706]},
-        {"shape": "screw", "at": [45, 60, 18]}, {"shape": "screw", "at": [603, 68, 17]}, {"shape": "screw", "at": [539, 70, 11]},
-        {"shape": "screw", "at": [73, 158, 11]}, {"shape": "screw", "at": [36, 337, 19]}, {"shape": "screw", "at": [601, 348, 17]},
-        {"shape": "screw", "at": [62, 541, 11]}, {"shape": "screw", "at": [25, 648, 17]}, {"shape": "screw", "at": [595, 655, 17]},
-        {"shape": "screw", "at": [520, 658, 11]},
-        {"shape": "slot", "at": [327, 80, 131, 598]}, {"shape": "slot", "at": [105, 407, 118, 125]},
-        *[{"shape": "line", "at": [310, y, 16, 0]} for y in (128, 187, 495, 625)],
-        *[{"shape": "line", "at": [458, y, 12, 0]} for y in (128, 188, 497, 628)],
-        {"shape": "arrow", "at": [545, 250, 16, 52], "up": True}, {"shape": "arrow", "at": [545, 420, 16, 52]},
-    ]
-    cpg_controls = [
-        lever("power_left", "PWR LVR NO 1", "left", cpg_levers, [96, 4, 35, 243], [122, 18, 14]),
-        lever("power_right", "PWR LVR NO 2", "right", cpg_levers, [131, 4, 49, 243], [140, 18, 14]),
-    ]
-    cpg_placard = [
-        ["LOCK", 76, 20, 8, 15], ["FLY", 75, 43, 8, 11], ["IDLE", 76, 165, 8, 14],
-        ["LOCK", 167, 20, 8, 15], ["OUT", 167, 29, 8, 12], ["FLY", 166, 44, 8, 11], ["IDLE", 166, 166, 8, 14], ["OFF", 166, 214, 8, 12],
-        ["NO. 1", 111, 242, 7, 16], ["NO. 2", 145, 242, 7, 16],
-    ]
-    cpg_art = [
-        {"shape": "plate", "at": [1, 2, 224, 246]},
-        {"shape": "screw", "at": [213, 6, 8]}, {"shape": "screw", "at": [213, 106, 8]}, {"shape": "screw", "at": [213, 228, 8]},
-        {"shape": "slot", "at": [112, 10, 38, 230]},
-        *[{"shape": "line", "at": [102, y, 8, 0]} for y in (43, 166, 214)],
-        *[{"shape": "line", "at": [150, y, 8, 0]} for y in (20, 43, 166, 214)],
-    ]
-    return (
-        panel_pages("POWER", {0: [4, 1, 2, 3]}, [621, 712], placard, art, controls)
-        + panel_pages("POWER", {1: [3, 1, 2, 3]}, [226, 250], cpg_placard, cpg_art, cpg_controls)
-    )
+    p = Panel("POWER", 640, 600)
+    p.toggle("RTR", 154, 96, {
+        "id": "PLT_ROTOR_BRK", "label": "RTR BRK", "type": "selector",
+        "positions": [{"value": 2, "label": "OFF"}, {"value": 1, "label": "BRK", "disabled": True}, {"value": 0, "label": "LOCK"}],
+    }, "right_triple")
+    p.label("RTR BRK", "NAME", "RTR", "above", 0, -20)
+    p.rotary("MSTR", 154, 224, {
+        "id": "PLT_MASTER_IGN_SW", "label": "MSTR IGN", "type": "selector", "style": "rotary",
+        "positions": [{"value": 0, "label": "OFF", "angle": 66}, {"value": 1, "label": "BATT", "angle": 90}, {"value": 2, "label": "EXT PWR", "disabled": True, "angle": 118}],
+    }, labels="fan")
+    p.label("MSTR IGN", "NAME", "MSTR", "above")
+    p.push("APU", 154, 364, {
+        "id": "PLT_APU_BTN", "label": "APU", "type": "button", "hold": MPD_BUTTON_HOLD, "requires": {"id": "PLT_APU_BTN_CVR", "value": 1},
+        "lamp": "PLT_APU_L", "legend": "ON", "color": "green",
+    }, flap={
+        "id": "PLT_APU_BTN_CVR", "label": "APU COVER", "type": "selector", "style": "cover", "positions": [{"value": 0, "label": "CLOSED"}, {"value": 1, "label": "OPEN"}],
+    })
+    p.label("APU", "NAME", "APU", "above")
+    p.mark("ENG START", "NAME", 154, 434, "title of the two switches")
+    for n, x in ((1, 88), (2, 220)):
+        p.toggle(f"ENG{n}", x, 490, {"id": f"PLT_ENG{n}_START", "label": f"ENG {n} START", "type": "selector", "rest": 1, "hold": 0.5, "positions": ENGINE_START_POSITIONS})
+        p.label(f"NO {n}", "POS", f"ENG{n}", "below")
+    for text, y in (("START", 462), ("OFF", 490), ("IGN\nORIDE", 528)):
+        p.mark(text, "POS", 154, y, "printed once between the two switches, as on the photo")
+    p.mark("+", "SMALL", 230, 300, "panel mark as on the photo")
+    p.levers("LEVERS", 340, 304, 400, power_levers(), LEVER_MARKS, LEVER_NAMES)
+    p.label("POWER", "TITLE", "LEVERS_1", "above", 0, 28)
+    p.slider("FRICT", 504, 304, {"id": "PLT_PW_LVR_FRIC", "label": "FRICT", "type": "knob", "style": "slider", "step": KNOB_STEP}, "INC", "DECR", "FRICT")
+    c = Panel("POWER", 312, 576)
+    c.levers("LEVERS", 156, 284, 400, power_levers(), LEVER_MARKS, LEVER_NAMES, (None, "IDLE", "FLY", "LOCK"))
+    return kit_pages("POWER", {0: [4, 1, 2, 3]}, p) + kit_pages("POWER", {1: [3, 1, 2, 3]}, c)
 
 
 def intr_lt_knob(p: Panel, name: str, sweep: list, cx: int, cy: int, preset: str, marks: tuple):

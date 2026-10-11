@@ -1860,13 +1860,20 @@ function leverY(def, raw) {
   return p[i - 1].y + (p[i].y - p[i - 1].y) * f;
 }
 
-function buildPlateLever(def) {
+function slotSvg(def) {
   const [x, y, w, h] = def.at;
   const [hx, hw, hh] = def.handle;
+  return '<svg class="pswitch" viewBox="' + [x, y, w, h].join(' ') + '" aria-hidden="true">'
+    + plateArt({ shape: 'slot', at: def.kit.slot, body: true }, true)
+    + '<rect class="pgrip" x="' + (hx - hw / 2) + '" y="0" width="' + hw + '" height="' + hh + '" rx="' + hh / 4 + '"/></svg>';
+}
+
+function buildPlateLever(def) {
+  const [x, , w] = def.at;
+  const hh = def.handle[2];
   const p = def.positions;
   const wrap = make('div', 'pctl');
-  wrap.insertAdjacentHTML('beforeend', '<svg class="pswitch" viewBox="' + [x, y, w, h].join(' ') + '" aria-hidden="true">'
-    + '<rect class="pgrip" x="' + (hx - hw / 2) + '" y="0" width="' + hw + '" height="' + hh + '" rx="' + hh / 4 + '"/></svg>');
+  wrap.insertAdjacentHTML('beforeend', slotSvg(def));
   const grip = wrap.querySelector('.pgrip');
   const c = { def, el: wrap, busy: false, pending: null, doneAt: 0, buttons: [], bands: [] };
   const edges = positionEdges(def);
@@ -1886,7 +1893,7 @@ function buildPlateLever(def) {
     const [, shown] = leverShown(c);
     const raw = readValue(def.readback);
     const known = shown !== null && typeof raw === 'number';
-    const gy = c.pending !== null ? p[shown].y : known ? leverY(def, raw) : y;
+    const gy = c.pending !== null ? p[shown].y : known ? leverY(def, raw) : 0;
     grip.style.visibility = known ? '' : 'hidden';
     grip.setAttribute('y', gy - hh / 2);
     grip.classList.toggle('pending', c.pending !== null);
@@ -1900,12 +1907,11 @@ function buildPlateLever(def) {
 }
 
 function buildPlateSlider(def) {
-  const [, , w, h] = def.at;
-  const gh = 52;
+  const [x, y, w, h] = def.at;
+  const hh = def.handle[2];
+  const [top, bottom] = def.kit.track;
   const wrap = make('div', 'pctl');
-  wrap.insertAdjacentHTML('beforeend', '<svg class="pswitch" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">'
-    + '<rect x="' + (w * 0.78 - 19) + '" y="0" width="38" height="' + h + '" rx="6" fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"/>'
-    + '<rect class="pgrip" x="0" y="0" width="' + w * 0.87 + '" height="' + gh + '" rx="8"/></svg>');
+  wrap.insertAdjacentHTML('beforeend', slotSvg(def));
   const grip = wrap.querySelector('.pgrip');
   const btn = make('button', 'pslot');
   btn.type = 'button';
@@ -1916,10 +1922,10 @@ function buildPlateSlider(def) {
   c.update = () => {
     const v = readValue(def.id);
     grip.style.visibility = typeof v === 'number' ? '' : 'hidden';
-    if (typeof v === 'number') grip.setAttribute('y', (h - gh) * (1 - v / KNOB_MAX));
+    if (typeof v === 'number') grip.setAttribute('y', bottom + (top - bottom) * v / KNOB_MAX - hh / 2);
     btn.setAttribute('aria-disabled', String(!can(c)));
   };
-  c.touchAt = () => [{ el: btn, cx: def.at[0] + w / 2, cy: def.at[1] + h / 2, w, h }];
+  c.touchAt = () => [{ el: btn, cx: x + w / 2, cy: y + h / 2, w, h }];
   return c;
 }
 
@@ -2505,7 +2511,7 @@ function plateArt(a, kit) {
       + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.4" transform="rotate(' + (a.rot !== undefined ? a.rot : (x + y) % 90) + ' ' + x + ' ' + y + ')"/>';
     return a.size ? '<g class="k-screw" data-size="' + a.size + '">' + screw + '</g>' : screw;
   }
-  if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : '');
+  if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : a.body ? 'k-body' : '');
   if (a.shape === 'glass') return rect(8, 'fill="#121a16" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : '');
   if (a.shape === 'line') return '<line x1="' + x + '" y1="' + y + '" x2="' + (x + w) + '" y2="' + (y + h) + '" stroke="#e8e8e8" stroke-width="3"/>';
   if (a.shape === 'arrow') {
@@ -2559,7 +2565,7 @@ function placePlate(box, cs) {
   cs.forEach((c) => {
     const [x, y, w, h] = c.def.at;
     boxRect(c.el, { x: 0, y: 0, w: view.box[0], h: view.box[1] }, x + w / 2, y + h / 2, w, h);
-    if (c.def.kit) {
+    if (c.def.kit && c.def.kit.part !== 'FLAP') {
       c.el.dataset.kit = c.def.kit.part;
       c.el.dataset.id = c.def.id;
     }
