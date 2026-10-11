@@ -5,6 +5,7 @@ A tablet dashboard for the **AH-64D Apache** in DCS World. A small Python bridge
 - **COCKPIT**: a map of the cockpit and one page per panel (POWER, FIRE, ARMAMENT, EUFD, COMM, lights and more), drawn like the real panels, for the pilot and the CP/G seat.
 - **FLIGHT, FIGHT**: power levers, symbology, trim display, weapons, sights, countermeasures.
 - **MPD, KU**: both MPD bezels with live button labels, the TEDAC (CP/G), the cursor pad and the keyboard unit.
+- **GEORGE**: direct buttons for the AI crew member (search, targets, weapon, request control).
 
 The dashboard follows the seat you are in. Everything is plain Python (standard library only) and one HTML file. Full description: [docs/SPEC.md](docs/SPEC.md).
 
@@ -42,6 +43,8 @@ In the paths below, `<Saved Games>` is your DCS Saved Games folder, usually `%US
 Stop the bridge with Ctrl+C or close the window.
 
 The power levers, the canopy and a few other controls are moved by keypresses, so DCS must be the active window on the PC; the dashboard brings it to the front itself. The keys must match your DCS bindings; the defaults are in `aircraft\ah64d.py` and can be overridden in `[keys]` of `config\config.toml`.
+
+The GEORGE tab uses its own keys (`LCtrl+LAlt` plus a letter), which are not DCS defaults. Bind them once in DCS under Options, Controls, in the AH-64D Pilot, CPG and George AI Helper entries; the table is in [docs/SPEC.md](docs/SPEC.md), section GEORGE. George needs electrical power.
 
 The gear button at the bottom right opens the settings: logging on or off, keep the tablet screen on, and information such as the detected DCS folder. The iPad cannot lock the rotation from a web page; use the rotation lock in Control Center.
 

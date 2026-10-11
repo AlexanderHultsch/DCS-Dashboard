@@ -17,6 +17,15 @@ KEYS = {
     "monocle": "I",
     "controls_overlay": "RCtrl+Enter",
     "trim_reset": "LCtrl+T",
+    "george_show": "LCtrl+LAlt+G",
+    "george_hide": "LCtrl+LAlt+H",
+    "george_up": "LCtrl+LAlt+I",
+    "george_down": "LCtrl+LAlt+K",
+    "george_left": "LCtrl+LAlt+J",
+    "george_right": "LCtrl+LAlt+L",
+    "george_multi": "LCtrl+LAlt+M",
+    "george_store": "LCtrl+LAlt+T",
+    "george_request": "LCtrl+LAlt+R",
 }
 
 POWER_POSITIONS = [
@@ -42,11 +51,20 @@ TEDAC_MODE_POSITIONS = [
 ]
 KNOB_STEP = 3200
 MPD_BUTTON_HOLD = 0.3
+GEORGE_SHORT = 0.1
+GEORGE_LONG = 1.2
 MPD_LABELS = {"B1": "M", "AC": "A/C", "AST": "*"}
 KU_LABELS = {
     "DOT": ".", "SIGN": "+/-", "SLASH": "/", "DIV": "\u00f7", "MULTI": "*", "PLUS": "+",
     "MINUS": "\u2212", "BKS": "BKS", "SPC": "SPC", "CLR": "CLR", "ENT": "ENTER", "LEFT": "\u2190", "RIGHT": "\u2192",
 }
+
+
+def george_ring(direction: str, hold: float, keep: bool = False) -> list[list]:
+    steps = [["george_hide", 0.1, 0.3], ["george_show", 0.1, 0.4], [direction, hold, 0.3]]
+    if not keep:
+        steps.append(["george_hide", 0.1, 0])
+    return steps
 
 
 def mpd_controls(side: str) -> list[dict]:
@@ -619,6 +637,25 @@ VIEWS = [
     },
     {"name": "MPD", "seats": [0, 1], "layout": "mpd", "lamps": [], "controls": mpd_controls("L") + mpd_controls("R") + cursor_controls() + tedac_controls()},
     {"name": "KU", "seats": [0, 1], "layout": "ku", "lamps": [], "controls": ku_controls()},
+    {
+        "name": "George",
+        "seats": [0, 1],
+        "lamps": [
+            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
+            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
+        ],
+        "controls": [
+            {"id": "george_phs", "label": "PHS SEARCH", "type": "macro", "steps": george_ring("george_up", GEORGE_SHORT), "seats": [0], "grid": [1, 1, 1, 1]},
+            {"id": "george_area", "label": "AREA SEARCH", "type": "macro", "steps": [["george_multi", GEORGE_LONG, 0]], "seats": [0], "grid": [1, 2, 1, 1]},
+            {"id": "george_point", "label": "POINT SEARCH", "type": "macro", "steps": [["george_multi", GEORGE_SHORT, 0]], "seats": [0], "grid": [1, 3, 1, 1]},
+            {"id": "george_store", "label": "STORE TARGET", "type": "macro", "steps": [["george_store", GEORGE_SHORT, 0]], "seats": [0], "grid": [2, 1, 1, 1]},
+            {"id": "george_stop", "label": "STOP / TADS FWD", "type": "macro", "steps": george_ring("george_down", GEORGE_SHORT), "seats": [0], "grid": [2, 2, 1, 1]},
+            {"id": "george_weapon", "label": "WEAPON NEXT", "type": "macro", "steps": george_ring("george_left", GEORGE_SHORT, keep=True), "seats": [0], "grid": [3, 1, 1, 1]},
+            {"id": "george_control", "label": "REQUEST CONTROL", "type": "macro", "steps": [["george_request", GEORGE_SHORT, 0]], "seats": [1], "grid": [1, 6, 1, 2]},
+            {"id": "george_ring_show", "label": "SHOW RING", "type": "macro", "steps": [["george_hide", 0.1, 0.3], ["george_show", 0.1, 0]], "grid": [3, 6, 1, 1]},
+            {"id": "george_ring_hide", "label": "HIDE RING", "type": "macro", "steps": [["george_hide", 0.1, 0]], "grid": [3, 7, 1, 1]},
+        ],
+    },
 ]
 
 CONTROL_NAMES = [f"{seat}_{axis}" for seat in ("plt", "cpg") for axis in ("cyc_pitch", "cyc_roll", "coll", "pedals")]

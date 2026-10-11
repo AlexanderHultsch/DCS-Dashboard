@@ -80,7 +80,7 @@ def read_names() -> list[str]:
         for control in view["controls"]:
             if control["type"] == "lever":
                 names += expand_all(control["readback"])
-            elif control["type"] == "key":
+            elif control["type"] in ("key", "macro"):
                 if "readback" in control:
                     names += expand_all(control["readback"])
             elif control["type"] == "hat":
@@ -527,6 +527,16 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
             keys.press(cfg["keys"][control["key"]], 0.1)
         log.line("dash", name, "pressed")
         return True, "", None
+    if control["type"] == "macro":
+        with command_lock:
+            if not keys.focus(cfg["dcs"]["window_title"]):
+                return False, "DCS not in front", None
+            for step in control["steps"]:
+                keys.press(cfg["keys"][step[0]], step[1])
+                if step[2] > 0:
+                    time.sleep(step[2])
+        log.line("dash", name, "pressed")
+        return True, "", None
     if control["type"] == "hat":
         axes = {"up": ("ud", 2), "down": ("ud", 0), "left": ("lr", 0), "right": ("lr", 2)}
         if not isinstance(value, str) or value not in control["positions"]:
@@ -671,6 +681,12 @@ def main() -> None:
                     keys.parse(key_map[control["key"]])
                 except (KeyError, ValueError):
                     raise SystemExit(f"Invalid {control['key']} key in [keys] of config/config.toml, see config/config.example.toml.")
+            if control["type"] == "macro":
+                for step in control["steps"]:
+                    try:
+                        keys.parse(key_map[step[0]])
+                    except (KeyError, ValueError):
+                        raise SystemExit(f"Invalid {step[0]} key in [keys] of config/config.toml, see config/config.example.toml.")
     names = read_names()
     outputs, missing = dcsbios.load_outputs(dcsbios.json_path(cfg["dcs"]["saved_games"], ac.DCSBIOS_MODULE), names)
     if missing:

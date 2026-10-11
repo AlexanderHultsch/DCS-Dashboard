@@ -2112,7 +2112,7 @@ function buildControl(def, layout) {
   }
   if (def.type === 'knob') return buildMpdKnob(def);
   if (def.type === 'stick') return buildStick(def);
-  if (def.type === 'key') return buildKey(def);
+  if (def.type === 'key' || def.type === 'macro') return buildKey(def);
   if (def.type === 'lever') return buildLever(def);
   if (def.type === 'hat') return layout === 'mpd' ? buildRocker(def) : buildHat(def);
   if (def.type === 'controls') return buildTrim(def);

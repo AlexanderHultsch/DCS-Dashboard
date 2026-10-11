@@ -4,7 +4,7 @@ The specification of the product as built. Open points and the fix log are in [F
 
 ## 1. Purpose and principles
 
-A self-made helper dashboard on a tablet (iPad) for the AH-64D in DCS World. It replaces keyboard combinations and mouse clicks for cockpit commands and shows the cockpit state: a COCKPIT map with one page per cockpit panel, quick pages for flight and fight, both MPDs, the TEDAC and the KU. Flying itself stays on stick, collective and pedals. It is an open-source hobby project.
+A self-made helper dashboard on a tablet (iPad) for the AH-64D in DCS World. It replaces keyboard combinations and mouse clicks for cockpit commands and shows the cockpit state: a COCKPIT map with one page per cockpit panel, quick pages for flight and fight, both MPDs, the TEDAC, the KU and direct buttons for George, the AI crew member. Flying itself stays on stick, collective and pedals. It is an open-source hobby project.
 
 Principles:
 
@@ -31,7 +31,7 @@ Public repo rules:
 | Code | Public GitHub repo `DCS-Dashboard`, only the main branch; usable by anyone |
 | Dashboard | One HTML page served by the bridge, used in a tablet browser over the local network, no login |
 | Debug log | Rolling log file with a size limit: 5 MB per file, the last 3 files kept, about 15 MB in total |
-| AI | Not part of the product; see [section 10](#10-future-development-and-out-of-scope) |
+| AI | Not part of the product (George, the game's own AI crew member, has buttons on the GEORGE tab); see [section 10](#10-future-development-and-out-of-scope) |
 
 ## 2. Repository layout and architecture
 
@@ -103,9 +103,15 @@ Tablet dashboard (HTML page, follows the current seat)
   | `monocle` | `I` | IHADSS show |
   | `controls_overlay` | `RCtrl+Enter` | Show controls indicator |
   | `trim_reset` | `LCtrl+T` | Trimmer reset |
+  | `george_show` | `LCtrl+LAlt+G` | George AI - Show/Hide |
+  | `george_hide` | `LCtrl+LAlt+H` | George AI - Hide (AH-64D George AI Helper) |
+  | `george_up`, `_down`, `_left`, `_right` | `LCtrl+LAlt+I`, `K`, `J`, `L` | George AI - Up, Down, Left, Right (AH-64D George AI Helper) |
+  | `george_multi` | `LCtrl+LAlt+M` | George AI - Multifunctional Input (Center) |
+  | `george_store` | `LCtrl+LAlt+T` | George AI - TADS Store Target |
+  | `george_request` | `LCtrl+LAlt+R` | Request Aircraft Control |
 
 - **settings.json.** `config/settings.json` (ignored) holds the LOGGING switch of the settings page ([section 5](#5-dashboard-design-rules-seat-handling-settings)). It is created by the bridge, not edited by hand.
-- **DCS side.** DCS-BIOS (DCS-Skunkworks fork) with its AH-64D module is installed in Saved Games; the control list is read from `<Saved Games>/Scripts/DCS-BIOS/doc/json/AH-64D.json`. If the file is missing the bridge stops and names the path. The export script `core/lua/DCS-Dashboard-Export.lua` is copied to `<Saved Games>/Scripts/` and loaded by one line at the end of `Export.lua`, after the DCS-BIOS line: `dofile(lfs.writedir() .. [[Scripts\DCS-Dashboard-Export.lua]])`. The default keybinds must be bound in the DCS controls settings (the standard AH-64D bindings). DCS should run in windowed or borderless mode so that bringing it to the front works. Windows may ask to allow Python on the network: allow it for private networks.
+- **DCS side.** DCS-BIOS (DCS-Skunkworks fork) with its AH-64D module is installed in Saved Games; the control list is read from `<Saved Games>/Scripts/DCS-BIOS/doc/json/AH-64D.json`. If the file is missing the bridge stops and names the path. The export script `core/lua/DCS-Dashboard-Export.lua` is copied to `<Saved Games>/Scripts/` and loaded by one line at the end of `Export.lua`, after the DCS-BIOS line: `dofile(lfs.writedir() .. [[Scripts\DCS-Dashboard-Export.lua]])`. The default keybinds must be bound in the DCS controls settings (the standard AH-64D bindings); the `george_*` keys are not DCS defaults and must be added once, see [GEORGE](#george). DCS should run in windowed or borderless mode so that bringing it to the front works. Windows may ask to allow Python on the network: allow it for private networks.
 
 ## 4. What DCS allows
 
@@ -129,7 +135,7 @@ The result of the research phase, on Windows with the AH-64D, both seats, cold a
 - **Canopy:** DCS-BIOS cannot move it; a key (`canopy`) with the readback `PLT_CANOPY` does.
 - **Cockpit logic still applies.** A command that the cockpit would not accept fails without an error: the APU button only works with its cover open; master ignition EXT PWR needs ground power; rotor brake BRK needs conditions; NVS mode FIXED needs the NVS on; push buttons under a DCS cover (fire buttons, CMWS jettison) are ignored while DCS's own cover is closed; ICS mode and the M4 safety need about 3 s to take the position; the CP/G manual tracker position 2 is spring-loaded.
 - **Did not work:** the canopy (both seats), CP/G stick fold, MPD mode knobs by a direct command (the bridge uses INC / DEC steps), processor select, TADS select, SAI cage and pitch trim, CP/G left MPD L1–L6. Not followed up; the dashboard does not need them or works around them.
-- **George** (the AI copilot menu) has no DCS-BIOS entry and works by keypress (`LCtrl+V`, `W` `S` `A` `D`) only with electrical power; it is not part of the dashboard.
+- **George** (the AI crew member and its Helper Interface ring) has no DCS-BIOS entry and works by keypress only (the DCS defaults are `LCtrl+V` and `W` `A` `S` `D`), and only with electrical power. The dashboard reaches it from the GEORGE tab with its own keys ([section 6](#george)); the ring state and mode cannot be read.
 
 ### Blocklist idea
 
@@ -147,7 +153,7 @@ Dangerous or irreversible controls are never part of a sweep or a quick page: ev
 
 ### Seat
 
-- Each view lists the seats it can be used in: FLIGHT, FIGHT, MPD, KU and the COCKPIT map both seats; a panel page lists the one seat it exists for. A control can also have its own `seats` (TAIL WHEEL on FLIGHT: pilot only) and is greyed in the other seat.
+- Each view lists the seats it can be used in: FLIGHT, FIGHT, MPD, KU, GEORGE and the COCKPIT map both seats; a panel page lists the one seat it exists for. A control can also have its own `seats` (TAIL WHEEL on FLIGHT: pilot only) and is greyed in the other seat.
 - The header badge shows the current seat: `PILOT` or `CP/G`. It adds ` – READ ONLY` when the shown view cannot be used in this seat: lamps and positions are shown, all controls are disabled.
 - When the seat changes while a panel page is open, the page of the same name for the new seat opens (POWER stays POWER); if the new seat has no page of that name (CMWS, CENTER, EXT / INTR LT) the COCKPIT map of the new seat opens.
 - The header shows `NO DCS DATA` when no DCS-BIOS packet arrived for 3 s, and `BRIDGE OFFLINE` when the page cannot reach the bridge.
@@ -168,7 +174,7 @@ The bridge checks DCS-BIOS after sending: a push button is held until DCS report
 
 ## 6. The views
 
-Tabs at the top: **COCKPIT | FLIGHT | FIGHT | MPD | KU**. Ids written as `{seat}_...` stand for `PLT_...` (pilot) or `CPG_...` (CP/G); in this section `{S}` is the same.
+Tabs at the top: **COCKPIT | FLIGHT | FIGHT | MPD | KU | GEORGE**. Ids written as `{seat}_...` stand for `PLT_...` (pilot) or `CPG_...` (CP/G); in this section `{S}` is the same.
 
 ### COCKPIT
 
@@ -468,6 +474,44 @@ The keyboard unit, drawn 1:1 after a photo in the same technique as the MPD (`"l
 - Rows: A–F | 1 2 3, G–L | 4 5 6, M–R | 7 8 9, S–X | . 0 +/-, then Y Z / BKS SPC \* ÷ + −, then the BRT knob, CLR, ←, →, ENTER.
 - Keys are pressed for 0.15 s.
 
+### GEORGE
+
+George, the AI crew member (gunner when you fly as pilot, pilot when you fly as CP/G), can only be controlled by keypress. The GEORGE tab (`"name": "George"`, both seats) has direct buttons for the useful commands, so the Helper Interface (the ring) does not have to be opened by hand. The lamp row has the two master lamps. George needs electrical power; without it the buttons do nothing.
+
+Every button is a `macro` control ([section 8](#8-the-bridge-interface)): a fixed key sequence, each step `[key name, hold in seconds, pause after in seconds]`. Hold times: short 0.1 s (`GEORGE_SHORT`), long 1.2 s (`GEORGE_LONG`; the manual calls a press over 0.5 s long, and some commands need a full second).
+
+| Button | Seat | Key sequence | Notes |
+| --- | --- | --- | --- |
+| PHS SEARCH | pilot | ring: Up, short | George searches with the PHS |
+| AREA SEARCH | pilot | `george_multi`, long | George must not be tracking |
+| POINT SEARCH | pilot | `george_multi`, short | George must not be tracking, and a TSD point must be selected |
+| STORE TARGET | pilot | `george_store`, short | needs a target; works without the ring |
+| STOP / TADS FWD | pilot | ring: Down, short | cancels any task of George, including an engagement |
+| WEAPON NEXT | pilot | ring: Left, short, ring left open | cycles NO WPN, GUN, MSL, RKT; the ring stays shown so the selection can be read in it |
+| REQUEST CONTROL | CP/G | `george_request`, short | hands the flight controls to George and takes them back; works without the ring |
+| SHOW RING | both | Hide, Show | opens the ring |
+| HIDE RING | both | Hide | closes the ring and cancels a displayed Target, Search or Point list |
+
+**Ring commands always start with Hide.** The bridge cannot read the state of the ring (George has no DCS-BIOS entry), so a ring command must not depend on it. The ring is opened and closed by two separate keys, Show and Hide, and Hide only acts while the ring is shown. A ring command is therefore Hide, Show, direction, Hide (`george_ring` in `aircraft/ah64d.py`): after Hide the ring is closed whatever it was before, Show opens it in a known state, the direction key acts on it, and the last Hide closes it again. WEAPON NEXT leaves out the last Hide. Pauses: 0.3 s after the first Hide, 0.4 s after Show, 0.3 s after the direction; a ring command takes about 1.4 s, plus the 0.3 s for bringing DCS to the front. While it runs the bridge holds the command lock, so no other command is sent in between.
+
+**Seats.** A button that works in one seat only (`seats`) is greyed in the other, as TAIL WHEEL is on FLIGHT; the bridge refuses it there. In the pilot seat George is the gunner, in the CP/G seat George is the pilot. SHOW RING and HIDE RING work in both seats.
+
+**Deliberately not on the page**
+
+- FIRE (Multifunctional, as consent to fire): what it does depends on George's state, and a wrong tap can shoot.
+- The FLIGHT and COMBAT commands of George as pilot: in the CP/G seat they depend on the ring mode (GND, FLT, H-B, CMBT, DEFN, cycled with Left, short), and the dashboard cannot read the current mode.
+
+**Binding the keys in DCS.** The keys are the `george_*` entries of `KEYS` ([section 3](#3-configuration)). Bind them once under Options, Controls: choose the aircraft in the dropdown, double-click the row of the command and press the keys. They are added to the DCS defaults (`LCtrl+V`, `W` `A` `S` `D`), which keep working. `LCtrl+LAlt` was chosen because no DCS default uses it, it is not an AltGr combination, and unlike Ctrl+Shift it does not switch the Windows keyboard layout. Request Aircraft Control already has plain `C` by default; the added key avoids a stray plain C.
+
+| DCS aircraft entry | Command | Key |
+| --- | --- | --- |
+| AH-64D Pilot and AH-64D CPG | George AI - Show/Hide | `LCtrl+LAlt+G` |
+| AH-64D Pilot and AH-64D CPG | George AI - Multifunctional Input (Center) | `LCtrl+LAlt+M` |
+| AH-64D Pilot only | George AI - TADS Store Target | `LCtrl+LAlt+T` |
+| AH-64D CPG only | Request Aircraft Control | `LCtrl+LAlt+R` |
+| AH-64D George AI Helper | George AI - Hide | `LCtrl+LAlt+H` |
+| AH-64D George AI Helper | George AI - Up / Down / Left / Right | `LCtrl+LAlt+I` / `K` / `J` / `L` |
+
 ## 7. The panel kit
 
 `core/panel_kit.py` is a small layout compiler. A page entry names a part and a centre point, never a size; the compiler writes the resolved geometry (boxes in du, label positions, plate, ears, screws) into the page data in the format the page already draws. The page draws what it is given and has no hard-coded sizes. The photos only say what is on a panel, its text and the arrangement of the parts, not pixel sizes.
@@ -559,7 +603,7 @@ Also in the kit: a printed bracket over a group of parts (SOL, AUX on COMM) and 
 | --- | --- |
 | `id` | DCS-BIOS identifier, `{seat}` / `{S}` for the seat; a key control uses a name from `[keys]` |
 | `label` | placard text |
-| `type` | `selector`, `button`, `lever`, `hat` (one or two axes: `ud`, `lr`), `knob`, `key`, `display`, `controls` (the trim display), `stick` (the cursor pad) |
+| `type` | `selector`, `button`, `lever`, `hat` (one or two axes: `ud`, `lr`), `knob`, `key`, `macro`, `display`, `controls` (the trim display), `stick` (the cursor pad) |
 | `positions` | list of `{value, label}`; `disabled` greys one out; `momentary` marks a spring-return position (for a hat: `{"up": label, ...}`) |
 | `rest` | resting value of a spring-loaded switch; `hold` the press time in seconds |
 | `lamp`, `legend`, `lamps` | lamp inside a button; `lamps` = two lamps on the face (`{id, color, legend}`: FIRE and RDY, ARM and SAFE) |
@@ -570,6 +614,7 @@ Also in the kit: a printed bracket over a group of parts (SOL, AUX on COMM) and 
 | `ids`, `page`, `pages` | `display` made of several DCS-BIOS strings (the 14 EUFD lines, the CMWS status); with `page` (the id of the page name) and `pages` (the ids shown for each name) |
 | `step`, `step_fallback` | `knob`: step of an `up` / `down` command; selector: turn the knob with INC / DEC steps if the position is not reached |
 | `readback`, `states`, `key` | `lever` / `key` controls: the DCS-BIOS id read back, the state names, the `[keys]` name |
+| `steps` | `macro`: the key sequence, a list of `[key name, hold seconds, pause after seconds]`, key names from `[keys]` |
 | `side`, `slot`, `view` | MPD / TEDAC bezel controls and links |
 | `style`, `shape`, `orient`, `sweep`, `angle`, `group`, `pull` | how the panel kit draws it: `rotary`, `cover`, `slider`, `cap`, `chip`, `plunger`, `flat`; `shape: "round"`; `orient: "h"`; knob pointer angles at min / max; angle per position of a rotary; dual-function knob members; the pull-to-disable id of a knob (it shows pulled out when it reads 1, a 0.6 s hold toggles it) |
 
@@ -600,6 +645,8 @@ Written by the kit for every control of a panel page (a page never types them): 
 | `guard closed` | a guarded control outside its 5 s window |
 | `cover did not open` | DCS's own cover did not show open within 0.5 s |
 | `not guarded` | `guard: open` for a control without `guard` |
+
+**Macro controls.** A `macro` control (the GEORGE buttons) sends a fixed key sequence: `steps` is a list of `[key name, hold seconds, pause after seconds]`, the key names come from `[keys]`. `/command` brings the DCS window to the front once (`DCS not in front` and no key if that fails), then presses the steps in order under the command lock, sleeping the pause after each step when it is above 0. It logs `pressed` and answers `{"ok": true, "confirmed": null}` (keypresses are not checked). `seats` and `grid` work as for other controls, and the refusals are the same as for a `key` control. At start the bridge checks the key of every step and stops with `Invalid <key> key in [keys] of config/config.toml, see config/config.example.toml.` if one is missing or invalid.
 
 New control types need page code only when the type itself is new; adding a view means adding a list.
 
@@ -635,6 +682,8 @@ Preparation: DCS in windowed or borderless mode, DCS-BIOS and the export script 
 7. **MPD, KU, TEDAC.** MPD: press buttons on both displays; the live labels follow page changes; the cursor pad moves the cursor in the right direction; the MODE knob works (NT through the INC / DEC fallback). KU: type a few characters, the scratchpad shows them. CP/G seat: spot-check the TEDAC buttons, knobs and rockers.
 8. **Guarded controls** (last). Station selects light their lamps and toggle back. ENG 1, APU and ENG 2 FIRE: lift the cover, tap once (RDY lamp on, fuel off), lift the cover again and tap again (safe); DCS's own cover opens with the tablet cover, and the log shows `cover open`, `pressed` and about 1 s later `cover closed`, without `not confirmed`. PRI and RES with a fire button armed, JETT with a station armed, ZEROIZE, MASTER ZEROIZE, CMWS JETT.
 
+9. **GEORGE.** Bind the keys in DCS first (the table in [GEORGE](#george)). Pilot seat with battery power: SHOW RING and HIDE RING (the ring opens and closes); PHS SEARCH and STOP / TADS FWD (the ring flashes open and closes again, George reacts); WEAPON NEXT (the ring stays open and the weapon label in the ring changes: NO WPN, GUN, MSL, RKT); STORE TARGET with a tracked target; AREA SEARCH and POINT SEARCH with George not tracking (POINT SEARCH needs a TSD point selected). CP/G seat: the pilot-only buttons are greyed; REQUEST CONTROL twice, George takes the flight controls, then gives them back.
+
 Done when a cold start to both power levers at FLY works from the tablet alone, the lamps match the cockpit, the CP/G seat shows only its own pages, and every control acts in both seats.
 
 ## 10. Future development and out of scope
@@ -644,7 +693,7 @@ Done when a cold start to both power levers at FLY works from the tablet alone, 
 - Status advisor: reads cautions, lamps and flight and engine data, explains them and suggests next steps.
 - Auto startup: runs a routine from cold and dark to ready for takeoff.
 - Waypoint entry: enters a coordinate list into the TSD via the KU.
-- George control on request.
+- George control on request: an AI deciding what George should do. The GEORGE tab only has fixed buttons.
 - Each capability would be a use case with its own on / off toggle on the dashboard.
 
 Other ideas: a WebSocket instead of polling if polling proves too slow; radios on the dashboard; grip controls with guards (CHOP, BUCS, emergency jettison) with the same guard mechanism.

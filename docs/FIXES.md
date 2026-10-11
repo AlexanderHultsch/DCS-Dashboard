@@ -22,6 +22,12 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] TEDAC and the KU in the CP/G seat.
 - [ ] CP/G power lever keys (`RAlt` / `RShift` with `Home` and so on): only tested in the pilot seat.
 - [ ] FRICT slider direction and the end of the SIGNAL knob sweep: taken from the photos, not from DCS.
+- [ ] GEORGE ring buttons (SHOW RING, HIDE RING): the ring opens and closes in both seats.
+- [ ] GEORGE search buttons (PHS SEARCH, AREA SEARCH, POINT SEARCH, STOP / TADS FWD): George reacts; AREA and POINT SEARCH only with George not tracking, POINT SEARCH with a TSD point selected.
+- [ ] GEORGE target and control buttons (STORE TARGET with a tracked target; REQUEST CONTROL twice in the CP/G seat: George takes the controls, then gives them back).
+- [ ] GEORGE WEAPON NEXT: the ring stays open and the weapon label changes (NO WPN, GUN, MSL, RKT).
+- [ ] George ring commands: confirm that Hide, Show, then the direction really leaves the ring hidden at the end, and that the pauses (0.3 / 0.4 / 0.3 s) are long enough; confirm that a long press of 1.2 s is accepted.
+- [ ] George keys bound exactly as in the table in [SPEC.md](SPEC.md) (section GEORGE), including the AH-64D George AI Helper entries.
 
 ### Needs a look on the iPad
 
@@ -39,6 +45,9 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] Refusal log lines show the unexpanded `{seat}_...` id (cosmetic).
 - [ ] MASTER ZEROIZE has no photo and is a plain placard. The CP/G COMM and WIPER / DEFOG pages use the same drawings as the pilot's COMM and CENTER pages.
 - [ ] Grip controls with guards (CHOP, BUCS, emergency jettison) are not on the dashboard.
+- [ ] George: the FLIGHT and COMBAT commands of George as pilot are not on the dashboard until the ring mode is understood. Open questions for a later test: does the ring always open in the same mode? does Hide and Show reset a list or sub-menu?
+- [ ] George: no FIRE button, on purpose (a wrong tap can shoot).
+- [ ] George: the ring state is not readable. The bridge assumes the ring is hidden at the start of a ring command and starts with Hide.
 - [ ] Open questions: radios on the dashboard (later?); which keyboard combinations for cockpit commands are used today (each one would become a button).
 
 ## Deviations to look at on the tablet

@@ -48,3 +48,13 @@ backups = 2
 # monocle = "I"                       # DCS "IHADSS show"
 # controls_overlay = "RCtrl+Enter"    # DCS "Show controls indicator"
 # trim_reset = "LCtrl+T"              # DCS "Trimmer reset"
+# George AI (GEORGE tab). Bind these in DCS as listed in docs/SPEC.md, section "GEORGE".
+# george_show = "LCtrl+LAlt+G"
+# george_hide = "LCtrl+LAlt+H"
+# george_up = "LCtrl+LAlt+I"
+# george_down = "LCtrl+LAlt+K"
+# george_left = "LCtrl+LAlt+J"
+# george_right = "LCtrl+LAlt+L"
+# george_multi = "LCtrl+LAlt+M"
+# george_store = "LCtrl+LAlt+T"
+# george_request = "LCtrl+LAlt+R"
