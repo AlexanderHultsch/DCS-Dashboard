@@ -153,9 +153,14 @@ Dangerous or irreversible controls are never part of a sweep or a quick page: ev
 
 ### Seat
 
-- Each view lists the seats it can be used in: FLIGHT, FIGHT, MPD, KU, GEORGE and the COCKPIT map both seats; a panel page lists the one seat it exists for. A control can also have its own `seats` (TAIL WHEEL on FLIGHT: pilot only) and is greyed in the other seat.
+- Each view lists the seats it can be used in: FLIGHT, MPD, KU, GEORGE and the COCKPIT map both seats; a panel page lists the one seat it exists for. FIGHT exists once per seat, two views with the same name, one with `"seats": [0]` and one with `"seats": [1]`. A control can also have its own `seats` (TAIL WHEEL on FLIGHT: pilot only) and is greyed in the other seat.
+- The tab bar has one tab per view name. A tab opens the view of that name whose `seats` contain the current seat (real or debug); FIGHT opens the pilot page or the gunner page. The remembered tab is the name.
 - The header badge shows the current seat: `PILOT` or `CP/G`. It adds ` – READ ONLY` when the shown view cannot be used in this seat: lamps and positions are shown, all controls are disabled.
-- When the seat changes while a panel page is open, the page of the same name for the new seat opens (POWER stays POWER); if the new seat has no page of that name (CMWS, CENTER, EXT / INTR LT) the COCKPIT map of the new seat opens.
+- When the seat changes, the view of the same name for the new seat opens (POWER stays POWER, FIGHT shows the page of the new seat); if the new seat has no panel page of that name (CMWS, CENTER, EXT / INTR LT) the COCKPIT map of the new seat opens.
+- **Debug seat.** A long hold (0.6 s) on the seat badge looks at the pages of the other seat without sitting in it. With a real seat the hold cycles: none, the other seat, none. With no DCS data or with the bridge offline there is no real seat, and the cycle is: none, `CP/G`, `PILOT`, none. A plain tap on the badge does nothing.
+  - The debug seat is view only. The page resolves `{seat}` ids and the seat-specific pages with the debug seat, so the lamps, the positions and the pages are those of that seat (`/state` carries the values of both seats). Every control stays disabled, so no command can leave the page; the bridge never sees the debug seat.
+  - The badge reads `DEBUG PILOT` or `DEBUG CP/G` in the amber read-only style, in place of the normal text. Without DCS data the pages show their empty state.
+  - The tab bar and the pages follow the debug seat as they follow a real seat. It is held in the page only and is not remembered: a reload clears it.
 - The header shows `NO DCS DATA` when no DCS-BIOS packet arrived for 3 s, and `BRIDGE OFFLINE` when the page cannot reach the bridge.
 - The bridge refuses commands of a view outside its seats.
 
@@ -170,7 +175,7 @@ Dangerous or irreversible controls are never part of a sweep or a quick page: ev
 
 ### Confirmed presses
 
-The bridge checks DCS-BIOS after sending: a push button is held until DCS reports it pressed (at least 0.3 s, at most 1 s) and then released; a hat is held until its axis shows the direction; a selector until the readback shows the new position (up to 0.5 s). The reply is `{"ok": true, "confirmed": true | false | null}` (`null` = not checked: knobs, cursor, keypresses). The log says `pressed, not confirmed` / `sent, not confirmed`, and the page shows an amber note `<label>: not confirmed by DCS` with a short amber flash on the control. Lost presses come from presses of only one DCS frame, commands waiting behind a slow power lever sequence, keypresses when DCS cannot be brought to the front, and double taps on toggle buttons.
+The bridge checks DCS-BIOS after sending: a push button is held until DCS reports it pressed (at least 0.3 s, at most 1 s) and then released; a hat is held until its axis shows the direction; a selector until the readback shows the new position (up to 0.5 s). The reply is `{"ok": true, "confirmed": true | false | null}` (`null` = not checked: knobs, the cursor and TKR pads, keypresses). The log says `pressed, not confirmed` / `sent, not confirmed`, and the page shows an amber note `<label>: not confirmed by DCS` with a short amber flash on the control. Lost presses come from presses of only one DCS frame, commands waiting behind a slow power lever sequence, keypresses when DCS cannot be brought to the front, and double taps on toggle buttons.
 
 ## 6. The views
 
@@ -414,7 +419,9 @@ Follows the current seat. Lamp row as above. A fixed grid of 3 rows × 7 columns
 
 ### FIGHT
 
-Follows the current seat. The same fixed 3 × 7 grid as FLIGHT.
+Two pages, one per seat, both named Fight ([Seat](#seat)). The tab bar has one FIGHT tab; it opens the page of the current seat, and a seat change switches to the page of the new seat. Both pages use the same fixed 3 × 7 grid as FLIGHT.
+
+#### Pilot page
 
 | Lamp | DCS-BIOS | Colour |
 | --- | --- | --- |
@@ -431,11 +438,11 @@ Follows the current seat. The same fixed 3 × 7 grid as FLIGHT.
 | WAS | hat: `{seat}_CYCLIC_WEAPON_UD` / `_LR` | up = G, down = A, left = R, right = M | see Hats |
 | SIGHT SEL | hat: `{seat}_COLLECTIVE_SIGHT_SELECT_UD` / `_LR` | up = HMD, down = LINK, left = FCR, right = TADS | see Hats |
 | FLARE, CHAFF | `{seat}_CYCLIC_FLARE`, `{seat}_CYCLIC_CHAFF` | push button | as A/S |
-| FLARE COUNT, CHAFF COUNT | `PLT_CMWS_FLARE_COUNT`, `PLT_CMWS_CHAFF_COUNT` | display | read only; from the pilot's CMWS panel, shown in both seats |
+| FLARE COUNT, CHAFF COUNT | `PLT_CMWS_FLARE_COUNT`, `PLT_CMWS_CHAFF_COUNT` | display | read only; from the pilot's CMWS panel, also shown on the gunner page |
 
-**Hats.** A hat is drawn as a cross of four buttons. A tap sets the axis (`_UD` or `_LR`) to 2 (up, right) or 0 (down, left) and holds it for 0.3 s; then the bridge returns the axis to the centre, 1. The highlighted direction comes from the readback of the two axes. The TEDAC grip hats of the CP/G (LHG WAS, RHG sight select) are left out on purpose: they do the same as the cyclic WAS and the collective sight select (they work too, as a fallback).
+**Hats.** A hat is drawn as a cross of four buttons. A tap sets the axis (`_UD` or `_LR`) to 2 (up, right) or 0 (down, left) and holds it for 0.3 s; then the bridge returns the axis to the centre, 1. The highlighted direction comes from the readback of the two axes. The pilot page uses the cyclic WAS and the collective sight select; the gunner page uses the cyclic WAS and the right-grip sight select. The left-grip WAS (LHG WAS) is left out on purpose: it does the same as the cyclic WAS (it works too, as a fallback).
 
-**CMWS (pilot seat only).** Flares only fire with the CMWS panel set up: CMWS PWR ON, FLARE SQUIBS ARM, CMWS MODE CMWS; CMWS OPER BYPASS / AUTO decides whether the CMWS dispenses on its own. Chaff must be armed on the MPD ASE page. On the ground dispensing may be blocked.
+**CMWS.** Flares only fire with the CMWS panel set up: CMWS PWR ON, FLARE SQUIBS ARM, CMWS MODE CMWS; CMWS OPER BYPASS / AUTO decides whether the CMWS dispenses on its own. Chaff must be armed on the MPD ASE page. On the ground dispensing may be blocked.
 
 | Label | DCS-BIOS | Positions | Grid |
 | --- | --- | --- | --- |
@@ -444,16 +451,47 @@ Follows the current seat. The same fixed 3 × 7 grid as FLIGHT.
 | CMWS MODE | `PLT_CMWS_MODE` | 1 = CMWS, 0 = NAV | row 2, column 5 |
 | CMWS OPER | `PLT_CMWS_BYPASS` | 1 = BYPASS, 0 = AUTO | row 2, column 6 |
 
+#### Gunner page
+
+The page of the CP/G seat. Ids are written out as `CPG_...` (the page exists for one seat only). The lamp row has MASTER WARNING and MASTER CAUTION (tappable, as above), ARM, SAFE and GND ORIDE (the colours of the pilot page). 14 controls:
+
+| Label | DCS-BIOS | Positions | Notes | Grid |
+| --- | --- | --- | --- | --- |
+| A/S | `CPG_MASTER_ARM_BTN` | push button | as on the pilot page | row 1, column 1 |
+| GND ORIDE | `CPG_GROUND_OVERRIDE_BTN` | push button | as A/S | row 1, column 2 |
+| FLARE, CHAFF | `CPG_CYCLIC_FLARE`, `CPG_CYCLIC_CHAFF` | push button | as A/S | row 2, columns 1 and 2 |
+| FLARE COUNT, CHAFF COUNT | `PLT_CMWS_FLARE_COUNT`, `PLT_CMWS_CHAFF_COUNT` | display | read only, as on the pilot page | row 3, columns 1 and 2 |
+| WAS | hat: `CPG_CYCLIC_WEAPON_UD` / `_LR` | up = G, down = A, left = R, right = M | see Hats | row 1, columns 3 and 4 |
+| SIGHT SEL | hat: `CPG_RHG_SIGHT_UP_DN` / `CPG_RHG_SIGHT_L_R` | up = HMD, down = LINK, left = FCR, right = TADS | right grip, see Hats | row 2, columns 3 and 4 |
+| SLAVE | `CPG_RHG_SIGHT_SLAVE` | push button | slaves the selected sight to the acquisition source, or releases it; held 0.3 s | row 3, column 3 |
+| TADS FOV | hat: `CPG_LHG_TADS_FOV_UP_DN` / `CPG_LHG_TADS_FOV_L_R` | up = Z (zoom), left = N (narrow), right = W (wide), down = M (medium) | left grip, see Hats | row 1, columns 5 and 6 |
+| SENSOR | `CPG_LHG_TADS_SEL` | 2 = FLIR, 1 = TV, 0 = DVO (greyed out, no function in DCS) | selector | row 2, columns 5 and 6 |
+| IAT | `CPG_LHG_TEDAC_L_IAT` | 2 (forward), then back to 1 | held 0.3 s | row 1, column 7 |
+| OFS | `CPG_LHG_TEDAC_L_IAT` | 0 (aft), then back to 1 | held 0.3 s | row 2, column 7 |
+| OFS ALL | `CPG_LHG_TEDAC_L_IAT` | 0 (aft), then back to 1 | held 0.8 s | row 3, column 7 |
+
+Row 3, columns 4 to 6 are free. The control ids of the page are `CPG_WAS`, `CPG_SIGHT_SEL`, `CPG_TADS_FOV`, `CPG_IAT`, `CPG_OFS` and `CPG_OFS_ALL` for the hats and the three tracker buttons; the others use their DCS-BIOS id.
+
+**IAT, OFS and OFS ALL** are three buttons on one switch of the left grip: a 3-position switch that springs back to the middle (rest 1). IAT is forward (2), OFS is aft (0), taken from the grip like the other hats; the mapping is to be confirmed in DCS, together with the SENSOR mapping. Each button sends its position, holds it and returns the switch to 1 (`bios`, `value` and `rest` in [section 8](#8-the-bridge-interface)). What they do, after the DCS manual:
+
+- **IAT** starts an auto-track on the target under the TADS reticle, or updates the aim point when the reticle is inside the gates.
+- **OFS** (short press): drops the primary track when the reticle is inside the gates; outside the gates it returns the TADS to the primary track.
+- **OFS ALL** (the aft position held over 0.5 s, here 0.8 s): deletes all tracks.
+
+**Not on the page.** The weapon trigger and the laser trigger. DCS-BIOS has no entry for the laser trigger; the weapon trigger (`CPG_CYCLIC_TRIGGER`) has one, but it is on the [blocklist](#blocklist-idea) and releases weapons. Both could become key buttons later (key bindings in DCS, like George). Also left out, not asked for: the FCR mode and scan switches, FLIR polarity, the laser tracker mode, MTT promote, the cursor extras, STORE and LMC; they can go into free cells later.
+
 ### MPD
 
-One display at a time, following the current seat (`"layout": "mpd"`). A `LEFT MPD | TEDAC | RIGHT MPD` switch at the top selects which one (remembered on the tablet); TEDAC appears only in the CP/G seat. The display sits flush left, the cursor group uses the rest of the width (pad about 450 px on the iPad Air).
+One display at a time, following the current seat (`"layout": "mpd"`). A `LEFT MPD | TEDAC | RIGHT MPD` switch at the top selects which one (remembered on the tablet); TEDAC appears only in the CP/G seat. The display sits flush left, the cursor group uses the rest of the width (pad about 450 px on the iPad Air); in the CP/G seat with the TEDAC selected the TKR group takes its place.
 
 - Laid out 1:1 after a photo of the real MPD: every button, knob and print at its measured position (square spacing, about 100 px pitch on the photo). VID knob on the raised top-left corner, BRT below it, MODE top right with DAY / NT / MONO; \* above R1; FCR / WPN below L6, VID / COM below R6; TSD and A/C offset in the bottom corners next to M and B2–B6.
 - Variable action buttons are light grey with a green dot; fixed action buttons are black keys with green text. Buttons are drawn at true size (about 33 px on the iPad Air) with a larger invisible touch area (56 px where neighbours allow). Each press is held 0.3 s.
 - **Live labels:** the export script sends the occupied seat's MPD texts (`MPD_INDICATIONS`, `MPD_SEATS`: pilot 7 left / 9 right, CP/G 11 / 13) 4 times per second. The bridge reads the `PB<n>` fields and serves them as `mpd_labels` in `/state` (`{"L": {...}, "R": {...}, "age": ...}`); the page writes each label in MPD green next to its button. Mapping: PB1–6 = T1–T6, PB7–12 = R1–R6, PB13–18 = B6…B1 (PB18 = M), PB19–24 = L6…L1. No labels when no MPD text arrived for 3 s.
 - In the CP/G seat the left MPD's L1–L6 do not respond in DCS.
 
-**Cursor.** The CURSOR pad sits to the right of the bezel, for the collective cursor controller `{seat}_COLLECTIVE_CURSOR_LR` / `_UD` (analog, centre 32768). Put a finger anywhere on the pad and push: the distance from the touch point (up to 30 % of the pad) is the deflection, i.e. the cursor speed, like the real force-sensing controller. Lifting the finger sends centre. The page sends `{"x", "y"}` (−1..1) at most every 66 ms; the bridge sends only changed axes and does not wait behind slow commands. `CURSOR_Y_SIGN` at the top of the page script flips up / down. Below the pad: CURSOR SWITCH DISPLAY (`{seat}_COLLECTIVE_CURSOR_DISPLAY`, moves the cursor to the other MPD) and ENTER (`{seat}_COLLECTIVE_CURSOR_ENTER`).
+**Cursor.** The CURSOR pad sits to the right of the bezel, for the collective cursor controller `{seat}_COLLECTIVE_CURSOR_LR` / `_UD` (analog, centre 32768). Put a finger anywhere on the pad and push: the distance from the touch point (up to 30 % of the pad) is the deflection, i.e. the cursor speed, like the real force-sensing controller. Lifting the finger sends centre. The page sends `{"x", "y"}` (−1..1) at most every 66 ms; the bridge sends only changed axes and does not wait behind slow commands. `CURSOR_Y_SIGN` at the top of the page script flips up / down. Below the pad: CURSOR SWITCH DISPLAY (`{seat}_COLLECTIVE_CURSOR_DISPLAY`, moves the cursor to the other MPD) and ENTER (`{seat}_COLLECTIVE_CURSOR_ENTER`). The cursor group is shown with LEFT MPD and RIGHT MPD and in the pilot seat; with the TEDAC selected (CP/G seat) it is replaced by the TKR group.
+
+**TKR (TEDAC selected, CP/G seat).** The TKR group replaces the cursor group: a pad labelled TKR and the SLAVE button below it (`CPG_RHG_SIGHT_SLAVE`, as on the gunner FIGHT page). The pad is the Sight Manual Tracker of the right grip (`CPG_RHG_MAN_TRK_UP_DN`, `CPG_RHG_MAN_TRK_L_R`), a `stick` control with the flag `digital`. It looks and feels like the cursor pad (a finger anywhere on it, the distance from the touch point is the deflection), but the tracker has three states per axis: 2, 1 (centre) and 0. The bridge turns the deflection into 2 / 0 / 1 with a dead zone of 30 % of the full deflection (`STICK_DIGITAL`) and sends only changes; lifting the finger returns both axes to the centre, 1. DCS ramps the slew rate up while the switch is held (the DCS option MAN TRK ramp-up speed), so the speed is not set by the pad. The up / down sign is shared with the cursor (`CURSOR_Y_SIGN`).
 
 **TEDAC (CP/G seat).** The CP/G's TEDAC display unit, laid out 1:1 after a photo like the MPD. All controls are `CPG_TEDAC_…`, `"side": "T"`, `"seats": [1]`:
 
@@ -618,7 +656,7 @@ Also in the kit: a printed bracket over a group of parts (SOL, AUX on COMM) and 
 | `MPD_SEATS` | seat → (left, right) indication numbers: `{0: (7, 9), 1: (11, 13)}` |
 | `TRIM_RELEASED` | the value of the force trim switch when released after a trim (`2`) |
 
-**View.** `{"name", "seats": [0, 1], "lamps": [...], "controls": [...]}` plus, per layout: `"layout"` (`"map"`, `"panel"`, `"mpd"`, `"ku"`; omitted = the fixed grid of FLIGHT / FIGHT), `"links"` (COCKPIT map), and the panel fields of [section 7](#7-the-panel-kit). A lamp is `{"id", "label", "color", "button"?}` (`button` makes it a lighted push button).
+**View.** `{"name", "seats": [0, 1], "lamps": [...], "controls": [...]}` (a name may occur once per seat, as FIGHT: the page has one tab per name and opens the view whose `seats` contain the current seat) plus, per layout: `"layout"` (`"map"`, `"panel"`, `"mpd"`, `"ku"`; omitted = the fixed grid of FLIGHT / FIGHT), `"links"` (COCKPIT map), and the panel fields of [section 7](#7-the-panel-kit). A lamp is `{"id", "label", "color", "button"?}` (`button` makes it a lighted push button).
 
 **Control fields**
 
@@ -626,9 +664,11 @@ Also in the kit: a printed bracket over a group of parts (SOL, AUX on COMM) and 
 | --- | --- |
 | `id` | DCS-BIOS identifier, `{seat}` / `{S}` for the seat; a key control uses a name from `[keys]` |
 | `label` | placard text |
-| `type` | `selector`, `button`, `lever`, `hat` (one or two axes: `ud`, `lr`), `knob`, `key`, `macro`, `display`, `controls` (the trim display), `stick` (the cursor pad) |
+| `type` | `selector`, `button`, `lever`, `hat` (one or two axes: `ud`, `lr`), `knob`, `key`, `macro`, `display`, `controls` (the trim display), `stick` (the cursor pad and the TKR pad) |
 | `positions` | list of `{value, label}`; `disabled` greys one out; `momentary` marks a spring-return position (for a hat: `{"up": label, ...}`) |
-| `rest` | resting value of a spring-loaded switch; `hold` the press time in seconds |
+| `rest` | resting value of a spring-loaded switch, or the level a `button` returns to on release (default 0); `hold` the press time in seconds |
+| `bios`, `value` | `button`: the DCS-BIOS control it acts on (default the control's `id`) and the level sent while it is pressed (default 1). Together with `rest` this makes several buttons of one multi-position switch: IAT (`value` 2), OFS and OFS ALL (`value` 0, `rest` 1), all on `CPG_LHG_TEDAC_L_IAT`. The press is confirmed against `bios` and `value`, and the bridge holds it at least 0.3 s (`PRESS_MIN`), at most 1 s |
+| `digital` | `stick`: the pad sends 2 / 0 / 1 per axis instead of the analog range 0 to 65535: 2 above a dead zone of 30 % of the full deflection (`STICK_DIGITAL`), 0 below minus 30 %, else 1; only changes are sent (the TKR pad) |
 | `lamp`, `legend`, `lamps` | lamp inside a button; `lamps` = two lamps on the face (`{id, color, legend}`: FIRE and RDY, ARM and SAFE) |
 | `requires` | another control that must be in a position first (the APU cover): `{id, value}` |
 | `seats` | `[0]` pilot, `[1]` CP/G, omitted = both |
@@ -650,7 +690,7 @@ Written by the kit for every control of a panel page (a page never types them): 
 - `GET /` → the page `core/web/index.html`; `GET /apple-touch-icon.png` → the home screen icon.
 - `GET /layout` → `{"views": [{"name": "COCKPIT", "seats": [0, 1], "lamps": [...], "controls": [...], "links": [...]}, ...]}`.
 - `GET /state` → `{"seat": 0, "age": 0.1, "values": {"PLT_MASTER_IGN_SW": 1, ...}, "controls": {...}, "controls_age": 0.1, "mpd_labels": {...}, "trim": {...}}`; `seat` is `null` before the first packet, `age` the seconds since the last DCS-BIOS packet. About 11 KB per reply with all panel controls.
-- `POST /command` with `{"id": "PLT_MASTER_IGN_SW", "value": 1}`, `{"id": "power_left", "value": "FLY"}`, for a hat `{"id": "{seat}_WAS", "value": "up"}`, for a knob `{"value": 0..65535}` or `"up"` / `"down"`, for the cursor `{"x", "y"}`, for a cover `{"id": ..., "guard": "open"}` → `{"ok": true, "confirmed": true | false | null}` or HTTP 409 with `{"error": "..."}`.
+- `POST /command` with `{"id": "PLT_MASTER_IGN_SW", "value": 1}`, `{"id": "power_left", "value": "FLY"}`, for a hat `{"id": "{seat}_WAS", "value": "up"}`, for a knob `{"value": 0..65535}` or `"up"` / `"down"`, for the cursor and the TKR pad `{"x", "y"}` (−1..1), for a cover `{"id": ..., "guard": "open"}` → `{"ok": true, "confirmed": true | false | null}` or HTTP 409 with `{"error": "..."}`.
 - `GET /settings` → `{"logging": true, "saved_games": "...", "address": "http://<PC address>:8080"}`; `POST /settings` with `{"logging": false}` → the same JSON, or HTTP 400. Any other path is 404; a body that is not a JSON object is 400.
 
 ### Command checks and refusals
@@ -700,12 +740,14 @@ Preparation: DCS in windowed or borderless mode, DCS-BIOS and the export script 
 2. **COCKPIT start-up sequence** (pilot seat, tablet only). POWER: MSTR IGN BATT, APU cover OPEN, APU, wait for APU ON, ENG 1 START, ENG 1 power lever IDLE, ENG 2 START, ENG 2 power lever IDLE, both power levers FLY. CENTER: PARK BRAKE IN. TAIL WHEEL / NVS: TAIL WHEEL once. Move a few switches in the cockpit with the mouse: the tablet follows.
 3. **Pop-ups.** Chooser (NVS MODE, a squelch switch, ENG 1 START, the MSTR IGN dial, the wiper dial): it opens at the switch, shows the positions like the switch, lights the current one, marks the spring-return ones; a tap outside sends nothing. Knobs (EUFD BRT, a radio volume, a light knob): the bar opens next to the knob and the knob follows DCS. COMM: hold a volume knob for 0.6 s, the PULL chip toggles. Power levers and FRICT: tap each mark of both levers, drag the FRICT bar.
 4. **Seat switch.** Switch to the CP/G seat (key `2`) while on a pilot-only page (for example CMWS): the page goes to the CP/G COCKPIT map, which has no CMWS, CENTER or EXT LT page. The badge shows `CP/G`. Switch back: the map shows the pilot pages.
-5. **FIGHT** (both seats). A/S (the ARM and SAFE lamps change), GND ORIDE once, WAS and SIGHT SEL in each direction (the selection changes in the cockpit), FLARE and CHAFF once each (the counts change; the CMWS must be on and set up).
-6. **Trim.** Hold the Force Trim switch and release it: the ring moves to the trim point and the log shows `PLT set`; press the trimmer reset key: `RESET`.
-7. **MPD, KU, TEDAC.** MPD: press buttons on both displays; the live labels follow page changes; the cursor pad moves the cursor in the right direction; the MODE knob works (NT through the INC / DEC fallback). KU: type a few characters, the scratchpad shows them. CP/G seat: spot-check the TEDAC buttons, knobs and rockers.
-8. **Guarded controls** (last). Station selects light their lamps and toggle back. ENG 1, APU and ENG 2 FIRE: lift the cover, tap once (RDY lamp on, fuel off), lift the cover again and tap again (safe); DCS's own cover opens with the tablet cover, and the log shows `cover open`, `pressed` and about 1 s later `cover closed`, without `not confirmed`. PRI and RES with a fire button armed, JETT with a station armed, ZEROIZE, MASTER ZEROIZE, CMWS JETT.
+5. **Debug seat.** Hold the seat badge for 0.6 s: it reads `DEBUG CP/G` (in the pilot seat), the pages show the CP/G, the FIGHT tab shows the gunner page, and every control is disabled. Hold again: back to `PILOT`. With DCS stopped the cycle is none, `DEBUG CP/G`, `DEBUG PILOT`, none. A reload clears it. On the tablet, check that a finger on the badge works as a long hold.
+6. **FIGHT, pilot page.** A/S (the ARM and SAFE lamps change), GND ORIDE once, WAS and SIGHT SEL in each direction (the selection changes in the cockpit), FLARE and CHAFF once each (the counts change; the CMWS must be on and set up).
+7. **FIGHT, gunner page and TKR** (CP/G seat). A/S, GND ORIDE, FLARE and CHAFF as above. WAS, SIGHT SEL (right grip: HMD, FCR, TADS, LINK) and SLAVE act in the cockpit. TADS FOV in each direction (Z, N, W, M) and SENSOR FLIR and TV. With a target under the TADS reticle: IAT starts a track, a short OFS drops it or returns the TADS to it, OFS ALL deletes all tracks; note whether IAT really is the forward and OFS the aft position of the grip switch. MPD tab, TEDAC selected: the TKR pad slews the sight in all four directions (note the up / down direction), a small push does nothing (dead zone), releasing the pad stops the slew; LEFT MPD and RIGHT MPD still show the cursor pad.
+8. **Trim.** Hold the Force Trim switch and release it: the ring moves to the trim point and the log shows `PLT set`; press the trimmer reset key: `RESET`.
+9. **MPD, KU, TEDAC.** MPD: press buttons on both displays; the live labels follow page changes; the cursor pad moves the cursor in the right direction; the MODE knob works (NT through the INC / DEC fallback). KU: type a few characters, the scratchpad shows them. CP/G seat: spot-check the TEDAC buttons, knobs and rockers.
+10. **Guarded controls** (last). Station selects light their lamps and toggle back. ENG 1, APU and ENG 2 FIRE: lift the cover, tap once (RDY lamp on, fuel off), lift the cover again and tap again (safe); DCS's own cover opens with the tablet cover, and the log shows `cover open`, `pressed` and about 1 s later `cover closed`, without `not confirmed`. PRI and RES with a fire button armed, JETT with a station armed, ZEROIZE, MASTER ZEROIZE, CMWS JETT.
 
-9. **GEORGE.** Bind the keys in DCS first (the table in [GEORGE](#george)). Pilot seat with battery power: SHOW RING and HIDE RING (the ring opens and closes); STOP / TADS FWD (the ring flashes open and closes again, George reacts); WEAPON NEXT (the ring stays open and the weapon label in the ring changes: NO WPN, GUN, MSL, RKT); PHS SEARCH, AIR AREA SEARCH and POINT SEARCH in the air with George not tracking (the ring stays open, a Target List appears when George reports targets; POINT SEARCH needs a TSD point selected); then PREV / NEXT TARGET, SELECT TARGET, TRACK / ENGAGE, ROE HOLD / FREE, FIRE and EXIT LIST on the list; STORE TARGET with a tracked target. CP/G seat: the pilot-only buttons are greyed; REQUEST CONTROL twice, George takes the flight controls, then gives them back.
+11. **GEORGE.** Bind the keys in DCS first (the table in [GEORGE](#george)). Pilot seat with battery power: SHOW RING and HIDE RING (the ring opens and closes); STOP / TADS FWD (the ring flashes open and closes again, George reacts); WEAPON NEXT (the ring stays open and the weapon label in the ring changes: NO WPN, GUN, MSL, RKT); PHS SEARCH, AIR AREA SEARCH and POINT SEARCH in the air with George not tracking (the ring stays open, a Target List appears when George reports targets; POINT SEARCH needs a TSD point selected); then PREV / NEXT TARGET, SELECT TARGET, TRACK / ENGAGE, ROE HOLD / FREE, FIRE and EXIT LIST on the list; STORE TARGET with a tracked target. CP/G seat: the pilot-only buttons are greyed; REQUEST CONTROL twice, George takes the flight controls, then gives them back.
 
 Done when a cold start to both power levers at FLY works from the tablet alone, the lamps match the cockpit, the CP/G seat shows only its own pages, and every control acts in both seats.
 

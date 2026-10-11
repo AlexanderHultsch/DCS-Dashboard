@@ -635,6 +635,7 @@ const KIT_SCALE_MAX = 1.6;
 const GUARD_MS = 5000;
 const PULL_HOLD_MS = 600;
 const LIST_HOLD_MS = 500;
+const DEBUG_HOLD_MS = 600;
 const LINE_COLS = 56;
 const INDICATOR_FILL = ['#2b251c', '#8a4b10', '#ff9a1f'];
 const KNOB_LARGE = 44;
@@ -726,6 +727,8 @@ let knobGroups = {};
 const knobChoice = {};
 let lifted = null;
 let pagesSeat = null;
+let realSeat = null;
+let debugSeat = null;
 let current = { status: 'offline', seat: null, values: {}, controls: {}, controlsAge: null, trim: {}, mpdLabels: null };
 let toastTimer = null;
 let mpdView = null;
@@ -801,9 +804,13 @@ function resolve(name) {
   return name.replace(/\{seat\}/g, prefix);
 }
 
+function activeSeat() {
+  return debugSeat !== null ? debugSeat : realSeat;
+}
+
 function usable() {
   const view = views[activeIndex];
-  return current.status === 'live' && !!view && view.seats.includes(current.seat);
+  return current.status === 'live' && debugSeat === null && !!view && view.seats.includes(current.seat);
 }
 
 function can(c) {
@@ -814,9 +821,14 @@ function readValue(name) {
   return current.values[resolve(name)];
 }
 
+function viewIndex(name) {
+  const i = views.findIndex((v) => !v.panel && v.name === name && v.seats.includes(current.seat));
+  return i >= 0 ? i : views.findIndex((v) => !v.panel && v.name === name);
+}
+
 function loadTab() {
   try {
-    const i = views.findIndex((v) => !v.panel && v.name === localStorage.getItem(TAB_KEY));
+    const i = viewIndex(localStorage.getItem(TAB_KEY));
     if (i >= 0) return i;
   } catch (e) { /* storage not available, use the first view */ }
   return 0;
@@ -898,7 +910,9 @@ function statusOf(s) {
 
 function renderBadge() {
   let b = BADGES[current.status];
-  if (!b) {
+  if (debugSeat !== null) {
+    b = { text: 'DEBUG ' + SEAT_LABEL[debugSeat], cls: 'ro' };
+  } else if (!b) {
     const seat = SEAT_LABEL[current.seat];
     b = usable() ? { text: seat, cls: 'ok' } : { text: seat + ' – READ ONLY', cls: 'ro' };
   }
@@ -2273,10 +2287,16 @@ function shownMpdSide() {
   return mpdView.pref === 'T' && current.seat !== 1 ? 'L' : mpdView.pref;
 }
 
+function showMpdGroup() {
+  mpdView.grp.style.display = mpdView.side === 'T' ? 'none' : '';
+  mpdView.tkr.style.display = mpdView.side === 'T' ? '' : 'none';
+}
+
 function showMpdSide(side) {
   if (mpdView.side === side) return;
   closeBar();
   mpdView.side = side;
+  showMpdGroup();
   mpdView.stage.replaceChildren(mpdView.bezels[side]);
   DISPLAYS.forEach(([s]) => mpdView.buttons[s].classList.toggle('cur', s === side));
   fit();
@@ -2303,9 +2323,10 @@ function placeMpd(box, cs) {
   const main = make('div', 'mpdmain');
   const cur = make('div', 'mpdcur');
   const grp = make('div', 'curgrp');
+  const tkr = make('div', 'curgrp');
   const sw = make('div', 'seg mpdsw');
   const stage = make('div', 'mpdstage');
-  mpdView = { pref: loadMpdSide(), side: null, main, cur, grp, sw, stage, bezels: {}, labels: {}, buttons: {}, touch: {} };
+  mpdView = { pref: loadMpdSide(), side: null, main, cur, grp, tkr, sw, stage, bezels: {}, labels: {}, buttons: {}, touch: {} };
   mpdView.side = shownMpdSide();
   DISPLAYS.forEach(([side, name]) => {
     const btn = make('button', 'pos', name);
@@ -2343,7 +2364,12 @@ function placeMpd(box, cs) {
   if (bySlot.CURSOR) grp.append(bySlot.CURSOR.el);
   ['CURSOR_DISPLAY', 'CURSOR_ENTER'].forEach((slot) => { if (bySlot[slot]) row.append(bySlot[slot].el); });
   grp.append(row);
-  cur.append(grp);
+  const tkrRow = make('div', 'curbtns');
+  if (bySlot.TKR) tkr.append(bySlot.TKR.el);
+  if (bySlot.TKR_SLAVE) tkrRow.append(bySlot.TKR_SLAVE.el);
+  tkr.append(tkrRow);
+  cur.append(grp, tkr);
+  showMpdGroup();
   main.append(sw, stage);
   box.append(main, cur);
   stage.append(mpdView.bezels[mpdView.side]);
@@ -2415,9 +2441,9 @@ function fitMpd() {
   const [areaW, areaH] = innerSize(area);
   const gap = parseFloat(getComputedStyle(area).columnGap);
   mpdView.main.style.width = Math.max(0, Math.min(mpdView.stage.clientHeight * bx.w / bx.h, areaW - CUR_MIN - gap)) + 'px';
-  const rowH = mpdView.grp.lastElementChild.offsetHeight;
+  const rowH = (side === 'T' ? mpdView.tkr : mpdView.grp).lastElementChild.offsetHeight;
   const pad = Math.max(0, Math.floor(Math.min(mpdView.cur.clientWidth, areaH - 2 * GEAR_CLEAR - rowH - 8)));
-  mpdView.grp.style.width = pad + 'px';
+  mpdView.grp.style.width = mpdView.tkr.style.width = pad + 'px';
   const w = mpdView.stage.clientWidth;
   const h = mpdView.stage.clientHeight;
   const s = Math.min(w / bx.w, h / bx.h);
@@ -2633,9 +2659,10 @@ function renderPages() {
 
 function followSeat() {
   const view = views[activeIndex];
-  if (!view || !view.panel || current.status !== 'live' || view.seats.includes(current.seat)) return;
+  if (!view || (current.status !== 'live' && debugSeat === null) || view.seats.includes(current.seat)) return;
   const i = views.findIndex((v) => v.name === view.name && v.seats.includes(current.seat));
-  showView(i >= 0 ? i : views.indexOf(homeView()));
+  if (i >= 0) showView(i);
+  else if (view.panel) showView(views.indexOf(homeView()));
 }
 
 function placeGrid(box, cs) {
@@ -2689,36 +2716,44 @@ function showView(index) {
 
 function updateTabs() {
   const view = views[activeIndex];
-  tabs.forEach(({ el, index }) => {
-    const home = views[index].layout === 'map' && !!view.panel;
-    el.classList.toggle('active', index === activeIndex || home);
-    el.textContent = views[index].name.toUpperCase();
+  tabs.forEach(({ el, name, map }) => {
+    const home = map && !!view.panel;
+    el.classList.toggle('active', name === view.name || home);
+    el.textContent = name.toUpperCase();
     if (home) el.insertAdjacentHTML('afterbegin', ICONS['chev-left']);
   });
 }
 
-function holdTab(tab) {
+function holdPress(el, ms, action) {
   let timer = null;
   const stop = () => {
     clearTimeout(timer);
     timer = null;
   };
-  tab.addEventListener('pointerdown', () => {
+  el.addEventListener('pointerdown', () => {
     stop();
-    tab.held = false;
+    el.held = false;
     timer = setTimeout(() => {
-      tab.held = true;
-      openPages();
-    }, LIST_HOLD_MS);
+      el.held = true;
+      action();
+    }, ms);
   });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach((type) => tab.addEventListener(type, stop));
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((type) => el.addEventListener(type, stop));
+}
+
+function cycleDebugSeat() {
+  const real = current.status === 'live' ? realSeat : null;
+  const order = real === null ? [null, 1, 0] : [null, 1 - real];
+  debugSeat = order[(order.indexOf(debugSeat) + 1) % order.length];
+  current.seat = activeSeat();
+  render();
 }
 
 function buildTabs() {
   const nav = document.getElementById('tabs');
   tabs = [];
-  views.forEach((v, index) => {
-    if (v.panel) return;
+  views.forEach((v) => {
+    if (v.panel || tabs.some((t) => t.name === v.name)) return;
     const tab = make('button', 'tab', v.name.toUpperCase());
     tab.type = 'button';
     tab.addEventListener('click', () => {
@@ -2726,11 +2761,11 @@ function buildTabs() {
         tab.held = false;
         return;
       }
-      showView(index);
+      showView(viewIndex(v.name));
     });
-    if (v.layout === 'map') holdTab(tab);
+    if (v.layout === 'map') holdPress(tab, LIST_HOLD_MS, openPages);
     nav.append(tab);
-    tabs.push({ el: tab, index });
+    tabs.push({ el: tab, name: v.name, map: v.layout === 'map' });
   });
 }
 
@@ -2856,9 +2891,10 @@ function closeSettings() {
 async function poll() {
   try {
     const s = await getJson('/state');
-    current = { status: statusOf(s), seat: s.seat, values: s.values || {}, controls: s.controls || {}, controlsAge: s.controls_age, trim: s.trim || {}, mpdLabels: s.mpd_labels || null };
+    realSeat = s.seat;
+    current = { status: statusOf(s), seat: activeSeat(), values: s.values || {}, controls: s.controls || {}, controlsAge: s.controls_age, trim: s.trim || {}, mpdLabels: s.mpd_labels || null };
   } catch (e) {
-    current = { status: 'offline', seat: current.seat, values: current.values, controls: {}, controlsAge: null, trim: {}, mpdLabels: null };
+    current = { status: 'offline', seat: activeSeat(), values: current.values, controls: {}, controlsAge: null, trim: {}, mpdLabels: null };
   }
   render();
   setTimeout(poll, POLL_MS);
@@ -2896,6 +2932,7 @@ const wakeSupported = 'wakeLock' in navigator;
 const logButtons = buildSeg(document.getElementById('logseg'), setLogging);
 const wakeButtons = buildSeg(document.getElementById('wakeseg'), setWake);
 initBar();
+holdPress(document.getElementById('seat'), DEBUG_HOLD_MS, cycleDebugSeat);
 document.body.insertAdjacentHTML('beforeend', knobDefs());
 document.getElementById('pageclose').addEventListener('click', closePages);
 document.getElementById('pages').addEventListener('click', (e) => {

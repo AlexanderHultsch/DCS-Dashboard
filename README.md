@@ -3,11 +3,11 @@
 A tablet dashboard for the **AH-64D Apache** in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Touch panels replace keyboard combinations and mouse clicks for cockpit commands.
 
 - **COCKPIT**: a map of the cockpit and one page per panel (POWER, FIRE, ARMAMENT, EUFD, COMM, lights and more), drawn like the real panels, for the pilot and the CP/G seat.
-- **FLIGHT, FIGHT**: power levers, symbology, trim display, weapons, sights, countermeasures.
+- **FLIGHT, FIGHT**: power levers, symbology, trim display, weapons, sights, countermeasures. FIGHT has one page per seat; the CP/G page adds the TADS controls (FOV, sensor, IAT, OFS, slave).
 - **MPD, KU**: both MPD bezels with live button labels, the TEDAC (CP/G), the cursor pad and the keyboard unit.
 - **GEORGE**: direct buttons for the AI crew member (search, targets, engagement, request control).
 
-The dashboard follows the seat you are in. Everything is plain Python (standard library only) and one HTML file. Full description: [docs/SPEC.md](docs/SPEC.md).
+The dashboard follows the seat you are in; a long hold on the seat badge shows the pages of the other seat, view only, for debugging. Everything is plain Python (standard library only) and one HTML file. Full description: [docs/SPEC.md](docs/SPEC.md).
 
 **Status:** the cold start from the tablet works in DCS. The panel pages, FLIGHT, FIGHT, MPD and KU are tested against a simulated DCS-BIOS and are waiting for a full test run in DCS. Open points: [docs/FIXES.md](docs/FIXES.md).
 
