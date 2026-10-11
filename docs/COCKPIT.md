@@ -4,6 +4,8 @@ Spec of the COCKPIT part of Stage 3 ([STAGE3.md](STAGE3.md)): a **COCKPIT** tab 
 
 Status: built and tested in an isolated setup (simulated DCS-BIOS, no real DCS ports, checked in a browser). The real DCS test run is open. AH-64D only; the structure stays reusable for other aircraft.
 
+Fixes after the first test on the tablet (screws, sizes, pop-ups, switch chooser, real covers, back icon): [COCKPIT_FIXES.md](COCKPIT_FIXES.md).
+
 Sources used: the DCS AH-64D Flight Manual (cockpit overview, pages 104 to 127), the DCS cockpit definition (`clickabledata.lua`), the DCS-BIOS module (`AH-64D.lua`, value and position tables) and the Stage 2 results. Controls are named by their DCS-BIOS id; `{S}` stands for `PLT` (pilot) or `CPG` (copilot/gunner).
 
 ## Goals
