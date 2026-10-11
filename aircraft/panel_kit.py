@@ -11,9 +11,9 @@ placed only by naming an x line and a y line from the line table:
 
 Panel.build() checks the layout (LayoutError on a collision) and returns the page data in the format
 web/index.html draws: box [w, h], controls (the given control data plus "at", "kit" and, for a guarded part,
-"cover_at"; a dual-function knob also "mark" and "dot"; a rotary also "knob"; a power lever or the slider also
-"handle", a lever the "y" of every position; the flap of a button is a control of its own), indicators (the lamps and
-letters of a dial), print ([text, x, y, size, width] or with a rotation) and art.
+"cover_at"; a dual-function knob also "mark" and "dot"; a knob with a PULL chip also "pull"; a rotary also "knob"; a power lever or the
+slider also "handle", a lever the "y" of every position; the flap of a button is a control of its own), indicators (the lamps and letters
+of a dial), print ([text, x, y, size, width] or with a rotation) and art.
 A page with several physical panels is a PanelGroup: one Panel per plate at a page offset, 16 du apart.
 
     p = Panel("EMERGENCY", 580, 276)
@@ -85,6 +85,7 @@ TOGGLE_LABELS = {
     "above_left_below": (("above", 0), ("left", 0), ("below", 0)),
     "above_below": (("above", 0), ("below", 0)),
     "left_right": (("left", 0), None, ("right", 0)),
+    "left_right_pair": (("left", 0), ("right", 0)),
     "right_pair": (("right", 0, -24), ("right", 0, 24)),
     "right_triple": (("right", 0, -28), ("right", 0, 0), ("right", 0, 28)),
 }
@@ -103,6 +104,8 @@ GLYPH_SCALE = 2
 DIAL_FACE = {"stroke": 2, "long": 9, "short": 5}
 GROUP_GAP = 16
 RULE_STROKE = 3
+# printed bracket: length of the leg at each end
+BRACKET = {"leg": 30}
 
 
 class LayoutError(ValueError):
@@ -331,6 +334,16 @@ class Panel:
             self.label(text, "POS", f"{name}_{i}", "left")
         return part
 
+    def chip(self, name: str, knob: str, control: dict) -> dict:
+        """PULL chip centred GAP du below a single-function knob. The control of the knob gets 'pull', the id of the chip: a long
+        press on the knob toggles the chip."""
+        k = self.parts[knob]
+        if k["kind"] not in KNOBS or len(k["members"]) != 1:
+            self.fail(f"chip {name}: {knob} is not a single-function knob")
+        k["control"] = {**k["control"], "pull": control["id"]}
+        k["members"] = [k["control"]]
+        return self._part(name, "CHIP", k["cx"], round(k["outer"][3] + GAP + PARTS["CHIP"]["h"] / 2), control)
+
     def knob_labels(self, name: str, preset: str, *texts: str):
         """Printed scale marks of a knob (OFF, BRT, MIN, MAX ...) from the preset of their arrangement on the photos."""
         part = self.parts[name]
@@ -509,6 +522,20 @@ class Panel:
             self.fail(f"rule {name} must sit on the 1 du grid, got x {x}, y {y0} to {y1}")
         box = (x - RULE_STROKE / 2, y0, x + RULE_STROKE / 2, y1)
         self.decor.append({"name": name, "box": box, "art": {"shape": "line", "at": [x, y0, 0, y1 - y0]}})
+
+    def bracket(self, name: str, text: str, x0: int, x1: int, y: int):
+        """Printed bracket over a group of parts, on the grid: a line from x0 to x1 with the text centred on it (GAP du of line
+        left free on each side of the text) and a leg of BRACKET leg du going down at each end."""
+        if not all(isinstance(v, int) for v in (x0, x1, y)) or (x0 + x1) % 2:
+            self.fail(f"bracket {name} must sit on the 1 du grid with its middle on the grid, got x {x0} to {x1}, y {y}")
+        half, leg = RULE_STROKE / 2, BRACKET["leg"]
+        middle = (x0 + x1) // 2
+        self.mark(text, "NAME", middle, y, f"text of the bracket {name}")
+        reach = text_size(text, "NAME", 0)[0] / 2 + GAP
+        for side, a, b in (("left", x0, middle - reach), ("right", middle + reach, x1)):
+            self.decor.append({"name": f"bracket {name} line {side}", "box": (a - half, y - half, b + half, y + half), "art": {"shape": "line", "at": [num(a), y, num(b - a), 0]}})
+        for side, x in (("left", x0), ("right", x1)):
+            self.decor.append({"name": f"bracket {name} leg {side}", "box": (x - half, y + half, x + half, y + leg), "art": {"shape": "line", "at": [x, y, 0, leg]}})
 
     def _add_label(self, text: str, style: str, box: tuple, rotate: int, inside: str | None = None):
         self.labels.append({"text": text, "style": style, "box": box, "rotate": rotate, "inside": inside})

@@ -94,7 +94,7 @@ await (async () => {
       const cx = b.x + b.width / 2;
       const cy = b.y + b.height / 2;
       const label = (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 14) + '|' + el.className.toString().split(' ')[0];
-      out.push({ el, label, cover, w, h, x0: cx - w / 2, x1: cx + w / 2, y0: cy - h / 2, y1: cy + h / 2 });
+      out.push({ el, label, cover, chip: el.classList.contains('pchipb'), w, h, x0: cx - w / 2, x1: cx + w / 2, y0: cy - h / 2, y1: cy + h / 2 });
     });
     return out;
   }
@@ -159,7 +159,8 @@ await (async () => {
     });
     const touch = touchAreas();
     touch.forEach((t) => {
-      if (t.w < TOUCH_MIN - TOL || t.h < TOUCH_MIN - TOL) out.push('touch area ' + t.label + ' ' + round(t.w) + 'x' + round(t.h) + ' px');
+      // a PULL chip sits 8 du under its knob and is small by design: the long press on the knob is its large target
+      if (!t.chip && (t.w < TOUCH_MIN - TOL || t.h < TOUCH_MIN - TOL)) out.push('touch area ' + t.label + ' ' + round(t.w) + 'x' + round(t.h) + ' px');
     });
     touch.forEach((a, i) => touch.slice(i + 1).forEach((b) => {
       if (a.cover || b.cover || a.el.contains(b.el) || b.el.contains(a.el)) return;

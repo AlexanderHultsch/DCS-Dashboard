@@ -441,142 +441,93 @@ def cmws_pages() -> list[dict]:
     return kit_pages("CMWS", {0: [1, 10, 2, 3]}, g)
 
 
-def wiper_plate(seat: str, dx: int = 0, dy: int = 0) -> tuple[list, list, list]:
-    def move(at: list) -> list:
-        return [round(at[0] + dx, 1), round(at[1] + dy, 1), *at[2:]]
-
-    controls = [
-        {"id": f"{seat}_DEFOG_BTN", "label": "DEFOG", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD, "at": move([147.7, 301.4, 70, 70])},
-        {
-            "id": f"{seat}_WIPER_SW", "label": "WINDSHIELD WIPER", "type": "selector", "style": "rotary", "orient": "h", "knob": move([420, 358, 52]),
-            "positions": [
-                {"value": 0, "label": "PARK", "angle": -42, "x": 335 + dx}, {"value": 1, "label": "OFF", "angle": 0, "x": 397 + dx},
-                {"value": 2, "label": "LO", "angle": 37, "x": 451 + dx}, {"value": 3, "label": "HI", "angle": 74, "x": 519 + dx},
-            ],
-            "at": move([305, 250, 240, 165]),
-        },
-    ]
-    placard = [
-        ["WINDSHIELD WIPER", 317.9, 243, 28, 295], ["+", 104.6, 267, 14], ["DEFOG", 181.2, 285.7, 22, 76],
-        ["PARK", 350.5, 281, 15, 46], ["OFF", 420.7, 264.7, 15, 28], ["LO", 479.3, 281, 15, 20], ["HI", 501, 335, 15, 18],
-    ]
-    art = [
-        {"shape": "plate", "at": [4, 217, 620, 265]},
-        {"shape": "screw", "at": [31.5, 271.3, 20]}, {"shape": "screw", "at": [555.3, 282.1, 13]},
-        {"shape": "screw", "at": [73.4, 390.6, 14]}, {"shape": "screw", "at": [595.8, 389.2, 18]},
-        {"shape": "screw", "at": [35.5, 463, 17]}, {"shape": "screw", "at": [593.6, 463, 17]},
-        {"shape": "line", "at": [369.2, 301.6, -6.7, -7.6]}, {"shape": "line", "at": [465.8, 297.3, 6.6, -8]}, {"shape": "line", "at": [477.7, 341.4, 9.6, -2.7]},
-    ]
-    return (
-        controls,
-        [[t, round(x + dx, 1), round(y + dy, 1), *rest] for t, x, y, *rest in placard],
-        [{**a, "at": move(a["at"])} for a in art],
-    )
+def wiper_panel(p: Panel, seat: str):
+    p.mark("WINDSHIELD WIPER", "TITLE", "CX", 80, "panel title")
+    p.mark("+", "SMALL", 145, 122, "panel mark as on the photo")
+    p.round("DEFOG", 84, 174, {"id": f"{seat}_DEFOG_BTN", "label": "DEFOG", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD})
+    p.label("DEFOG", "NAME", "DEFOG", "above")
+    p.rotary("WIPER", 246, 190, {
+        "id": f"{seat}_WIPER_SW", "label": "WINDSHIELD WIPER", "type": "selector", "style": "rotary", "orient": "h",
+        "positions": [
+            {"value": 0, "label": "PARK", "angle": -42}, {"value": 1, "label": "OFF", "angle": 0},
+            {"value": 2, "label": "LO", "angle": 37}, {"value": 3, "label": "HI", "angle": 74},
+        ],
+    }, labels="fan")
 
 
 def center_pages() -> list[dict]:
-    def ckt(name: str, label: str, x: float) -> dict:
-        return {
-            "id": f"PLT_CHK_OSPD_ENG_{name}", "label": label, "type": "selector", "rest": 1, "hold": 0.5, "at": [x - 40, 24.5, 80, 180],
-            "positions": [
-                {"value": 2, "label": "ENG 1", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "ENG 2", "momentary": True},
-            ],
-        }
-
-    wiper_controls, wiper_placard, wiper_art = wiper_plate("PLT")
-    controls = [
-        ckt("A", "CKT A", 146.5), ckt("B", "CKT B", 291.9),
-        {
-            "id": "PLT_GEN_RESET", "label": "GEN RST", "type": "selector", "orient": "h", "rest": 1, "hold": 0.5, "at": [373.4, 76.7, 180, 80],
-            "positions": [
-                {"value": 0, "label": "GEN 1", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 2, "label": "GEN 2", "momentary": True},
-            ],
-        },
-        *wiper_controls,
-        {
-            "id": "PLT_PARK_BRAKE", "label": "PARK BRAKE", "type": "selector", "orient": "h", "at": [170, 505, 150, 66],
-            "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "PULLED"}],
-        },
-        {"id": "PLT_ALT_SET_KNB", "label": "ALT SET", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135], "at": [462, 506, 64, 64]},
-    ]
-    placard = [
-        ["CHK OVSP TEST", 193.7, 41.8, 30, 256], ["GEN RST", 466.4, 41.8, 30, 128],
-        ["ENG 1", 219.2, 81.8, 16, 57], ["OFF", 219.2, 113, 16, 29], ["ENG 2", 219.2, 142, 16, 57],
-        ["CKT A", 146.5, 175.6, 21, 74], ["CKT B", 291.9, 175.6, 21, 74],
-        ["+", 381.3, 89.8, 14], ["GEN 1", 390.8, 113.8, 17, 52], ["GEN 2", 538, 113.8, 17, 58],
-        *wiper_placard,
-        ["PARK BRAKE", 92, 538, 22, 108], ["IN", 196, 538, 18, 18], ["PULLED", 309, 538, 18, 56], ["ALT SET", 402, 538, 22, 80],
-    ]
-    art = [
-        {"shape": "plate", "at": [4, 4, 620, 207]}, *wiper_art, {"shape": "plate", "at": [4, 488, 620, 100]},
-        {"shape": "screw", "at": [34.5, 68, 17]}, {"shape": "screw", "at": [550, 76.7, 11]},
-        {"shape": "screw", "at": [75.2, 149.4, 13]}, {"shape": "screw", "at": [591.4, 149.4, 17]},
-        {"shape": "screw", "at": [24, 500, 9]}, {"shape": "screw", "at": [604, 576, 9]},
-    ]
-    return panel_pages("CENTER", {0: [6, 5, 2, 4]}, [628, 592], placard, art, controls)
+    g = PanelGroup("CENTER")
+    a = g.panel("CHK OVSP TEST", 640, 210, 0, 0)
+    a.mark("CHK OVSP TEST", "TITLE", 250, 52, "panel title")
+    a.mark("GEN RST", "TITLE", 500, 52, "panel title")
+    for name, x in (("A", 170), ("B", 330)):
+        a.toggle(f"CKT_{name}", x, 114, {
+            "id": f"PLT_CHK_OSPD_ENG_{name}", "label": f"CKT {name}", "type": "selector", "rest": 1, "hold": 0.5,
+            "positions": [{"value": 2, "label": "ENG 1", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "ENG 2", "momentary": True}],
+        })
+        a.label(f"CKT {name}", "NAME", f"CKT_{name}", "below")
+    for text, y in (("ENG 1", 86), ("OFF", 114), ("ENG 2", 142)):
+        a.mark(text, "POS", 250, y, "printed once between the two switches, as on the photo")
+    a.toggle("GEN", 500, 114, {
+        "id": "PLT_GEN_RESET", "label": "GEN RST", "type": "selector", "orient": "h", "rest": 1, "hold": 0.5,
+        "positions": [{"value": 0, "label": "GEN 1", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 2, "label": "GEN 2", "momentary": True}],
+    }, "left_right")
+    a.mark("+", "SMALL", 420, 86, "panel mark as on the photo")
+    wiper_panel(g.panel("WINDSHIELD WIPER", 376, 304, 0, 226), "PLT")
+    c = g.panel("PARK BRAKE / ALT SET", 248, 304, 392, 226)
+    c.toggle("PARK", 100, 120, {
+        "id": "PLT_PARK_BRAKE", "label": "PARK BRAKE", "type": "selector", "orient": "h",
+        "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "PULLED"}],
+    }, "left_right_pair")
+    c.label("PARK\nBRAKE", "NAME", "PARK", "above")
+    c.knob("ALT", "KNOB_M", 124, 232, {"id": "PLT_ALT_SET_KNB", "label": "ALT SET", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    c.label("ALT SET", "NAME", "ALT", "above")
+    return kit_pages("CENTER", {0: [6, 5, 2, 4]}, g)
 
 
-def comm_knob(key: str, label: str, at: list, chip_at: list | None = None) -> list[dict]:
-    knob = {"id": f"{{seat}}_COM_{key}_VOL", "label": label, "type": "knob", "step": KNOB_STEP, "sweep": [-150, 150], "at": at}
-    if chip_at is None:
-        return [knob]
-    chip = {
-        "id": f"{{seat}}_COM_{key}_PW", "label": f"{label} PULL", "type": "selector", "style": "chip", "legend": "PULL",
-        "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "OUT"}], "at": chip_at,
-    }
-    return [{**knob, "pull": chip["id"]}, chip]
+def comm_knob(p: Panel, key: str, label: str, x: int, y: int, pull: bool):
+    p.knob(key, "KNOB_S", x, y, {"id": f"{{seat}}_COM_{key}_VOL", "label": label, "type": "knob", "step": KNOB_STEP, "sweep": [-150, 150]})
+    p.label(label, "NAME", key, "above")
+    if pull:
+        p.chip(f"{key}_PULL", key, {
+            "id": f"{{seat}}_COM_{key}_PW", "label": f"{label} PULL", "type": "selector", "style": "chip", "legend": "PULL",
+            "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "OUT"}],
+        })
 
 
 def comm_pages() -> list[dict]:
-    radios = [("VHF", "VHF", 97, 101), ("UHF", "UHF", 206, 210), ("FM1", "FM 1", 316, 321), ("FM2", "FM 2", 427, 436), ("HF", "HF", 537, 550)]
-    aux = [("IFF", "IFF", 99, None), ("RLWR", "RLWR", 213, None), ("ATA", "ATA", 331, None), ("VCR", "VCR", 446, [411, 574, 70, 17]), ("ADF", "ADF", 549, [496, 574, 70, 17])]
-    controls = []
-    for key, label, x, knob_x in radios:
-        controls += comm_knob(key, label, [knob_x - 35, 69, 70, 70], [knob_x - 35, 141, 70, 17])
-        controls.append({
-            "id": f"{{seat}}_COM_{key}_SQL", "label": f"{label} SQL", "type": "selector", "rest": 1, "hold": 0.5, "at": [x - 39, 168, 78, 126],
-            "positions": [
-                {"value": 2, "label": "ENABLE", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "DISABLE", "momentary": True},
-            ],
+    p = Panel("COMM", 640, 600)
+    p.mark("COMM", "TITLE", "CX", 52, "panel title")
+    p.bracket("SOL", "SOL", 52, 588, 208)
+    for key, label, x in (("VHF", "VHF", 88), ("UHF", "UHF", 204), ("FM1", "FM 1", 320), ("FM2", "FM 2", 436), ("HF", "HF", 552)):
+        comm_knob(p, key, label, x, 130, True)
+        p.toggle(f"{key}_SQL", x, 256, {
+            "id": f"{{seat}}_COM_{key}_SQL", "label": f"{label} SQL", "type": "selector", "rest": 1, "hold": 0.5,
+            "positions": [{"value": 2, "label": "ENABLE", "momentary": True}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "DISABLE", "momentary": True}],
         })
-    controls += [
-        {"id": "{seat}_COM_MASTER_VOL", "label": "MASTER", "type": "knob", "step": KNOB_STEP, "sweep": [-150, 150], "at": [79, 294, 104, 104]},
-        {"id": "{seat}_COM_SENS_KNB", "label": "SENS", "type": "knob", "step": KNOB_STEP, "sweep": [-150, 150], "at": [225, 309, 72, 72]},
-        {
-            "id": "{seat}_COM_ICS_MODE", "label": "ICS", "type": "selector", "at": [350, 289, 80, 119],
-            "positions": [{"value": 2, "label": "PTT"}, {"value": 1, "label": "VOX"}, {"value": 0, "label": "HOT MIC"}],
-        },
-        {"id": "{seat}_COM_IDENT_BTN", "label": "IDENT", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD, "at": [487, 316, 68, 68]},
-    ]
-    for key, label, x, chip_at in aux:
-        controls += comm_knob(key, label, [x - 35, 483, 70, 70], chip_at)
-    placard = [
-        ["COMM", 314, 25.5, 27, 88],
-        ["VHF", 97, 62.5, 22, 46], ["UHF", 204, 62.5, 22, 46], ["FM 1", 316, 62.5, 22, 56], ["FM 2", 427, 63, 22, 57], ["HF", 535, 62.5, 22, 30],
-        ["SOL", 318.5, 170.5, 25, 46],
-        ["MASTER", 124, 280, 26, 102], ["SENS", 255, 283.5, 26, 62], ["MIN", 86.5, 411, 19, 33], ["MAX", 162, 411, 19, 42],
-        ["ICS", 390, 274.5, 24, 40], ["PTT", 388, 300.5, 18.5, 34], ["VOX", 331, 349, 19, 38], ["HOT MIC", 391.5, 398, 20, 82],
-        ["IDENT", 522.5, 295.5, 25, 71],
-        ["AUX", 325, 436, 26, 49], ["+", 490, 446, 16],
-        ["IFF", 99, 465.5, 25, 36], ["RLWR", 211, 465.5, 25, 72], ["ATA", 325, 465.5, 25, 51], ["VCR", 437, 465.5, 25, 49], ["ADF", 545.5, 465.5, 25, 49],
-    ]
-    art = [
-        {"shape": "plate", "at": [3, 4, 620, 592]},
-        {"shape": "bracket", "at": [3, 4, 52, 78]}, {"shape": "bracket", "at": [570, 4, 53, 80]},
-        {"shape": "bracket", "at": [3, 500, 52, 96]}, {"shape": "bracket", "at": [570, 500, 53, 96]},
-        {"shape": "screw", "at": [27, 57, 18]}, {"shape": "screw", "at": [150, 52, 14]}, {"shape": "screw", "at": [475.5, 54.5, 14]}, {"shape": "screw", "at": [599, 58, 19]},
-        {"shape": "screw", "at": [32, 540, 20]}, {"shape": "screw", "at": [156, 541, 15]}, {"shape": "screw", "at": [492, 537, 15]}, {"shape": "screw", "at": [607.5, 541, 19]},
-        {"shape": "line", "at": [58.5, 171, 220.5, 0]}, {"shape": "line", "at": [58.5, 171, 0, 30]},
-        {"shape": "line", "at": [358.5, 171, 222.5, 0]}, {"shape": "line", "at": [581, 171, 0, 30]},
-        {"shape": "line", "at": [58.5, 435, 220.5, 0]}, {"shape": "line", "at": [58.5, 435, 0, 29]},
-        {"shape": "line", "at": [365, 435, 224, 0]}, {"shape": "line", "at": [589, 435, 0, 31]},
-    ]
-    return panel_pages("COMM", {0: [3, 10, 3, 3], 1: [2, 11, 2, 2]}, [627, 600], placard, art, controls)
+    p.knob("MASTER", "KNOB_L", 128, 372, {"id": "{seat}_COM_MASTER_VOL", "label": "MASTER", "type": "knob", "step": KNOB_STEP, "sweep": [-150, 150]})
+    p.label("MASTER", "NAME", "MASTER", "above")
+    p.knob_labels("MASTER", "lower_sides", "MIN", "MAX")
+    p.knob("SENS", "KNOB_M", 262, 360, {"id": "{seat}_COM_SENS_KNB", "label": "SENS", "type": "knob", "step": KNOB_STEP, "sweep": [-150, 150]})
+    p.label("SENS", "NAME", "SENS", "above")
+    p.toggle("ICS", 378, 320, {
+        "id": "{seat}_COM_ICS_MODE", "label": "ICS", "type": "selector",
+        "positions": [{"value": 2, "label": "PTT"}, {"value": 1, "label": "VOX"}, {"value": 0, "label": "HOT MIC"}],
+    }, "above_left_below")
+    p.label("ICS", "NAME", "ICS", "above")
+    p.round("IDENT", 520, 356, {"id": "{seat}_COM_IDENT_BTN", "label": "IDENT", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD})
+    p.label("IDENT", "NAME", "IDENT", "above")
+    p.bracket("AUX", "AUX", 52, 588, 428)
+    p.mark("+", "SMALL", 488, 454, "panel mark as on the photo")
+    for key, label, x, pull in (("IFF", "IFF", 96, False), ("RLWR", "RLWR", 208, False), ("ATA", "ATA", 320, False), ("VCR", "VCR", 432, True), ("ADF", "ADF", 544, True)):
+        comm_knob(p, key, label, x, 502, pull)
+    return kit_pages("COMM", {0: [3, 10, 3, 3], 1: [2, 11, 2, 2]}, p)
 
 
 def wiper_pages() -> list[dict]:
-    controls, placard, art = wiper_plate("CPG", 0, -213)
-    return panel_pages("WIPER / DEFOG", {1: [4, 11, 1, 2]}, [628, 273], placard, art, controls)
+    p = Panel("WIPER / DEFOG", 376, 304)
+    wiper_panel(p, "CPG")
+    return kit_pages("WIPER / DEFOG", {1: [4, 11, 1, 2]}, p)
 
 
 VIEWS = [

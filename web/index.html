@@ -636,6 +636,7 @@ const MODE_BASE = 90;
 const MODE_STEP = 45;
 const KNOB_TOL = 700;
 const TOUCH_MIN = 56;
+const CHIP_TOUCH_MIN = 32;
 const GEAR_CLEAR = 44;
 const POPUP_GAP = 8;
 const PICK_SIZE = 64;
@@ -2072,7 +2073,7 @@ function buildPlateChip(def) {
     btn.classList.toggle('pending', c.pending !== null);
     btn.setAttribute('aria-disabled', String(!can(c) || c.busy));
   };
-  c.touchAt = ([x, y, w, h]) => [{ el: btn, cx: x + w / 2, cy: y + h / 2, w, h }];
+  c.touchAt = ([x, y, w, h]) => [{ el: btn, cx: x + w / 2, cy: y + h / 2, w, h, min: CHIP_TOUCH_MIN }];
   return c;
 }
 
@@ -2418,8 +2419,9 @@ function innerSize(box) {
 function spread(touch, s) {
   const items = touch.map((t) => {
     const item = { el: t.el, x: t.cx * s, y: t.cy * s, vw: t.w * s, vh: t.h * s };
-    item.hw = Math.max(item.vw, TOUCH_MIN) / 2;
-    item.hh = Math.max(item.vh, TOUCH_MIN) / 2;
+    const least = t.min || TOUCH_MIN;
+    item.hw = Math.max(item.vw, least) / 2;
+    item.hh = Math.max(item.vh, least) / 2;
     return item;
   });
   const cut = (item, key, floor, amount) => {
