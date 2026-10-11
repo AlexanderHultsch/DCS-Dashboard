@@ -28,6 +28,7 @@ MPD_BUTTON = re.compile(r"^PB(\d+)_(?:bold_)?(\d+)$")
 MPD_SKIP_LINES = ("children are {", "}")
 
 STICK_CENTRE = 0.02
+STICK_DIGITAL = 0.3
 
 CONTROLS_STALE = 3
 TRIM_POLL = 0.05
@@ -97,7 +98,7 @@ def read_names() -> list[str]:
                 for identifier in control["ids"]:
                     names += expand_all(identifier)
             else:
-                names += expand_all(control["id"])
+                names += expand_all(control.get("bios", control["id"]))
             if "lamp" in control:
                 names += expand_all(control["lamp"])
             for lamp in control.get("lamps", []):
@@ -356,7 +357,10 @@ def move_stick(control: dict, name: str, value, seat: int) -> tuple[bool, str]:
     with stick_lock:
         last = stick_last.setdefault(name, {"position": (0.0, 0.0), "raw": {}})
         for axis, v in zip(("x", "y"), position):
-            raw = round(32767.5 + v * 32767.5)
+            if control.get("digital"):
+                raw = 2 if v > STICK_DIGITAL else 0 if v < -STICK_DIGITAL else 1
+            else:
+                raw = round(32767.5 + v * 32767.5)
             axis_name = expand(control[axis], seat)
             if last["raw"].get(axis_name) != raw:
                 send(axis_name, raw)
@@ -498,10 +502,11 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
                 current = read(expand(requires["id"], seat))
             if current != requires["value"]:
                 return False, "locked: open the cover first", None
+        target = expand(control.get("bios", identifier), seat)
         with command_lock:
-            send(name, 1)
-            confirmed = hold_until(name, 1, max(control.get("hold", 0.3), PRESS_MIN), PRESS_MAX)
-            send(name, 0)
+            send(target, control.get("value", 1))
+            confirmed = hold_until(target, control.get("value", 1), max(control.get("hold", 0.3), PRESS_MIN), PRESS_MAX)
+            send(target, control.get("rest", 0))
         log.line("dash", name, "pressed" if confirmed else "pressed, not confirmed")
         return True, "", confirmed
     if control["type"] == "knob":

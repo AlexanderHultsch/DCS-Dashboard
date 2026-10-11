@@ -100,6 +100,13 @@ def cursor_controls() -> list[dict]:
     ]
 
 
+def tkr_controls() -> list[dict]:
+    return [
+        {"id": "CPG_TKR", "label": "TKR", "type": "stick", "digital": True, "x": "CPG_RHG_MAN_TRK_L_R", "y": "CPG_RHG_MAN_TRK_UP_DN", "slot": "TKR", "seats": [1]},
+        {"id": "CPG_RHG_SIGHT_SLAVE", "label": "SLAVE", "type": "button", "hold": MPD_BUTTON_HOLD, "slot": "TKR_SLAVE", "seats": [1]},
+    ]
+
+
 def tedac_controls() -> list[dict]:
     buttons = [
         ("TAD_SEL", "TAD", "TAD"), ("FCR_SEL", "FCR", "FCR"), ("PNV_SEL", "PNV", "PNV"), ("GS_SEL", "G/S", "GS"),
@@ -612,7 +619,7 @@ VIEWS = [
     },
     {
         "name": "Fight",
-        "seats": [0, 1],
+        "seats": [0],
         "lamps": [
             {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
             {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
@@ -635,7 +642,34 @@ VIEWS = [
             {"id": "PLT_CMWS_BYPASS", "label": "CMWS OPER", "type": "selector", "positions": [{"value": 1, "label": "BYPASS"}, {"value": 0, "label": "AUTO"}], "seats": [0], "grid": [2, 6, 1, 1]},
         ],
     },
-    {"name": "MPD", "seats": [0, 1], "layout": "mpd", "lamps": [], "controls": mpd_controls("L") + mpd_controls("R") + cursor_controls() + tedac_controls()},
+    {
+        "name": "Fight",
+        "seats": [1],
+        "lamps": [
+            {"id": "CPG_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "CPG_INTL_MWARN_BTN"},
+            {"id": "CPG_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "CPG_INTL_MCAUTION_BTN"},
+            {"id": "CPG_MASTER_ARM_ARM_L", "label": "ARM", "color": "amber"},
+            {"id": "CPG_MASTER_ARM_SAFE_L", "label": "SAFE", "color": "green"},
+            {"id": "CPG_GROUND_OVERRIDE_L", "label": "GND ORIDE", "color": "amber"},
+        ],
+        "controls": [
+            {"id": "CPG_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": 0.3, "grid": [1, 1, 1, 1]},
+            {"id": "CPG_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": 0.3, "grid": [1, 2, 1, 1]},
+            {"id": "CPG_CYCLIC_FLARE", "label": "FLARE", "type": "button", "hold": 0.3, "grid": [2, 1, 1, 1]},
+            {"id": "CPG_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": 0.3, "grid": [2, 2, 1, 1]},
+            {"id": "PLT_CMWS_FLARE_COUNT", "label": "FLARE COUNT", "type": "display", "grid": [3, 1, 1, 1]},
+            {"id": "PLT_CMWS_CHAFF_COUNT", "label": "CHAFF COUNT", "type": "display", "grid": [3, 2, 1, 1]},
+            {"id": "CPG_WAS", "label": "WAS", "type": "hat", "ud": "CPG_CYCLIC_WEAPON_UD", "lr": "CPG_CYCLIC_WEAPON_LR", "hold": 0.3, "positions": {"up": "G", "down": "A", "left": "R", "right": "M"}, "grid": [1, 3, 1, 2]},
+            {"id": "CPG_SIGHT_SEL", "label": "SIGHT SEL", "type": "hat", "ud": "CPG_RHG_SIGHT_UP_DN", "lr": "CPG_RHG_SIGHT_L_R", "hold": 0.3, "positions": {"up": "HMD", "down": "LINK", "left": "FCR", "right": "TADS"}, "grid": [2, 3, 1, 2]},
+            {"id": "CPG_RHG_SIGHT_SLAVE", "label": "SLAVE", "type": "button", "hold": 0.3, "grid": [3, 3, 1, 1]},
+            {"id": "CPG_TADS_FOV", "label": "TADS FOV", "type": "hat", "ud": "CPG_LHG_TADS_FOV_UP_DN", "lr": "CPG_LHG_TADS_FOV_L_R", "hold": 0.3, "positions": {"up": "Z", "down": "M", "left": "N", "right": "W"}, "grid": [1, 5, 1, 2]},
+            {"id": "CPG_LHG_TADS_SEL", "label": "SENSOR", "type": "selector", "positions": [{"value": 2, "label": "FLIR"}, {"value": 1, "label": "TV"}, {"value": 0, "label": "DVO", "disabled": True}], "grid": [2, 5, 1, 2]},
+            {"id": "CPG_IAT", "label": "IAT", "type": "button", "bios": "CPG_LHG_TEDAC_L_IAT", "value": 2, "rest": 1, "hold": 0.3, "grid": [1, 7, 1, 1]},
+            {"id": "CPG_OFS", "label": "OFS", "type": "button", "bios": "CPG_LHG_TEDAC_L_IAT", "value": 0, "rest": 1, "hold": 0.3, "grid": [2, 7, 1, 1]},
+            {"id": "CPG_OFS_ALL", "label": "OFS ALL", "type": "button", "bios": "CPG_LHG_TEDAC_L_IAT", "value": 0, "rest": 1, "hold": 0.8, "grid": [3, 7, 1, 1]},
+        ],
+    },
+    {"name": "MPD", "seats": [0, 1], "layout": "mpd", "lamps": [], "controls": mpd_controls("L") + mpd_controls("R") + cursor_controls() + tedac_controls() + tkr_controls()},
     {"name": "KU", "seats": [0, 1], "layout": "ku", "lamps": [], "controls": ku_controls()},
     {
         "name": "George",
