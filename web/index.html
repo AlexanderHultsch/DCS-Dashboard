@@ -618,6 +618,7 @@ const MODE_STEP = 45;
 const KNOB_TOL = 700;
 const TOUCH_MIN = 56;
 const GEAR_CLEAR = 44;
+const POPUP_GAP = 8;
 const KIT_SCALE_MAX = 1.6;
 const GUARD_MS = 5000;
 const PULL_HOLD_MS = 600;
@@ -1307,6 +1308,28 @@ function barTitle(def) {
   return side + ' · ' + def.label;
 }
 
+function placePopup(anchor, width, height, prefer) {
+  const area = document.getElementById('controls').getBoundingClientRect();
+  const gear = document.getElementById('gear').getBoundingClientRect();
+  const safe = { left: POPUP_GAP, top: area.top + POPUP_GAP, right: window.innerWidth - POPUP_GAP, bottom: window.innerHeight - POPUP_GAP };
+  const hole = { left: gear.left - POPUP_GAP, top: gear.top - POPUP_GAP, right: gear.right + POPUP_GAP, bottom: gear.bottom + POPUP_GAP };
+  let left = anchor.left + (anchor.width - width) / 2;
+  let top = anchor.top + (anchor.height - height) / 2;
+  if (prefer === 'below') {
+    if (anchor.bottom + POPUP_GAP + height <= safe.bottom) top = anchor.bottom + POPUP_GAP;
+    else if (anchor.top - POPUP_GAP - height >= safe.top) top = anchor.top - POPUP_GAP - height;
+  }
+  left = Math.max(safe.left, Math.min(left, safe.right - width));
+  top = Math.max(safe.top, Math.min(top, safe.bottom - height));
+  if (left < hole.right && left + width > hole.left && top < hole.bottom && top + height > hole.top) {
+    const dx = left + width - hole.left;
+    const dy = top + height - hole.top;
+    if (dx <= dy) left -= dx;
+    else top -= dy;
+  }
+  return { left, top };
+}
+
 function openBar(c) {
   if (!can(c)) return;
   closeBar();
@@ -1333,11 +1356,10 @@ function openBar(c) {
   document.getElementById('ktrack').style.display = mode ? 'none' : '';
   stops.style.display = mode ? '' : 'none';
   document.getElementById('kpct').textContent = '';
-  const area = document.getElementById('controls').getBoundingClientRect();
   const panel = document.getElementById('kbar');
-  const w = Math.min(420, window.innerWidth - 24);
-  panel.style.left = Math.max(0, area.left + (area.width - w) / 2) + 'px';
-  panel.style.top = Math.max(0, area.top + (area.height - 120) / 2) + 'px';
+  const pos = placePopup((c.el.querySelector('.dial') || c.el).getBoundingClientRect(), Math.min(420, window.innerWidth - 24), 120, 'below');
+  panel.style.left = pos.left + 'px';
+  panel.style.top = pos.top + 'px';
   document.body.classList.add('knob-open');
   renderBar();
 }
