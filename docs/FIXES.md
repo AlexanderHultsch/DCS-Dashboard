@@ -33,7 +33,7 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] GEORGE ROE HOLD / FREE toggles (the ring text colour changes) and the ring stays open.
 - [ ] GEORGE FIRE gives consent in HOLD FIRE.
 - [ ] GEORGE EXIT LIST cancels the list and the shoot list.
-- [ ] GEORGE AIR AREA SEARCH, POINT SEARCH and PHS SEARCH still work with the changed sequence (Hide, Show first; the ring stays open).
+- [ ] George ring commands with the new timing (hold 0.15 s, pauses 0.5 / 1.0 / 0.6 s, staggered keys): which buttons work; if keys are missed raise `macro_pause_scale` (1.5, 2) in config/config.toml and read the per-step lines in the log.
 - [ ] Gunner FIGHT: IAT, OFS and OFS ALL do what the grip does, and the switch mapping is right (IAT forward = 2, OFS aft = 0, rest 1).
 - [ ] Gunner FIGHT: the TADS FOV letters (Z N W M on the up, left, right and down buttons) and the SENSOR mapping (FLIR 2, TV 1).
 - [ ] Gunner FIGHT: SIGHT SEL from the right grip (HMD, FCR, TADS, LINK) and SLAVE.

@@ -13,7 +13,7 @@ DEFAULTS = {
     "dcs": {"saved_games": "auto", "window_title": "Digital Combat Simulator", "aircraft": "AH-64D"},
     "dcs_bios": {"export_multicast": "239.255.50.10", "export_port": 5010, "command_port": 7778},
     "export": {"port": 7790},
-    "dashboard": {"host": "0.0.0.0", "port": 8080},
+    "dashboard": {"host": "0.0.0.0", "port": 8080, "macro_pause_scale": 1.0},
     "log": {"file": "logs/dcs-dashboard.log", "max_mb": 5, "backups": 2},
 }
 

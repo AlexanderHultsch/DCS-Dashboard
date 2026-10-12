@@ -51,8 +51,11 @@ TEDAC_MODE_POSITIONS = [
 ]
 KNOB_STEP = 3200
 MPD_BUTTON_HOLD = 0.3
-GEORGE_SHORT = 0.1
+GEORGE_SHORT = 0.15
 GEORGE_LONG = 1.2
+GEORGE_HIDE_PAUSE = 0.5
+GEORGE_SHOW_PAUSE = 1.0
+GEORGE_KEY_PAUSE = 0.6
 MPD_LABELS = {"B1": "M", "AC": "A/C", "AST": "*"}
 KU_LABELS = {
     "DOT": ".", "SIGN": "+/-", "SLASH": "/", "DIV": "\u00f7", "MULTI": "*", "PLUS": "+",
@@ -61,9 +64,9 @@ KU_LABELS = {
 
 
 def george_ring(direction: str, hold: float, keep: bool = False) -> list[list]:
-    steps = [["george_hide", 0.1, 0.3], ["george_show", 0.1, 0.4], [direction, hold, 0.3]]
+    steps = [["george_hide", GEORGE_SHORT, GEORGE_HIDE_PAUSE], ["george_show", GEORGE_SHORT, GEORGE_SHOW_PAUSE], [direction, hold, GEORGE_KEY_PAUSE]]
     if not keep:
-        steps.append(["george_hide", 0.1, 0])
+        steps.append(["george_hide", GEORGE_SHORT, 0])
     return steps
 
 
@@ -680,8 +683,8 @@ VIEWS = [
         ],
         "controls": [
             {"id": "george_phs", "label": "PHS SEARCH", "type": "macro", "steps": george_ring("george_up", GEORGE_SHORT, keep=True), "seats": [0], "grid": [1, 1, 1, 1]},
-            {"id": "george_area", "label": "AIR AREA SEARCH", "type": "macro", "steps": [["george_hide", 0.1, 0.3], ["george_show", 0.1, 0.4], ["george_multi", GEORGE_LONG, 0]], "seats": [0], "grid": [1, 2, 1, 1]},
-            {"id": "george_point", "label": "POINT SEARCH", "type": "macro", "steps": [["george_hide", 0.1, 0.3], ["george_show", 0.1, 0.4], ["george_multi", GEORGE_SHORT, 0]], "seats": [0], "grid": [1, 3, 1, 1]},
+            {"id": "george_area", "label": "AIR AREA SEARCH", "type": "macro", "steps": george_ring("george_multi", GEORGE_LONG, keep=True), "seats": [0], "grid": [1, 2, 1, 1]},
+            {"id": "george_point", "label": "POINT SEARCH", "type": "macro", "steps": george_ring("george_multi", GEORGE_SHORT, keep=True), "seats": [0], "grid": [1, 3, 1, 1]},
             {"id": "george_store", "label": "STORE TARGET", "type": "macro", "steps": [["george_store", GEORGE_SHORT, 0]], "seats": [0], "grid": [2, 1, 1, 1]},
             {"id": "george_stop", "label": "STOP / TADS FWD", "type": "macro", "steps": george_ring("george_down", GEORGE_SHORT), "seats": [0], "grid": [2, 2, 1, 1]},
             {"id": "george_weapon", "label": "WEAPON NEXT", "type": "macro", "steps": george_ring("george_left", GEORGE_SHORT, keep=True), "seats": [0], "grid": [3, 1, 1, 1]},
@@ -694,8 +697,8 @@ VIEWS = [
             {"id": "george_select", "label": "SELECT TARGET", "type": "macro", "steps": [["george_multi", GEORGE_SHORT, 0]], "seats": [0], "grid": [1, 5, 1, 1]},
             {"id": "george_engage", "label": "TRACK / ENGAGE", "type": "macro", "steps": [["george_right", GEORGE_SHORT, 0]], "seats": [0], "grid": [2, 5, 1, 1]},
             {"id": "george_control", "label": "REQUEST CONTROL", "type": "macro", "steps": [["george_request", GEORGE_SHORT, 0]], "seats": [1], "grid": [1, 6, 1, 2]},
-            {"id": "george_ring_show", "label": "SHOW RING", "type": "macro", "steps": [["george_hide", 0.1, 0.3], ["george_show", 0.1, 0]], "grid": [3, 6, 1, 1]},
-            {"id": "george_ring_hide", "label": "HIDE RING", "type": "macro", "steps": [["george_hide", 0.1, 0]], "grid": [3, 7, 1, 1]},
+            {"id": "george_ring_show", "label": "SHOW RING", "type": "macro", "steps": [["george_hide", GEORGE_SHORT, GEORGE_HIDE_PAUSE], ["george_show", GEORGE_SHORT, 0]], "grid": [3, 6, 1, 1]},
+            {"id": "george_ring_hide", "label": "HIDE RING", "type": "macro", "steps": [["george_hide", GEORGE_SHORT, 0]], "grid": [3, 7, 1, 1]},
         ],
     },
 ]

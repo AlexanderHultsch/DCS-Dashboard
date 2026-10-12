@@ -22,6 +22,7 @@ CONFIRM_POLL = 0.02
 GUARD_WINDOW = 5.0
 COVER_CLOSE_DELAY = 1.0
 COVER_POLL = 0.05
+MACRO_KEY_GAP = 0.04
 
 MPD_SEPARATOR = "-" * 41
 MPD_BUTTON = re.compile(r"^PB(\d+)_(?:bold_)?(\d+)$")
@@ -537,9 +538,11 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
             if not keys.focus(cfg["dcs"]["window_title"]):
                 return False, "DCS not in front", None
             for step in control["steps"]:
-                keys.press(cfg["keys"][step[0]], step[1])
-                if step[2] > 0:
-                    time.sleep(step[2])
+                pause = step[2] * cfg["dashboard"]["macro_pause_scale"]
+                log.line("dash", name, f"step {step[0]} hold {step[1]} pause {pause:.2f}")
+                keys.press(cfg["keys"][step[0]], step[1], MACRO_KEY_GAP)
+                if pause > 0:
+                    time.sleep(pause)
         log.line("dash", name, "pressed")
         return True, "", None
     if control["type"] == "hat":

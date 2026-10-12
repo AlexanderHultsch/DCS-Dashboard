@@ -149,8 +149,19 @@ def focus(title: str) -> bool:
     return user32.GetForegroundWindow() == hwnd
 
 
-def press(combo: str, hold: float) -> None:
+def press(combo: str, hold: float, gap: float = 0.0) -> None:
     names = parse(combo)
+    if gap > 0:
+        for name in names[:-1]:
+            send_key(name, False)
+        time.sleep(gap)
+        send_key(names[-1], False)
+        time.sleep(hold)
+        send_key(names[-1], True)
+        time.sleep(gap)
+        for name in reversed(names[:-1]):
+            send_key(name, True)
+        return
     for name in names:
         send_key(name, False)
     time.sleep(hold)
