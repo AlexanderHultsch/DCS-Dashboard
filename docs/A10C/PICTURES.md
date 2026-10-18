@@ -68,3 +68,23 @@ Quality: `good` (every label and part readable), `partial` (some labels hidden, 
 | Air Refuel Status Lights | 154 | p154-002.jpg | 587 × 287 | good | none; all three legends shown lit | no |
 | Accelerometer (G-meter) | 154 | p154-006.jpg | 587 × 440 | good | none; PUSH TO SET button and ACCELERATION LIMITS legible | no |
 | Angle of Attack Indexer | 155 | p155-002.jpg | 586 × 260 | good | none; all three symbols shown lit | no |
+
+## Left console
+
+| Panel | Manual page | Image | Size px | Quality | Hidden or unreadable | Screenshot needed |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fuel System Control Panel | 158 | p158-002.jpg | 737 × 960 | good | none; pump-on positions unlabelled, lever lamps unlit | no |
+| Throttles Panel | 161 | p161-002.jpg | 583 × 960 | partial | Right lever not shown; friction DECR end cut; left lever grip hides slot | no |
+| Flap lever, left of the throttles | 508 | p508-002.jpg | 639 × 853 | poor | Overview; lever about 40 px, partly under throttle grip; UP, MVR, DN tiny | yes |
+| LASTE Control Panel | 165 | p165-002.jpg | 589 × 202 | good | none | no |
+| AN/ARC-186(V) Radio Control Panel | 167 | p167-002.jpg | 713 × 602 | partial | Shadow over screen and left knobs; TR G and OFF partly hidden; knobs unlabelled | no |
+| AN/ARC-164 UHF Radio Control Panel | 168 | p168-002.jpg | 587 × 440 | partial | LOAD button hidden under open preset card; display blank | no |
+| AN/ARC-186(V) VHF FM Radio 2 Control Panel | 171 | p171-002.jpg | 499 × 287 | good | Dial pointers smudged; preset window shows 1; all legends readable | no |
+| KY-58 Secure Voice Control Panel | 173 | p173-002.jpg | 586 × 334 | good | DELAY partly under toggle; legends on guard and dials readable | no |
+| Emergency Brake System | 174 | p174-002.jpg | 587 × 440 | partial | Toggle title cut at top edge; handle seen at an angle | no |
+| Auxiliary Lighting Control Panel | 175 | p175-002.jpg | 474 × 441 | good | N of NORM hidden by toggle lever | no |
+| Stability Augmentation System (SAS) Panel | 177 | p177-002.jpg | 587 × 394 | good | TAKEOFF TRIM window blank, legend not legible | no |
+| Identify Friend or Foe (IFF) Panel | 179 | p179-002.jpg | 953 × 960 | good | STBY and MODE 4 OUT partly under levers; all code wheels shown | no |
+| Emergency Flight Control Panel | 180 | p180-002.jpg | 587 × 440 | good | Four lamps unlit, unlabelled; all switch legends readable | no |
+| Intercom Control Panel | 182 | p182-002.jpg | 1010 × 735 | good | Two unlabelled dark knobs; INT legend only at side | no |
+| Stall Warning Control Panel | 183 | p183-002.jpg | 586 × 158 | good | none | no |
