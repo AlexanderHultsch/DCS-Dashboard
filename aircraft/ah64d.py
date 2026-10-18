@@ -50,7 +50,7 @@ TEDAC_MODE_POSITIONS = [
     {"value": 0, "label": "OFF"},
 ]
 KNOB_STEP = 3200
-MPD_BUTTON_HOLD = 0.3
+BUTTON_HOLD = 0.3
 GEORGE_SHORT = 0.15
 GEORGE_LONG = 1.2
 GEORGE_HIDE_PAUSE = 0.5
@@ -73,7 +73,7 @@ def george_ring(direction: str, hold: float, keep: bool = False) -> list[list]:
 def mpd_controls(side: str) -> list[dict]:
     slots = [f"{row}{n}" for row in "TLRB" for n in range(1, 7)] + ["FCR", "WPN", "TSD", "VID", "COM", "AC", "AST"]
     controls = [
-        {"id": f"{{seat}}_MPD_{side}_{slot}", "label": MPD_LABELS.get(slot, slot), "type": "button", "hold": MPD_BUTTON_HOLD, "side": side, "slot": slot}
+        {"id": f"{{seat}}_MPD_{side}_{slot}", "label": MPD_LABELS.get(slot, slot), "type": "button", "hold": BUTTON_HOLD, "side": side, "slot": slot}
         for slot in slots
     ]
     controls += [
@@ -88,7 +88,7 @@ def ku_controls() -> list[dict]:
     slots = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") + list(KU_LABELS)
     controls = [{"id": "{seat}_KU_DISPLAY", "label": "SCRATCHPAD", "type": "display", "slot": "DISPLAY"}]
     controls += [
-        {"id": f"{{seat}}_KU_{slot}", "label": KU_LABELS.get(slot, slot), "type": "button", "hold": MPD_BUTTON_HOLD, "slot": slot}
+        {"id": f"{{seat}}_KU_{slot}", "label": KU_LABELS.get(slot, slot), "type": "button", "hold": BUTTON_HOLD, "slot": slot}
         for slot in slots
     ]
     controls.append({"id": "{seat}_KU_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "slot": "BRT"})
@@ -98,15 +98,15 @@ def ku_controls() -> list[dict]:
 def cursor_controls() -> list[dict]:
     return [
         {"id": "{seat}_CURSOR", "label": "CURSOR", "type": "stick", "x": "{seat}_COLLECTIVE_CURSOR_LR", "y": "{seat}_COLLECTIVE_CURSOR_UD", "slot": "CURSOR"},
-        {"id": "{seat}_COLLECTIVE_CURSOR_DISPLAY", "label": "CURSOR SWITCH DISPLAY", "type": "button", "hold": MPD_BUTTON_HOLD, "slot": "CURSOR_DISPLAY"},
-        {"id": "{seat}_COLLECTIVE_CURSOR_ENTER", "label": "ENTER", "type": "button", "hold": MPD_BUTTON_HOLD, "slot": "CURSOR_ENTER"},
+        {"id": "{seat}_COLLECTIVE_CURSOR_DISPLAY", "label": "CURSOR SWITCH DISPLAY", "type": "button", "hold": BUTTON_HOLD, "slot": "CURSOR_DISPLAY"},
+        {"id": "{seat}_COLLECTIVE_CURSOR_ENTER", "label": "ENTER", "type": "button", "hold": BUTTON_HOLD, "slot": "CURSOR_ENTER"},
     ]
 
 
 def tkr_controls() -> list[dict]:
     return [
         {"id": "CPG_TKR", "label": "TKR", "type": "stick", "digital": True, "x": "CPG_RHG_MAN_TRK_L_R", "y": "CPG_RHG_MAN_TRK_UP_DN", "slot": "TKR", "seats": [1]},
-        {"id": "CPG_RHG_SIGHT_SLAVE", "label": "SLAVE", "type": "button", "hold": MPD_BUTTON_HOLD, "slot": "TKR_SLAVE", "seats": [1]},
+        {"id": "CPG_RHG_SIGHT_SLAVE", "label": "SLAVE", "type": "button", "hold": BUTTON_HOLD, "slot": "TKR_SLAVE", "seats": [1]},
     ]
 
 
@@ -116,7 +116,7 @@ def tedac_controls() -> list[dict]:
         ("MULTI", "*", "AST"), ("BORESIGHT", "AZ/EL", "B1"), ("ACM", "ACM", "B2"), ("FREEZE", "FREEZE", "B3"), ("FILTER", "FILTER", "B4"),
     ]
     controls = [
-        {"id": f"CPG_TEDAC_{name}", "label": label, "type": "button", "hold": MPD_BUTTON_HOLD, "side": "T", "seats": [1], "slot": slot}
+        {"id": f"CPG_TEDAC_{name}", "label": label, "type": "button", "hold": BUTTON_HOLD, "side": "T", "seats": [1], "slot": slot}
         for name, label, slot in buttons
     ]
     controls.append({"id": "CPG_TEDAC_DISP_MODE", "label": "MODE", "type": "selector", "step_fallback": True, "positions": TEDAC_MODE_POSITIONS, "side": "T", "seats": [1], "slot": "MODE"})
@@ -125,10 +125,10 @@ def tedac_controls() -> list[dict]:
         for name, label in (("FLIR_LEV", "LEV"), ("FLIR_GAIN", "GAIN"))
     ]
     controls += [
-        {"id": f"CPG_TEDAC_{name}", "label": label, "type": "hat", "ud": f"CPG_TEDAC_{name}", "hold": MPD_BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}, "side": "T", "seats": [1], "slot": name}
+        {"id": f"CPG_TEDAC_{name}", "label": label, "type": "hat", "ud": f"CPG_TEDAC_{name}", "hold": BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}, "side": "T", "seats": [1], "slot": name}
         for name, label in (("RF", "R/F"), ("EL", "EL"), ("SYM", "SYM"), ("BRT", "BRT"), ("CON", "CON"))
     ]
-    controls.append({"id": "CPG_TEDAC_AZ", "label": "AZ", "type": "hat", "lr": "CPG_TEDAC_AZ", "hold": MPD_BUTTON_HOLD, "positions": {"left": "tri-left", "right": "tri-right"}, "side": "T", "seats": [1], "slot": "AZ"})
+    controls.append({"id": "CPG_TEDAC_AZ", "label": "AZ", "type": "hat", "lr": "CPG_TEDAC_AZ", "hold": BUTTON_HOLD, "positions": {"left": "tri-left", "right": "tri-right"}, "side": "T", "seats": [1], "slot": "AZ"})
     return controls
 
 
@@ -154,7 +154,7 @@ def kit_pages(name: str, cells: dict, panel: Panel) -> list[dict]:
 def tail_wheel_pages() -> list[dict]:
     p = Panel("TAIL WHEEL / NVS", 600, 224)
     p.mark("+", "SMALL", 69, 64, "panel mark as on the photo")
-    p.push("WHEEL", 177, 126, {"id": "{seat}_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "color": "amber"}, frame=True)
+    p.push("WHEEL", 177, 126, {"id": "{seat}_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": BUTTON_HOLD, "lamp": "{seat}_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "color": "amber"}, frame=True)
     p.label("TAIL WHEEL", "TITLE", "WHEEL", "above")
     p.toggle("NVS", 460, 132, {"id": "{seat}_NVS_MODE", "label": "NVS MODE", "type": "selector", "positions": [{"value": 2, "label": "FIXED"}, {"value": 1, "label": "NORM"}, {"value": 0, "label": "OFF"}]}, "above_side_below")
     p.label("NVS MODE", "TITLE", "NVS", "above")
@@ -165,13 +165,13 @@ def emergency_pages() -> list[dict]:
     p = Panel("EMERGENCY", 580, 276)
     p.mark("EMERGENCY", "TITLE", "CX", 52, "panel title")
     p.mark("+", "SMALL", 86, 68, "panel mark as on the photo")
-    p.push("GUARD", 114, 166,{"id": "{seat}_EMERG_GUARD_BTN", "label": "GUARD", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_GUARD_L", "color": "green"}, frame=True)
+    p.push("GUARD", 114, 166,{"id": "{seat}_EMERG_GUARD_BTN", "label": "GUARD", "type": "button", "hold": BUTTON_HOLD, "lamp": "{seat}_EMERG_GUARD_L", "color": "green"}, frame=True)
     p.label("GUARD", "NAME", "GUARD", "above")
-    p.push("XPNDR", 230, 166,{"id": "{seat}_EMERG_XPNDR_BTN", "label": "XPNDR", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_XPNDR_L", "color": "green"}, frame=True)
+    p.push("XPNDR", 230, 166,{"id": "{seat}_EMERG_XPNDR_BTN", "label": "XPNDR", "type": "button", "hold": BUTTON_HOLD, "lamp": "{seat}_EMERG_XPNDR_L", "color": "green"}, frame=True)
     p.label("XPNDR", "NAME", "XPNDR", "above")
     p.toggle("ZEROIZE", 336, 156,{"id": "{seat}_EMERG_ZERO_SW", "label": "ZEROIZE", "type": "selector", "guard": True, "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}]})
     p.label("ZEROIZE", "NAME", "ZEROIZE", "above")
-    p.push("HYD", 454, 178,{"id": "{seat}_EMERG_HYD_BTN", "label": "EMERG HYD", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_EMERG_HYD_L", "color": "green"})
+    p.push("HYD", 454, 178,{"id": "{seat}_EMERG_HYD_BTN", "label": "EMERG HYD", "type": "button", "hold": BUTTON_HOLD, "lamp": "{seat}_EMERG_HYD_L", "color": "green"})
     p.hazard("HYD")
     p.label("EMERG\nHYD", "NAME", "HYD", "above")
     return kit_pages("EMERGENCY", {0: [3, 1, 1, 3], 1: [2, 1, 1, 3]}, p)
@@ -203,7 +203,7 @@ def power_pages() -> list[dict]:
     }, labels="fan")
     p.label("MSTR IGN", "NAME", "MSTR", "above")
     p.push("APU", 154, 364, {
-        "id": "PLT_APU_BTN", "label": "APU", "type": "button", "hold": MPD_BUTTON_HOLD, "requires": {"id": "PLT_APU_BTN_CVR", "value": 1},
+        "id": "PLT_APU_BTN", "label": "APU", "type": "button", "hold": BUTTON_HOLD, "requires": {"id": "PLT_APU_BTN_CVR", "value": 1},
         "lamp": "PLT_APU_L", "legend": "ON", "color": "green",
     }, flap={
         "id": "PLT_APU_BTN_CVR", "label": "APU COVER", "type": "selector", "style": "cover", "positions": [{"value": 0, "label": "CLOSED"}, {"value": 1, "label": "OPEN"}],
@@ -231,7 +231,7 @@ def intr_lt_knob(p: Panel, name: str, sweep: list, cx: int, cy: int, preset: str
 
 
 def intr_lt_test(p: Panel, cx: int, cy: int):
-    p.round("TEST", cx, cy, {"id": "{seat}_INTL_TEST_BTN", "label": "PRESS TO TEST", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_INTL_TEST_BTN", "color": "amber"})
+    p.round("TEST", cx, cy, {"id": "{seat}_INTL_TEST_BTN", "label": "PRESS TO TEST", "type": "button", "shape": "round", "hold": BUTTON_HOLD, "lamp": "{seat}_INTL_TEST_BTN", "color": "amber"})
     p.label("PRESS TO\nTEST", "NAME", "TEST", "left")
 
 
@@ -267,7 +267,7 @@ def light_pages() -> list[dict]:
 
 def fire_button(label: str, name: str, lamp: str) -> dict:
     return {
-        "id": f"{{seat}}_FIRE_{name}_BTN", "label": label, "type": "button", "guard": True, "cover": f"{{seat}}_FIRE_{name}_CVR", "hold": MPD_BUTTON_HOLD,
+        "id": f"{{seat}}_FIRE_{name}_BTN", "label": label, "type": "button", "guard": True, "cover": f"{{seat}}_FIRE_{name}_CVR", "hold": BUTTON_HOLD,
         "lamps": [
             {"id": f"{{seat}}_{lamp}_FIRE_L", "color": "amber", "legend": "FIRE"},
             {"id": f"{{seat}}_{lamp}_READY_L", "color": "green", "legend": "RDY"},
@@ -286,7 +286,7 @@ def fire_pages() -> list[dict]:
     p.strip("APU", "right")
     p.strip("ENG2", "right")
     for label, name, x in (("PRI", "PRIME", 168), ("RES", "RES", 432)):
-        p.push(label, x, 310, {"id": f"{{seat}}_FIRE_{name}_EXT", "label": label, "type": "button", "guard": True, "hold": MPD_BUTTON_HOLD, "lamp": f"{{seat}}_FIRE_EXT_DISCH_{label}_L", "legend": "DISCH", "color": "amber"}, frame=True)
+        p.push(label, x, 310, {"id": f"{{seat}}_FIRE_{name}_EXT", "label": label, "type": "button", "guard": True, "hold": BUTTON_HOLD, "lamp": f"{{seat}}_FIRE_EXT_DISCH_{label}_L", "legend": "DISCH", "color": "amber"}, frame=True)
         p.label(label, "NAME", label, "above")
     p.toggle("TEST", 300, 310, {
         "id": "{seat}_FIRE_DETECT_TEST", "label": "TEST", "type": "selector", "orient": "h", "rest": 1, "hold": 0.5,
@@ -306,9 +306,9 @@ def jettison_pages() -> list[dict]:
         ("L TIP", "LW", "L_TIP", 78, 290), ("R TIP", "RW", "R_TIP", 478, 290),
     ]
     for label, name, lamp, x, y in stations:
-        p.push(name, x, y, {"id": f"{{seat}}_JETT_STORE_{name}", "label": label, "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": f"{{seat}}_JETT_{lamp}_L", "color": "amber"})
+        p.push(name, x, y, {"id": f"{{seat}}_JETT_STORE_{name}", "label": label, "type": "button", "hold": BUTTON_HOLD, "lamp": f"{{seat}}_JETT_{lamp}_L", "color": "amber"})
         p.label(label, "NAME", name, "above")
-    p.plunger("JETT", 278, 290, {"id": "{seat}_JETT_BTN", "label": "JETT", "type": "button", "shape": "round", "style": "plunger", "guard": True, "hold": MPD_BUTTON_HOLD})
+    p.plunger("JETT", 278, 290, {"id": "{seat}_JETT_BTN", "label": "JETT", "type": "button", "shape": "round", "style": "plunger", "guard": True, "hold": BUTTON_HOLD})
     p.hazard("JETT", "JETT")
     return kit_pages("STORES JETT", {0: [6, 1, 1, 3], 1: [7, 1, 1, 3]}, p)
 
@@ -322,14 +322,14 @@ def armament_plate(g: PanelGroup):
     p = g.panel("ARMAMENT", 352, 244, 0, 0)
     p.mark("ARMAMENT", "TITLE", "CX", 52, "panel title")
     p.push("AS", 114, 158, {
-        "id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": MPD_BUTTON_HOLD,
+        "id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": BUTTON_HOLD,
         "lamps": [
             {"id": "{seat}_MASTER_ARM_ARM_L", "color": "amber", "legend": "ARM"},
             {"id": "{seat}_MASTER_ARM_SAFE_L", "color": "green", "legend": "SAFE"},
         ],
     }, frame=True)
     p.label("A/S", "NAME", "AS", "above")
-    p.push("GND", 238, 158, {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": MPD_BUTTON_HOLD, "lamp": "{seat}_GROUND_OVERRIDE_L", "color": "amber"}, frame=True)
+    p.push("GND", 238, 158, {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": BUTTON_HOLD, "lamp": "{seat}_GROUND_OVERRIDE_L", "color": "amber"}, frame=True)
     p.label("GND ORIDE", "NAME", "GND", "above")
     p.mark("+", "SMALL", "CX", 198, "panel mark as on the photo")
 
@@ -378,11 +378,11 @@ EUFD_SWAP = (14, 14, [("M0.9 5.9A6.2 6.2 0 0 1 11.75 3M13.1 8.1A6.2 6.2 0 0 1 2.
 
 
 def eufd_rocker(name: str) -> dict:
-    return {"id": f"{{seat}}_EUFD_{name}", "label": name, "type": "hat", "ud": f"{{seat}}_EUFD_{name}", "hold": MPD_BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}}
+    return {"id": f"{{seat}}_EUFD_{name}", "label": name, "type": "hat", "ud": f"{{seat}}_EUFD_{name}", "hold": BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}}
 
 
 def eufd_button(name: str, label: str) -> dict:
-    return {"id": f"{{seat}}_EUFD_{name}", "label": label, "type": "button", "style": "flat", "hold": MPD_BUTTON_HOLD}
+    return {"id": f"{{seat}}_EUFD_{name}", "label": label, "type": "button", "style": "flat", "hold": BUTTON_HOLD}
 
 
 def eufd_pages() -> list[dict]:
@@ -483,7 +483,7 @@ def cmws_pages() -> list[dict]:
 def wiper_panel(p: Panel, seat: str):
     p.mark("WINDSHIELD WIPER", "TITLE", "CX", 80, "panel title")
     p.mark("+", "SMALL", 145, 122, "panel mark as on the photo")
-    p.round("DEFOG", 84, 174, {"id": f"{seat}_DEFOG_BTN", "label": "DEFOG", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD})
+    p.round("DEFOG", 84, 174, {"id": f"{seat}_DEFOG_BTN", "label": "DEFOG", "type": "button", "shape": "round", "hold": BUTTON_HOLD})
     p.label("DEFOG", "NAME", "DEFOG", "above")
     p.rotary("WIPER", 246, 190, {
         "id": f"{seat}_WIPER_SW", "label": "WINDSHIELD WIPER", "type": "selector", "style": "rotary", "orient": "h",
@@ -554,7 +554,7 @@ def comm_pages() -> list[dict]:
         "positions": [{"value": 2, "label": "PTT"}, {"value": 1, "label": "VOX"}, {"value": 0, "label": "HOT MIC"}],
     }, "above_left_below")
     p.label("ICS", "NAME", "ICS", "above")
-    p.round("IDENT", 520, 356, {"id": "{seat}_COM_IDENT_BTN", "label": "IDENT", "type": "button", "shape": "round", "hold": MPD_BUTTON_HOLD})
+    p.round("IDENT", 520, 356, {"id": "{seat}_COM_IDENT_BTN", "label": "IDENT", "type": "button", "shape": "round", "hold": BUTTON_HOLD})
     p.label("IDENT", "NAME", "IDENT", "above")
     p.bracket("AUX", "AUX", 52, 588, 428)
     p.mark("+", "SMALL", 488, 454, "panel mark as on the photo")
@@ -602,9 +602,7 @@ VIEWS = [
     {
         "name": "Flight",
         "seats": [0, 1],
-        "lamps": [
-            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
-            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
+        "lamps": MASTER_LAMPS + [
             {"id": "PLT_ENG_1_FIRE_L", "label": "ENG 1 FIRE", "color": "red"},
             {"id": "PLT_APU_FIRE_L", "label": "APU FIRE", "color": "red"},
             {"id": "PLT_ENG_2_FIRE_L", "label": "ENG 2 FIRE", "color": "red"},
@@ -613,9 +611,9 @@ VIEWS = [
         "controls": [
             {"id": "controls", "label": "CONTROLS", "type": "controls", "trim_switch": "{seat}_CYCLIC_TRIM_UD", "grid": [1, 1, 2, 2]},
             {"id": "controls_overlay", "label": "CTRL IND", "type": "key", "key": "controls_overlay", "grid": [3, 1, 1, 1]},
-            {"id": "{seat}_CYCLIC_SYMBOLOGY", "label": "SYMBOLOGY", "type": "hat", "ud": "{seat}_CYCLIC_SYMBOLOGY", "hold": 0.3, "positions": {"up": "T/C", "down": "H/B"}, "grid": [1, 4, 2, 1]},
+            {"id": "{seat}_CYCLIC_SYMBOLOGY", "label": "SYMBOLOGY", "type": "hat", "ud": "{seat}_CYCLIC_SYMBOLOGY", "hold": BUTTON_HOLD, "positions": {"up": "T/C", "down": "H/B"}, "grid": [1, 4, 2, 1]},
             {"id": "monocle", "label": "MONOCLE", "type": "key", "key": "monocle", "grid": [1, 5, 1, 1]},
-            {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": 0.3, "lamp": "PLT_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "seats": [0], "grid": [2, 5, 1, 1]},
+            {"id": "PLT_T_WHEEL_UNLOCK_BTN", "label": "TAIL WHEEL", "type": "button", "hold": BUTTON_HOLD, "lamp": "PLT_T_WHEEL_UNLOCK_L", "legend": "UNLOCK", "seats": [0], "grid": [2, 5, 1, 1]},
             {"id": "flight_power_left", "label": "PWR LVR 1", "type": "lever", "readback": "{seat}_ENG_L_PW_LVR", "side": "left", "positions": POWER_POSITIONS, "grid": [1, 6, 3, 1]},
             {"id": "flight_power_right", "label": "PWR LVR 2", "type": "lever", "readback": "{seat}_ENG_R_PW_LVR", "side": "right", "positions": POWER_POSITIONS, "grid": [1, 7, 3, 1]},
         ],
@@ -623,20 +621,18 @@ VIEWS = [
     {
         "name": "Fight",
         "seats": [0],
-        "lamps": [
-            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
-            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
+        "lamps": MASTER_LAMPS + [
             {"id": "{seat}_MASTER_ARM_ARM_L", "label": "ARM", "color": "amber"},
             {"id": "{seat}_MASTER_ARM_SAFE_L", "label": "SAFE", "color": "green"},
             {"id": "{seat}_GROUND_OVERRIDE_L", "label": "GND ORIDE", "color": "amber"},
         ],
         "controls": [
-            {"id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": 0.3, "grid": [1, 1, 1, 1]},
-            {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": 0.3, "grid": [1, 2, 1, 1]},
-            {"id": "{seat}_WAS", "label": "WAS", "type": "hat", "ud": "{seat}_CYCLIC_WEAPON_UD", "lr": "{seat}_CYCLIC_WEAPON_LR", "hold": 0.3, "positions": {"up": "G", "down": "A", "left": "R", "right": "M"}, "grid": [1, 3, 1, 2]},
-            {"id": "{seat}_SIGHT_SEL", "label": "SIGHT SEL", "type": "hat", "ud": "{seat}_COLLECTIVE_SIGHT_SELECT_UD", "lr": "{seat}_COLLECTIVE_SIGHT_SELECT_LR", "hold": 0.3, "positions": {"up": "HMD", "down": "LINK", "left": "FCR", "right": "TADS"}, "grid": [2, 3, 1, 2]},
-            {"id": "{seat}_CYCLIC_FLARE", "label": "FLARE", "type": "button", "hold": 0.3, "grid": [2, 1, 1, 1]},
-            {"id": "{seat}_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": 0.3, "grid": [2, 2, 1, 1]},
+            {"id": "{seat}_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": BUTTON_HOLD, "grid": [1, 1, 1, 1]},
+            {"id": "{seat}_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": BUTTON_HOLD, "grid": [1, 2, 1, 1]},
+            {"id": "{seat}_WAS", "label": "WAS", "type": "hat", "ud": "{seat}_CYCLIC_WEAPON_UD", "lr": "{seat}_CYCLIC_WEAPON_LR", "hold": BUTTON_HOLD, "positions": {"up": "G", "down": "A", "left": "R", "right": "M"}, "grid": [1, 3, 1, 2]},
+            {"id": "{seat}_SIGHT_SEL", "label": "SIGHT SEL", "type": "hat", "ud": "{seat}_COLLECTIVE_SIGHT_SELECT_UD", "lr": "{seat}_COLLECTIVE_SIGHT_SELECT_LR", "hold": BUTTON_HOLD, "positions": {"up": "HMD", "down": "LINK", "left": "FCR", "right": "TADS"}, "grid": [2, 3, 1, 2]},
+            {"id": "{seat}_CYCLIC_FLARE", "label": "FLARE", "type": "button", "hold": BUTTON_HOLD, "grid": [2, 1, 1, 1]},
+            {"id": "{seat}_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": BUTTON_HOLD, "grid": [2, 2, 1, 1]},
             {"id": "PLT_CMWS_FLARE_COUNT", "label": "FLARE COUNT", "type": "display", "grid": [3, 1, 1, 1]},
             {"id": "PLT_CMWS_CHAFF_COUNT", "label": "CHAFF COUNT", "type": "display", "grid": [3, 2, 1, 1]},
             {"id": "PLT_CMWS_PW", "label": "CMWS PWR", "type": "selector", "rest": 1, "hold": 0.5, "positions": [{"value": 2, "label": "TEST", "momentary": True}, {"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}], "seats": [0], "grid": [1, 5, 1, 1]},
@@ -656,19 +652,19 @@ VIEWS = [
             {"id": "CPG_GROUND_OVERRIDE_L", "label": "GND ORIDE", "color": "amber"},
         ],
         "controls": [
-            {"id": "CPG_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": 0.3, "grid": [1, 1, 1, 1]},
-            {"id": "CPG_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": 0.3, "grid": [1, 2, 1, 1]},
-            {"id": "CPG_CYCLIC_FLARE", "label": "FLARE", "type": "button", "hold": 0.3, "grid": [2, 1, 1, 1]},
-            {"id": "CPG_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": 0.3, "grid": [2, 2, 1, 1]},
+            {"id": "CPG_MASTER_ARM_BTN", "label": "A/S", "type": "button", "hold": BUTTON_HOLD, "grid": [1, 1, 1, 1]},
+            {"id": "CPG_GROUND_OVERRIDE_BTN", "label": "GND ORIDE", "type": "button", "hold": BUTTON_HOLD, "grid": [1, 2, 1, 1]},
+            {"id": "CPG_CYCLIC_FLARE", "label": "FLARE", "type": "button", "hold": BUTTON_HOLD, "grid": [2, 1, 1, 1]},
+            {"id": "CPG_CYCLIC_CHAFF", "label": "CHAFF", "type": "button", "hold": BUTTON_HOLD, "grid": [2, 2, 1, 1]},
             {"id": "PLT_CMWS_FLARE_COUNT", "label": "FLARE COUNT", "type": "display", "grid": [3, 1, 1, 1]},
             {"id": "PLT_CMWS_CHAFF_COUNT", "label": "CHAFF COUNT", "type": "display", "grid": [3, 2, 1, 1]},
-            {"id": "CPG_WAS", "label": "WAS", "type": "hat", "ud": "CPG_CYCLIC_WEAPON_UD", "lr": "CPG_CYCLIC_WEAPON_LR", "hold": 0.3, "positions": {"up": "G", "down": "A", "left": "R", "right": "M"}, "grid": [1, 3, 1, 2]},
-            {"id": "CPG_SIGHT_SEL", "label": "SIGHT SEL", "type": "hat", "ud": "CPG_RHG_SIGHT_UP_DN", "lr": "CPG_RHG_SIGHT_L_R", "hold": 0.3, "positions": {"up": "HMD", "down": "LINK", "left": "FCR", "right": "TADS"}, "grid": [2, 3, 1, 2]},
-            {"id": "CPG_RHG_SIGHT_SLAVE", "label": "SLAVE", "type": "button", "hold": 0.3, "grid": [3, 3, 1, 1]},
-            {"id": "CPG_TADS_FOV", "label": "TADS FOV", "type": "hat", "ud": "CPG_LHG_TADS_FOV_UP_DN", "lr": "CPG_LHG_TADS_FOV_L_R", "hold": 0.3, "positions": {"up": "Z", "down": "M", "left": "N", "right": "W"}, "grid": [1, 5, 1, 2]},
+            {"id": "CPG_WAS", "label": "WAS", "type": "hat", "ud": "CPG_CYCLIC_WEAPON_UD", "lr": "CPG_CYCLIC_WEAPON_LR", "hold": BUTTON_HOLD, "positions": {"up": "G", "down": "A", "left": "R", "right": "M"}, "grid": [1, 3, 1, 2]},
+            {"id": "CPG_SIGHT_SEL", "label": "SIGHT SEL", "type": "hat", "ud": "CPG_RHG_SIGHT_UP_DN", "lr": "CPG_RHG_SIGHT_L_R", "hold": BUTTON_HOLD, "positions": {"up": "HMD", "down": "LINK", "left": "FCR", "right": "TADS"}, "grid": [2, 3, 1, 2]},
+            {"id": "CPG_RHG_SIGHT_SLAVE", "label": "SLAVE", "type": "button", "hold": BUTTON_HOLD, "grid": [3, 3, 1, 1]},
+            {"id": "CPG_TADS_FOV", "label": "TADS FOV", "type": "hat", "ud": "CPG_LHG_TADS_FOV_UP_DN", "lr": "CPG_LHG_TADS_FOV_L_R", "hold": BUTTON_HOLD, "positions": {"up": "Z", "down": "M", "left": "N", "right": "W"}, "grid": [1, 5, 1, 2]},
             {"id": "CPG_LHG_TADS_SEL", "label": "SENSOR", "type": "selector", "positions": [{"value": 2, "label": "FLIR"}, {"value": 1, "label": "TV"}, {"value": 0, "label": "DVO", "disabled": True}], "grid": [2, 5, 1, 2]},
-            {"id": "CPG_IAT", "label": "IAT", "type": "button", "bios": "CPG_LHG_TEDAC_L_IAT", "value": 2, "rest": 1, "hold": 0.3, "grid": [1, 7, 1, 1]},
-            {"id": "CPG_OFS", "label": "OFS", "type": "button", "bios": "CPG_LHG_TEDAC_L_IAT", "value": 0, "rest": 1, "hold": 0.3, "grid": [2, 7, 1, 1]},
+            {"id": "CPG_IAT", "label": "IAT", "type": "button", "bios": "CPG_LHG_TEDAC_L_IAT", "value": 2, "rest": 1, "hold": BUTTON_HOLD, "grid": [1, 7, 1, 1]},
+            {"id": "CPG_OFS", "label": "OFS", "type": "button", "bios": "CPG_LHG_TEDAC_L_IAT", "value": 0, "rest": 1, "hold": BUTTON_HOLD, "grid": [2, 7, 1, 1]},
             {"id": "CPG_OFS_ALL", "label": "OFS ALL", "type": "button", "bios": "CPG_LHG_TEDAC_L_IAT", "value": 0, "rest": 1, "hold": 0.8, "grid": [3, 7, 1, 1]},
         ],
     },
@@ -677,10 +673,7 @@ VIEWS = [
     {
         "name": "George",
         "seats": [0, 1],
-        "lamps": [
-            {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
-            {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
-        ],
+        "lamps": MASTER_LAMPS,
         "controls": [
             {"id": "george_phs", "label": "PHS SEARCH", "type": "macro", "steps": george_ring("george_up", GEORGE_SHORT, keep=True), "seats": [0], "grid": [1, 1, 1, 1]},
             {"id": "george_area", "label": "AIR AREA SEARCH", "type": "macro", "steps": george_ring("george_multi", GEORGE_LONG, keep=True), "seats": [0], "grid": [1, 2, 1, 1]},
