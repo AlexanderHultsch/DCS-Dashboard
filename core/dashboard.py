@@ -23,6 +23,8 @@ GUARD_WINDOW = 5.0
 COVER_CLOSE_DELAY = 1.0
 COVER_POLL = 0.05
 MACRO_KEY_GAP = 0.04
+KEY_SHORT = 0.15
+KEY_LONG = 1.0
 
 MPD_SEPARATOR = "-" * 41
 MPD_BUTTON = re.compile(r"^PB(\d+)_(?:bold_)?(\d+)$")
@@ -627,6 +629,16 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
         axes = {"up": ("ud", 2), "down": ("ud", 0), "left": ("lr", 0), "right": ("lr", 2)}
         if not isinstance(value, str) or value not in control["positions"]:
             return False, "position not available", None
+        if "keys" in control:
+            long = body.get("long") is True
+            if long and value not in control.get("long", {}):
+                return False, "position not available", None
+            with command_lock:
+                if not keys.focus(cfg["dcs"]["window_title"]):
+                    return False, "DCS not in front", None
+                keys.press(cfg["keys"][control["keys"][value]], KEY_LONG if long else KEY_SHORT)
+            log.line("dash", name, f"{value} {'long' if long else 'short'}")
+            return True, "", None
         if "steps" in control:
             step = control["steps"]
             with command_lock:
@@ -752,6 +764,8 @@ def needed_keys(a) -> list[str]:
                 names.append(control["key"])
             elif control["type"] == "macro":
                 names += [step[0] for step in control["steps"]]
+            elif control["type"] == "hat" and "keys" in control:
+                names += control["keys"].values()
     return names
 
 

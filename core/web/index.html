@@ -99,6 +99,8 @@ body.ro .panel { opacity: 0.6; }
   flex: 1; min-height: 0; display: grid; gap: 6px;
   grid-template-columns: repeat(3, minmax(56px, 1fr)); grid-template-rows: repeat(3, minmax(56px, 1fr));
 }
+.pos.long { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pl { font-size: 0.7em; color: #aaa; }
 .hub { display: flex; align-items: center; justify-content: center; font-size: 22px; color: #777; }
 
 .bartrack {
@@ -688,6 +690,7 @@ const MODE_BASE = 90;
 const MODE_STEP = 45;
 const KNOB_TOL = 700;
 const TOUCH_MIN = 56;
+const TOUCH_MOVE_PX = 10;
 const CHIP_TOUCH_MIN = 32;
 const GEAR_CLEAR = 44;
 const POPUP_GAP = 8;
@@ -700,6 +703,7 @@ const PICK_SPREAD_MAX = 5;
 const KIT_SCALE_MAX = 1.6;
 const GUARD_MS = 5000;
 const PULL_HOLD_MS = 600;
+const LONG_HOLD_MS = 600;
 const LIST_HOLD_MS = 500;
 const DEBUG_HOLD_MS = 600;
 const LINE_COLS = 56;
@@ -1135,25 +1139,80 @@ function buildButton(def, cls, label) {
   return c;
 }
 
+function keyHatButton(c, btn, dir) {
+  const def = c.def;
+  const label = make('span');
+  setLabel(label, def.positions[dir], def.label + ' ' + dir);
+  btn.append(label);
+  btn.type = 'button';
+  const long = def.long && def.long[dir];
+  const ring = make('span', 'gring');
+  let timer = null;
+  let down = false;
+  let x0 = 0;
+  let y0 = 0;
+  const stop = () => {
+    clearTimeout(timer);
+    timer = null;
+    down = false;
+    ring.classList.remove('fill');
+  };
+  if (long) {
+    btn.classList.add('long');
+    btn.append(make('span', 'pl', long));
+    ring.innerHTML = RING_ROUND;
+    ring.style.setProperty('--hold', LONG_HOLD_MS + 'ms');
+    btn.append(ring);
+  }
+  btn.addEventListener('pointerdown', (e) => {
+    stop();
+    if (!can(c) || c.busy) return;
+    down = true;
+    x0 = e.clientX;
+    y0 = e.clientY;
+    if (!long) return;
+    ring.classList.add('fill');
+    timer = setTimeout(() => {
+      stop();
+      run(c, { id: def.id, value: dir, long: true }, dir);
+    }, LONG_HOLD_MS);
+  });
+  btn.addEventListener('pointerup', () => {
+    const tap = down;
+    stop();
+    if (tap) run(c, { id: def.id, value: dir }, dir);
+  });
+  btn.addEventListener('pointermove', (e) => {
+    if (down && Math.hypot(e.clientX - x0, e.clientY - y0) > TOUCH_MOVE_PX) stop();
+  });
+  ['pointercancel', 'pointerleave'].forEach((type) => btn.addEventListener(type, stop));
+}
+
 function buildHat(def) {
   const panel = make('div', 'panel hat');
-  const two = !def.lr;
+  const keyed = !!def.keys;
+  const two = !keyed && !def.lr;
   const cross = make('div', two ? 'cross two' : 'cross');
   panel.append(make('div', 'title', def.label), cross);
   const c = { def, el: panel, busy: false, pending: null, buttons: {} };
-  (two ? ['up', 'hub', 'down'] : HAT_CELLS).forEach((dir) => {
-    if (dir === null) {
-      cross.append(make('div'));
-    } else if (dir === 'hub') {
+  (two ? ['up', 'hub', 'down'] : HAT_CELLS).forEach((cell) => {
+    const dir = cell === 'hub' ? 'press' : cell;
+    if (cell === 'hub' && !(keyed && def.positions.press)) {
       cross.append(make('div', 'hub', '•'));
+    } else if (cell === null || (keyed && !def.positions[dir])) {
+      cross.append(make('div'));
     } else {
       const btn = make('button', 'pos');
-      setLabel(btn, def.positions[dir], def.label + ' ' + dir);
-      btn.type = 'button';
-      btn.addEventListener('click', () => {
-        if (!can(c) || c.busy) return;
-        run(c, { id: def.id, value: dir }, dir);
-      });
+      if (keyed) {
+        keyHatButton(c, btn, dir);
+      } else {
+        setLabel(btn, def.positions[dir], def.label + ' ' + dir);
+        btn.type = 'button';
+        btn.addEventListener('click', () => {
+          if (!can(c) || c.busy) return;
+          run(c, { id: def.id, value: dir }, dir);
+        });
+      }
       cross.append(btn);
       c.buttons[dir] = btn;
     }
@@ -1161,9 +1220,11 @@ function buildHat(def) {
   c.update = () => {
     panel.classList.toggle('busy', c.busy);
     Object.keys(c.buttons).forEach((dir) => {
-      const [axis, level] = HAT_AXES[dir];
       const btn = c.buttons[dir];
-      btn.classList.toggle('cur', !def.steps && readValue(def[axis]) === level);
+      if (!keyed) {
+        const [axis, level] = HAT_AXES[dir];
+        btn.classList.toggle('cur', !def.steps && readValue(def[axis]) === level);
+      }
       btn.classList.toggle('pending', c.pending === dir);
       btn.setAttribute('aria-disabled', String(!can(c) || c.busy));
     });
