@@ -36,6 +36,7 @@ From the manual and the DCS-BIOS mapping, to settle in DCS (phase 7):
 - Item numbers in text and figures differ on several panels (NMSP, fuel, KY-58, TACAN / ILS order); PANELS.md notes which one it follows.
 - TISL: the Pave Penny pod is removed in the A-10C II and TISL navigation is not available (p. 546); the TISL panel is a candidate to leave off the dashboard (its only manual picture is low-resolution anyway).
 - Many controls have no function in DCS (whole KY-58 panel, IFF EMER, intercom call, several fuel and SAS test items): inert or left off the dashboard.
+- AAP STEER: PANELS.md (from the text) calls it a toggle, the manual picture shows a round push button; the CDU and EGI power switches carry no labels in the picture.
 - The CDU keys work only with the AAP PAGE dial at OTHER; several UFC keys act on the HUD only.
 
 ## Plan
@@ -46,7 +47,7 @@ From the manual and the DCS-BIOS mapping, to settle in DCS (phase 7):
 | 1 | Collect sources | user, Claude | Table above | manual and DCS-BIOS done; keybinds and screenshots need the module |
 | 2 | Read the manual: pp. 105–209 (cockpit panels, HOTAS, CDU), 303–311 (UFC, MFCD overview), 482 and 491–503 (HMCS HOTAS, defensive systems), 504–544 (start-up) | Claude | [PANELS.md](PANELS.md): 66 panel sections; [STARTUP.md](STARTUP.md): cold start in 164 steps | done |
 | 3 | Match with DCS-BIOS | Claude | [BIOS.md](BIOS.md): every PANELS.md control with its identifier and access, the 72 DCS-BIOS-only controls, gaps, cold start coverage | done |
-| 4 | Reference pictures per planned panel page | Claude, then user (screenshots) | Pictures outside the repo; list of panels that need screenshots | open |
+| 4 | Reference pictures per panel | Claude, then user (screenshots) | [PICTURES.md](PICTURES.md): 66 panels, 48 good, 15 partial, 2 poor (TISL, flap lever), 1 none (HMCS HOTAS); screenshot needed only for the flap lever | done |
 | 5 | Compare with the engine | Claude | List of engine changes, each with a user decision: single seat (no CP/G), MFCD / CDU / UFC drawings, export script arguments, trim display | open |
 | 6 | A-10C spec | Claude writes, user reviews | Spec of views, panel pages, controls, keybinds | open |
 | 7 | Research in DCS (needs the module) | user flies, Claude analyses | Read test and control sweep adapted from the `research-v1` tag; export arguments and MFCD indication numbers | open |

@@ -88,3 +88,43 @@ Quality: `good` (every label and part readable), `partial` (some labels hidden, 
 | Emergency Flight Control Panel | 180 | p180-002.jpg | 587 × 440 | good | Four lamps unlit, unlabelled; all switch legends readable | no |
 | Intercom Control Panel | 182 | p182-002.jpg | 1010 × 735 | good | Two unlabelled dark knobs; INT legend only at side | no |
 | Stall Warning Control Panel | 183 | p183-002.jpg | 586 × 158 | good | none | no |
+
+## Right console
+
+| Panel | Manual page | Image | Size px | Quality | Hidden or unreadable | Screenshot needed |
+| --- | --- | --- | --- | --- | --- | --- |
+| Cockpit Canopy Switch and Canopy Ejection Handle | 187 | p187-002.jpg | 587 × 440 | partial | Ladder button under cover; CLOSE partly under lever tip; handle legend readable | no |
+| Electrical Power Panel | 188 | p188-000.jpg | 587 × 440 | good | none; PWR up positions unprinted | no |
+| Environment System Panel | 189 | p189-002.jpg | 367 × 826 | partial | Rain remove labels under amber lever; ON labels unprinted; dial ends tiny | no |
+| Lighting Control Panel | 192 | p192-002.jpg | 668 × 903 | good | none; ACCEL & COMP ON position unprinted | no |
+| Caution Light Panel | 195 | p195-002.jpg | 910 × 960 | good | none; all 48 lamps shown lit, two blank dash lamps | no |
+| TACAN Operation and Control Panel | 198 | p198-002.jpg | 589 × 307 | good | VOL knob unlabelled; test lamp unlit | no |
+| ILS Control Panel and ILS Operation | 199 | p199-002.jpg | 588 × 179 | good | none; knob stops unlabelled | no |
+| Heading and Attitude Reference Systems (HARS) Control Panel | 200 | p200-002.jpg | 589 × 276 | good | none; needle in SYN-IND window readable | no |
+| Helmet Mounted Cueing System (HMCS) Control Panel | 201 | p201-002.jpg | 358 × 166 | good | Both lamps under covers; ON OFF BAT legible | no |
+| Auxiliary Avionics Panel (AAP) | 203 | p203-002.jpg | 589 × 297 | good | Two ON/OFF switches unlabelled; STEER drawn as round push button | no |
+
+## Keypads and displays
+
+| Panel | Manual page | Image | Size px | Quality | Hidden or unreadable | Screenshot needed |
+| --- | --- | --- | --- | --- | --- | --- |
+| Control Display Unit (CDU) | 205 | p205-002.jpg | 711 × 960 | good | Screen blank (p. 206 shows a SYS page); two square keys and blank rocker unlabelled | no |
+| Up Front Controller (UFC) | 303 | p303-002.jpg | 1280 × 282 | good | MASTER CAUTION window dark, legend unlit; FWD, MID, AFT row legible | no |
+| MFCD pages overview | 311 | p311-002.jpg | 799 × 639 | good | DP page only; OSB legends legible, top row unlabelled; key numbers not printed | no |
+
+## Defensive systems
+
+| Panel | Manual page | Image | Size px | Quality | Hidden or unreadable | Screenshot needed |
+| --- | --- | --- | --- | --- | --- | --- |
+| Countermeasure Signal Processor (CMSP) Panel | 491 | p491-002.jpg | 882 × 623 | good | JTSN OFF not printed; display shows test view | no |
+| CMSC operation | 497 | p497-002.jpg | 883 × 385 | good | Windows read OFF; PRI and ML lamps unlit; all legends readable | no |
+| ALR-69(V) Radar Warning Receiver (RWR) | 500 | p500-002.jpg | 880 × 704 | good | Scope empty, no symbols; INT button and IP-1310/ALR legend readable | no |
+| HMCS HOTAS Controls | - | none | - | none | covered by the stick and throttle pictures | no |
+
+## Summary
+
+66 panels: 48 good, 15 partial, 2 poor, 1 none.
+
+### Screenshots needed
+
+- Flap lever, left of the throttles: only a tiny overview view, lever under throttle grip
