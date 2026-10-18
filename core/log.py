@@ -30,9 +30,5 @@ def set_file_logging(enabled: bool) -> None:
     file_handler.setLevel(logging.INFO if enabled else OFF_LEVEL)
 
 
-def file_logging() -> bool:
-    return file_handler.level <= logging.INFO
-
-
 def line(source: str, name: str, value) -> None:
     logger.info(f"{source:<7} | {name:<20} | {value}")

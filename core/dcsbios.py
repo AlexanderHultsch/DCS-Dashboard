@@ -29,16 +29,6 @@ def load_outputs(path, names: list[str]) -> tuple[dict, list[str]]:
     return found, missing
 
 
-def load_controls(path) -> list[dict]:
-    data = load_json(path)
-    return [
-        control
-        for category in data.values()
-        for control in category.values()
-        if control["inputs"]
-    ]
-
-
 def open_socket(group: str, port: int) -> socket.socket:
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -82,15 +72,3 @@ def read_value(state: dict, output: dict):
         return (word & output["mask"]) >> output["shift_by"]
     raw = memory[address:address + output["max_length"]]
     return raw.decode("latin-1").rstrip("\x00")
-
-
-def changes(state: dict, outputs: dict, last: dict) -> list[tuple[str, object]]:
-    result = []
-    for name, output in outputs.items():
-        value = read_value(state, output)
-        if value is None:
-            continue
-        if name not in last or last[name] != value:
-            last[name] = value
-            result.append((name, value))
-    return result
