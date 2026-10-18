@@ -230,12 +230,250 @@ def intercom_pages() -> list[dict]:
     return [kit_page("INTERCOM / STALL", [6, 1, 2, 2], g.build())]
 
 
+def pump_pair(p: Panel, name: str, bios: str, title: str, word: str, mid: int, y: int):
+    p.mark("BOOST PUMPS", "NAME", mid, y - 48, "title of the two switches")
+    for side, dx in (("L", -56), ("R", 56)):
+        p.toggle(f"{name}_{side}", mid + dx, y, {
+            "id": f"FSCP_BOOST_{bios}_{side}", "label": f"{title} BOOST PUMP {side}", "type": "selector",
+            "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}],
+        })
+        p.label(side, "POS", f"{name}_{side}", "left" if side == "L" else "right")
+    p.mark(word, "POS", mid, y, "printed between the two switches")
+    p.mark("OFF", "POS", mid, y + 46, "printed once below the two switches")
+
+
+def fill_disable_pair(p: Panel, name: str, bios: str, title: str, word: str, mid: int, y: int):
+    p.mark("FILL DISABLE", "NAME", mid, y - 52, "title of the two buttons")
+    for side, dx in (("L", -58), ("R", 58)):
+        p.round(f"{name}_{side}", mid + dx, y, {
+            "id": f"FSCP_FD_{bios}_{side}", "label": f"{title} FILL DISABLE {side}", "type": "selector", "style": "cap",
+            "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "OUT"}],
+        })
+        p.label(side, "POS", f"{name}_{side}", "left" if side == "L" else "right")
+    p.mark(word, "POS", mid, y, "printed between the two buttons")
+
+
+def fuel_plate(g: PanelGroup):
+    p = g.panel("FUEL", 640, 472, 0, 0)
+    p.toggle("EXT_WING", 64, 124, {
+        "id": "FSCP_EXT_TANKS_WING", "label": "EXT TKS WING", "type": "selector",
+        "positions": [{"value": 1, "label": "WING"}, {"value": 0, "label": "OFF"}],
+    })
+    p.toggle("EXT_FUS", 128, 124, {
+        "id": "FSCP_EXT_TANKS_FUS", "label": "EXT TKS FUS", "type": "selector",
+        "positions": [{"value": 1, "label": "FUS"}, {"value": 0, "label": "OFF"}],
+    })
+    p.label("WING", "POS", "EXT_WING", "above")
+    p.label("FUS", "POS", "EXT_FUS", "above")
+    p.mark("EXT TKS", "NAME", 96, 48, "title of the two switches")
+    p.mark("OFF", "POS", 96, 170, "printed once below the two switches")
+    p.toggle("GATE", 222, 124, {
+        "id": "FSCP_TK_GATE", "label": "TK GATE", "type": "selector",
+        "positions": [{"value": 1, "label": "OPEN"}, {"value": 0, "label": "CLOSE"}],
+    }, "above_below")
+    p.label("TK GATE", "NAME", "GATE", "above")
+    p.toggle("CROSS", 324, 124, {
+        "id": "FSCP_CROSSFEED", "label": "CROSS FEED", "type": "selector",
+        "positions": [{"value": 1, "label": "CROSS FEED"}, {"value": 0, "label": "OFF"}],
+    })
+    p.label("CROSS\nFEED", "NAME", "CROSS", "above")
+    p.label("OFF", "POS", "CROSS", "below")
+    p.knob("RCVR_LT", "KNOB_M", 500, 124, {"id": "ALCP_RCVR_LTS", "label": "RCVR LT", "type": "knob", "step": KNOB_STEP, "sweep": [-130, 130]})
+    p.label("RCVR LT", "NAME", "RCVR_LT", "above")
+    p.knob_labels("RCVR_LT", "below_sides", "OFF", "BRT")
+    pump_pair(p, "WING_PUMP", "WING", "WING", "WING", 140, 252)
+    fill_disable_pair(p, "WING_FD", "WING", "WING", "WING", 378, 252)
+    pump_pair(p, "MAIN_PUMP", "MAIN", "MAIN", "MAIN", 140, 380)
+    fill_disable_pair(p, "MAIN_FD", "MAIN", "MAIN", "MAIN", 378, 380)
+    p.toggle("RCVR", 560, 316, {
+        "id": "FSCP_RCVR_LEVER", "label": "RCVR", "type": "selector",
+        "positions": [{"value": 1, "label": "CLOSE"}, {"value": 0, "label": "OPEN"}],
+    }, "above_below")
+    p.label("RCVR", "NAME", "RCVR", "above")
+
+
+def refuel_lights_plate(g: PanelGroup):
+    p = g.panel("AIR REFUEL", 496, 112, 0, 488)
+    for text, x in (("READY", 104), ("LATCHED", 248), ("DISCONNECT", 392)):
+        p.lamp(text, x, 56, {"id": f"AIR_REFUEL_{text}", "legend": text, "color": "green"}, "LAMP_WIDE")
+
+
+def fuel_pages() -> list[dict]:
+    g = PanelGroup("FUEL SYSTEM", "a10c")
+    fuel_plate(g)
+    refuel_lights_plate(g)
+    return [kit_page("FUEL SYSTEM", [1, 3, 1, 2], g.build())]
+
+
+def flap_plate(g: PanelGroup):
+    p = g.panel("FLAP LEVER", 176, 150, 0, 0)
+    p.toggle("FLAP", 64, 76, {
+        "id": "FLAPS_SWITCH", "label": "FLAP LEVER", "type": "selector",
+        "positions": [{"value": 2, "label": "UP"}, {"value": 1, "label": "MVR"}, {"value": 0, "label": "DN"}],
+    }, "right_triple")
+
+
+def throttle_toggle_pair(p: Panel, name: str, bios: str, label: str, positions: list, y: int, extra: dict):
+    for side, x in (("L", 324), ("R", 384)):
+        p.toggle(f"{name}_{side}", x, y, {"id": f"{bios}_{side}", "label": f"{label} {side}", "type": "selector", "positions": positions, **extra})
+        p.label(side, "POS", f"{name}_{side}", "above")
+
+
+def throttles_plate(g: PanelGroup):
+    p = g.panel("THROTTLES", 448, 600, 192, 0)
+    for side, x in (("L", 60), ("R", 116)):
+        p.bar(f"THR_{side}", x, 170, {"id": f"ENG_THROTTLE_{side}", "label": f"{side} THROTTLE", "type": "bar", "max": 65535})
+        p.label(side, "POS", f"THR_{side}", "above")
+    p.knob("FRICT", "KNOB_M", 190, 346, {"id": "ENGINE_THROTTLE_FRICTION", "label": "FRICTION", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label("FRICTION", "NAME", "FRICT", "above")
+    p.knob_labels("FRICT", "lower_sides", "DECR", "INCR")
+    p.mark("ENG FUEL\nFLOW", "NAME", 354, 60, "title of the two switches")
+    throttle_toggle_pair(p, "FLOW", "ENGINE_FUEL_FLOW", "ENG FUEL FLOW", [{"value": 1, "label": "NORM"}, {"value": 0, "label": "OVERRIDE"}], 166, {})
+    p.mark("NORM", "POS", 354, 96, "printed once between the two switches")
+    p.mark("OVERRIDE", "POS", 354, 212, "printed once below the two switches")
+    p.mark("ENG OPER", "NAME", 354, 248, "title of the two switches")
+    oper = [{"value": 2, "label": "IGN", "momentary": True}, {"value": 1, "label": "NORM"}, {"value": 0, "label": "MOTOR"}]
+    throttle_toggle_pair(p, "OPER", "ENGINE_OPER", "ENG OPER", oper, 354, {"rest": 1, "hold": 0.5})
+    p.mark("IGN", "POS", 354, 284, "printed once between the two switches")
+    p.mark("MOTOR", "POS", 354, 400, "printed once below the two switches")
+    p.toggle("APU", 354, 508, {
+        "id": "ENGINE_APU_START", "label": "APU START", "type": "selector",
+        "positions": [{"value": 1, "label": "START"}, {"value": 0, "label": "OFF"}],
+    }, "above_below")
+    p.label("APU", "NAME", "APU", "above")
+    p.push("SILENCE", 110, 484, {"id": "GEAR_HORN_SILENCE", "label": "LDG WARN SILENCE", "type": "button", "hold": BUTTON_HOLD})
+    p.label("LDG WARN\nSILENCE", "NAME", "SILENCE", "above")
+
+
+def throttle_pages() -> list[dict]:
+    g = PanelGroup("THROTTLE", "a10c")
+    flap_plate(g)
+    throttles_plate(g)
+    return [kit_page("THROTTLE", [2, 3, 2, 2], g.build())]
+
+
+def laste_plate(g: PanelGroup):
+    p = g.panel("LASTE", 640, 284, 0, 0)
+    p.toggle("EAC", 72, 150, {
+        "id": "LASTE_EAC", "label": "EAC", "type": "selector",
+        "positions": [{"value": 1, "label": "ARM"}, {"value": 0, "label": "OFF"}],
+    }, "right_pair")
+    p.toggle("ALTM", 176, 150, {
+        "id": "LASTE_RDR_ALTM", "label": "RDR ALTM", "type": "selector",
+        "positions": [{"value": 1, "label": "NRM"}, {"value": 0, "label": "DIS"}],
+    }, "right_pair")
+    p.push("ENGAGE", 320, 150, {"id": "LASTE_AP_TOGGLE", "label": "AUTOPILOT ENGAGE / DISENGAGE", "type": "button", "hold": BUTTON_HOLD})
+    p.label("ENGAGE/\nDISENGAGE", "NAME", "ENGAGE", "below")
+    p.toggle("AP", 450, 150, {
+        "id": "LASTE_AP_MODE", "label": "AUTOPILOT SELECT", "type": "selector",
+        "positions": [{"value": 2, "label": "PATH"}, {"value": 1, "label": "ALT/HDG"}, {"value": 0, "label": "ALT"}],
+    }, "right_triple")
+    p.bracket("AUTOPILOT", "AUTOPILOT", 270, 490, 64)
+    p.mark("LASTE", "TITLE", 556, 64, "panel title")
+
+
+def seat_plate(g: PanelGroup):
+    p = g.panel("SEAT ARM", 184, 216, 0, 300)
+    p.toggle("SEAT", 92, 124, {
+        "id": "SEAT_ARM", "label": "SEAT ARM", "type": "selector",
+        "positions": [{"value": 1, "label": "DISARM"}, {"value": 0, "label": "ARM"}],
+    }, "above_below")
+    p.label("SEAT ARM", "NAME", "SEAT", "above")
+
+
+def laste_pages() -> list[dict]:
+    g = PanelGroup("LASTE", "a10c")
+    laste_plate(g)
+    seat_plate(g)
+    return [kit_page("LASTE", [4, 3, 1, 2], g.build())]
+
+
+def step_rocker(bios: str, label: str) -> dict:
+    return {"id": bios, "label": label, "type": "hat", "ud": bios, "steps": "fixed", "positions": {"up": "tri-up", "down": "tri-down"}}
+
+
+def readout(bios: str, label: str, cols: int) -> dict:
+    return {"id": bios, "label": label, "type": "display", "cols": cols, "ids": [bios]}
+
+
+def uhf_pages() -> list[dict]:
+    p = Panel("UHF", 640, 584, "a10c")
+    p.push("TEST", 84, 96, {"id": "UHF_TEST", "label": "TEST DISPLAY", "type": "button", "hold": BUTTON_HOLD})
+    p.label("TEST\nDISPLAY", "POS", "TEST", "below")
+    p.push("LOAD", 218, 96, {"id": "UHF_LOAD", "label": "LOAD", "type": "button", "guard": True, "cover": "UHF_COVER", "hold": BUTTON_HOLD})
+    p.label("LOAD", "NAME", "LOAD", "below")
+    p.display("CHAN", 372, 96, 72, 56, readout("UHF_PRESET", "CHAN", 2))
+    p.label("CHAN", "NAME", "CHAN", "above")
+    p.rocker("PRESET", 450, 96, step_rocker("UHF_PRESET_SEL", "CHAN"))
+    p.push("STATUS", 556, 96, {"id": "UHF_STATUS", "label": "STATUS", "type": "button", "hold": BUTTON_HOLD})
+    p.label("STATUS", "POS", "STATUS", "below")
+    p.display("FREQ", 320, 230, 288, 64, readout("UHF_FREQUENCY", "FREQUENCY", 7))
+    for bios, label, x in (("100MHZ_SEL", "100", 104), ("10MHZ_SEL", "10", 212), ("1MHZ_SEL", "1", 320), ("POINT1MHZ_SEL", ".1", 428), ("POINT25_SEL", ".025", 536)):
+        p.rocker(bios, x, 338, step_rocker(f"UHF_{bios}", label))
+    p.rotary("FUNC", 140, 488, {
+        "id": "UHF_FUNCTION", "label": "FUNCTION", "type": "selector", "style": "rotary",
+        "positions": [
+            {"value": 0, "label": "OFF", "angle": -75}, {"value": 1, "label": "MAIN", "angle": -40},
+            {"value": 2, "label": "BOTH", "angle": 40}, {"value": 3, "label": "ADF", "angle": 75, "disabled": True},
+        ],
+    })
+    p.rotary("MODE", 500, 488, {
+        "id": "UHF_MODE", "label": "MODE", "type": "selector", "style": "rotary",
+        "positions": [{"value": 0, "label": "MNL", "angle": -70}, {"value": 1, "label": "PRESET", "angle": 0}, {"value": 2, "label": "GRD", "angle": 70}],
+    })
+    p.knob("VOL", "KNOB_S", 290, 490, {"id": "UHF_VOL", "label": "VOL", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label("VOL", "NAME", "VOL", "above")
+    p.toggle("SQL", 370, 490, {
+        "id": "UHF_SQUELCH", "label": "SQUELCH", "type": "selector",
+        "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}],
+    }, "above_below")
+    p.label("SQUELCH", "NAME", "SQL", "above")
+    return [kit_page("UHF", [6, 3, 1, 2], p.build())]
+
+
+def vhf_pages() -> list[dict]:
+    p = Panel("VHF FM", 640, 582, "a10c")
+    p.knob("VOL", "KNOB_S", 100, 100, {"id": "VHFFM_VOL", "label": "VOL", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label("VOL", "NAME", "VOL", "above")
+    p.toggle("SQL", 100, 216, {
+        "id": "VHFFM_SQUELCH", "label": "SQUELCH", "type": "selector",
+        "positions": [{"value": 2, "label": "SQ DIS"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "TONE"}],
+    })
+    p.label("SQ DIS", "POS", "SQL", "above")
+    p.label("TONE", "POS", "SQL", "below")
+    p.display("FREQ", 330, 84, 336, 64, readout("VHF_FM_FREQUENCY_S", "FREQUENCY", 7))
+    for bios, label, x in (("FREQ1", "10", 222), ("FREQ2", "1", 302), ("FREQ3", ".1", 382), ("FREQ4", ".025", 462)):
+        p.rocker(bios, x, 190, step_rocker(f"VHFFM_{bios}", label))
+    p.rotary("SEL", 170, 380, {
+        "id": "VHFFM_FREQEMER", "label": "FREQUENCY SELECTION", "type": "selector", "style": "rotary",
+        "positions": [
+            {"value": 0, "label": "EMER FM", "angle": -75}, {"value": 1, "label": "EMER AM", "angle": -25},
+            {"value": 2, "label": "MAN", "angle": 25}, {"value": 3, "label": "PRE", "angle": 75},
+        ],
+    }, labels="fan")
+    p.display("PRESET", 300, 380, 72, 56, readout("VHFFM_PRESET_STR", "PRESET", 2))
+    p.label("PRESET", "NAME", "PRESET", "above")
+    p.rocker("WHEEL", 380, 380, step_rocker("VHFFM_PRESET", "PRE"))
+    p.rotary("MODE", 510, 380, {
+        "id": "VHFFM_MODE", "label": "MODE", "type": "selector", "style": "rotary",
+        "positions": [{"value": 0, "label": "OFF", "angle": -70}, {"value": 1, "label": "TR", "angle": 0}, {"value": 2, "label": "DF", "angle": 70, "disabled": True}],
+    })
+    p.push("LOAD", 300, 472, {"id": "VHFFM_LOAD", "label": "LOAD", "type": "button", "hold": BUTTON_HOLD})
+    p.label("LOAD", "NAME", "LOAD", "below")
+    return [kit_page("VHF FM", [7, 3, 1, 2], p.build())]
+
+
 VIEWS = [
     {"name": "COCKPIT", "seats": [0], "layout": "map", "lamps": MASTER_LAMPS, "controls": [], "links": []},
     *brake_pages(),
     *iff_pages(),
     *emer_pages(),
     *intercom_pages(),
+    *fuel_pages(),
+    *throttle_pages(),
+    *laste_pages(),
+    *uhf_pages(),
+    *vhf_pages(),
 ]
 
 CONTROL_NAMES = []
