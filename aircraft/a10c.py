@@ -613,6 +613,177 @@ def gear_pages() -> list[dict]:
     return [kit_page("LANDING GEAR", [5, 5, 2, 1], g.build())]
 
 
+def ahcp_toggle(p: Panel, name: str, label: str, bios: str, x: int, y: int, positions: tuple):
+    p.toggle(name, x, y, {
+        "id": bios, "label": label, "type": "selector",
+        "positions": [{"value": value, "label": text} for value, text in positions],
+    }, "right_triple" if len(positions) == 3 else "right_pair")
+
+
+def ahcp_pages() -> list[dict]:
+    g = PanelGroup("AHCP", "a10c", scroll=True)
+    p = g.panel("AHCP", 640, 510, 0, 0)
+    arm = ((2, "ARM"), (1, "SAFE"), (0, "TRAIN"))
+    on_off = ((1, "ON"), (0, "OFF"))
+    for name, title, label, bios, x, y, positions in (
+        ("MASTER", "MASTER ARM", "MASTER ARM", "AHCP_MASTER_ARM", 190, 100, arm),
+        ("GUNPAC", "GUN/PAC ARM", "GUN/PAC ARM", "AHCP_GUNPAC", 450, 100, ((2, "ARM"), (1, "SAFE"), (0, "GUNARM"))),
+        ("LASER", "LASER ARM", "LASER ARM", "AHCP_LASER_ARM", 190, 212, arm),
+        ("TGP", "TGP", "TGP", "AHCP_TGP", 450, 212, on_off),
+        ("ALT", "ALT SCE", "ALT SCE", "AHCP_ALT_SCE", 110, 324, ((2, "BARO"), (1, "DELTA"), (0, "RADAR"))),
+        ("DAYNIGHT", None, "HUD MODE DAY/NIGHT", "AHCP_HUD_DAYNIGHT", 300, 324, ((1, "DAY"), (0, "NIGHT"))),
+        ("HUDMODE", None, "HUD MODE NORM/STBY", "AHCP_HUD_MODE", 500, 324, ((1, "NORM"), (0, "STBY"))),
+        ("CICU", "CICU", "CICU", "AHCP_CICU", 110, 436, on_off),
+        ("JTRS", "JTRS", "JTRS", "AHCP_JTRS", 300, 436, on_off),
+        ("IFFCC", "IFFCC", "IFFCC", "AHCP_IFFCC", 500, 436, ((2, "ON"), (1, "TEST"), (0, "OFF"))),
+    ):
+        ahcp_toggle(p, name, label, bios, x, y, positions)
+        if title:
+            p.mark(title, "NAME", x, y - 52, "title above the position labels of the switch")
+    p.mark("HUD MODE", "NAME", 400, 272, "title of the two switches")
+    h = g.panel("HARS FAST ERECT", 320, 188, 0, 526)
+    h.push("ERECT", 160, 110, {"id": "HARS_FAST_ERECT", "label": "HARS FAST ERECT", "type": "button", "hold": BUTTON_HOLD})
+    h.label("HARS FAST ERECT", "NAME", "ERECT", "above")
+    return [kit_page("AHCP", [5, 6, 2, 1], g.build())]
+
+
+def nmsp_button(p: Panel, name: str, label: str, bios: str, x: int, y: int):
+    p.push(name, x, y, {"id": f"NMSP_{bios}_BTN", "label": label, "type": "button", "hold": BUTTON_HOLD, "lamp": f"NMSP_{bios}_LED", "legend": label, "color": "green"})
+
+
+def nmsp_pages() -> list[dict]:
+    p = Panel("NMSP", 640, 318, "a10c")
+    nmsp_button(p, "HARS", "HARS", "HARS", 96, 120)
+    p.toggle("PTR", 232, 120, {
+        "id": "NMSP_ABLE_STOW", "label": "PTR", "type": "selector", "orient": "h",
+        "positions": [{"value": 0, "label": "ABLE"}, {"value": 1, "label": "STOW"}],
+    }, "left_right_pair")
+    p.label("PTR", "NAME", "PTR", "above")
+    nmsp_button(p, "EGI", "EGI", "EGI", 400, 120)
+    for name, label, bios, x in (("STRPT", "STR PT", "STEERPT", 96), ("ANCHR", "ANCHR", "ANCHR", 212), ("TCN", "TCN", "TCN", 328), ("ILS", "ILS", "ILS", 444)):
+        nmsp_button(p, name, label, bios, x, 240)
+    p.mark("HOMING", "NAME", 552, 60, "title of the two lamps")
+    p.lamp("UHF", 552, 112, {"id": "NMSP_UHF_LED", "legend": "UHF", "color": "amber"})
+    p.lamp("FM", 552, 168, {"id": "NMSP_FM_LED", "legend": "FM", "color": "amber"})
+    return [kit_page("NMSP", [5, 7, 2, 1], p.build())]
+
+
+def cmsp_toggle(p: Panel, name: str, label: str, x: int, disabled: bool):
+    p.toggle(name, x, 370, {
+        "id": f"CMSP_{name}", "label": label, "type": "selector", "rest": 1, "hold": 0.5,
+        "positions": [{"value": 2, "label": "MENU", "momentary": True, **({"disabled": True} if disabled else {})}, {"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}],
+    })
+    p.label(name, "NAME", name, "above")
+
+
+def cmsp_pages() -> list[dict]:
+    p = Panel("CMSP", 640, 488, "a10c")
+    p.display("DISPLAY", 236, 80, 400, 88, {"id": "CMSP1", "label": "CMSP", "type": "display", "cols": 19, "ids": ["CMSP1", "CMSP2"]})
+    p.rocker("NXT", 486, 96, {"id": "CMSP_UPDN", "label": "NXT", "type": "hat", "ud": "CMSP_UPDN", "hold": BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}})
+    p.push("RTN", 560, 96, {"id": "CMSP_RTN", "label": "RTN", "type": "button", "legend": "RTN", "hold": BUTTON_HOLD})
+    for n, x in enumerate((86, 186, 286, 386), 1):
+        p.push_small(f"SET{n}", x, 172, {"id": f"CMSP_ARW{n}", "label": f"SET {n}", "type": "button", "style": "flat", "hold": BUTTON_HOLD}, ARROW_UP)
+    p.mark("SET", "POS", 236, 172, "printed between the second and third SET button")
+    p.toggle("JTSN", 486, 232, {
+        "id": "CMSP_JTSN", "label": "JTSN", "type": "selector", "guard": True,
+        "positions": [{"value": 1, "label": "JTSN"}, {"value": 0, "label": "OFF"}],
+    })
+    p.label("JTSN", "NAME", "JTSN", "above")
+    p.knob("BRT", "KNOB_S", 566, 232, {"id": "CMSP_BRT", "label": "BRT", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label("BRT", "NAME", "BRT", "above")
+    p.bracket("SYSTEM", "SYSTEM", 42, 378, 272)
+    for name, label, x, disabled in (("MWS", "MWS", 70, True), ("JMR", "JMR", 158, True), ("RWR", "RWR", 262, False), ("DISP", "DISP", 350, False)):
+        cmsp_toggle(p, name, label, x, disabled)
+    for text, y in (("MENU", 342), ("ON", 370), ("OFF", 398)):
+        p.mark(text, "POS", 210, y, "printed once between the JMR and RWR switches")
+    p.rotary("MODE", 496, 370, {
+        "id": "CMSP_MODE", "label": "MODE", "type": "selector", "style": "rotary",
+        "positions": [
+            {"value": 0, "label": "OFF", "angle": -130}, {"value": 1, "label": "STBY", "angle": -85}, {"value": 2, "label": "MAN", "angle": -40},
+            {"value": 3, "label": "SEMI", "angle": 5}, {"value": 4, "label": "AUTO", "angle": 50},
+        ],
+    }, labels="fan")
+    p.label("MODE", "NAME", "MODE", "below")
+    return [kit_page("CMSP", [1, 9, 1, 2], p.build())]
+
+
+CAUTION_LAMPS = (
+    ("CL_A1", "ENG START\nCYCLE"), ("CL_A2", "L-HYD\nPRESS"), ("CL_A3", "R-HYD\nPRESS"), ("CL_A4", "GUN\nUNSAFE"),
+    ("CL_B1", "ANTI-\nSKID"), ("CL_B2", "L-HYD\nRES"), ("CL_B3", "R-HYD\nRES"), ("CL_B4", "OXY\nLOW"),
+    ("CL_C1", "ELEV\nDISENG"), ("CL_C2", ""), ("CL_C3", "SEAT NOT\nARMED"), ("CL_C4", "BLEED AIR\nLEAK"),
+    ("CL_D1", "AIL\nDISENG"), ("CL_D2", "L-AIL\nTAB"), ("CL_D3", "R-AIL\nTAB"), ("CL_D4", "SERVICE AIR\nHOT"),
+    ("CL_E1", "PITCH\nSAS"), ("CL_E2", "L-ENG\nHOT"), ("CL_E3", "R-ENG\nHOT"), ("CL_E4", "WINDSHIELD\nHOT"),
+    ("CL_F1", "YAW\nSAS"), ("CL_F2", "L-ENG\nOIL PRESS"), ("CL_F3", "R-ENG\nOIL PRESS"), ("CL_F4", "CICU"),
+    ("CL_G1", "GCAS"), ("CL_G2", "L-MAIN\nPUMP"), ("CL_G3", "R-MAIN\nPUMP"), ("CL_G4", ""),
+    ("CL_H1", "LASTE"), ("CL_H2", "L-WING\nPUMP"), ("CL_H3", "R-WING\nPUMP"), ("CL_H4", "HARS"),
+    ("CL_I1", "IFF\nMODE-4"), ("CL_I2", "L-MAIN\nFUEL LOW"), ("CL_I3", "R-MAIN\nFUEL LOW"), ("CL_I4", "L-R TKS\nUNEQUAL"),
+    ("CL_J1", "EAC"), ("CL_J2", "L-FUEL\nPRESS"), ("CL_J3", "R-FUEL\nPRESS"), ("CL_J4", "NAV"),
+    ("CL_K1", "STALL\nSYS"), ("CL_K2", "L-CONV"), ("CL_K3", "R-CONV"), ("CL_K4", "CADC"),
+    ("CL_L1", "APU\nGEN"), ("CL_L2", "L-GEN"), ("CL_L3", "R-GEN"), ("CL_L4", "INST\nINV"),
+)
+
+
+def caution_pages() -> list[dict]:
+    p = Panel("CAUTION", 640, 640, "a10c", scroll=True)
+    for n, (bios, legend) in enumerate(CAUTION_LAMPS):
+        row, column = divmod(n, 4)
+        p.lamp(bios, 104 + 144 * column, 56 + 48 * row, {"id": bios, "legend": legend, "color": "amber"}, "LAMP_WIDE")
+    return [kit_page("CAUTION", [2, 9, 2, 2], p.build())]
+
+
+def aap_toggle(p: Panel, name: str, label: str, bios: str, x: int):
+    p.toggle(name, x, 100, {
+        "id": bios, "label": label, "type": "selector",
+        "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}],
+    }, "right_pair")
+    p.label(name, "NAME", name, "above")
+
+
+def aap_plate(g: PanelGroup):
+    p = g.panel("AAP", 640, 360, 0, 0)
+    aap_toggle(p, "CDU", "CDU POWER", "AAP_CDUPWR", 200)
+    aap_toggle(p, "EGI", "EGI POWER", "AAP_EGIPWR", 440)
+    p.rotary("STEERPT", 190, 240, {
+        "id": "AAP_STEERPT", "label": "STEER PT", "type": "selector", "style": "rotary",
+        "positions": [{"value": 0, "label": "FLT PLAN", "angle": -90}, {"value": 1, "label": "MARK", "angle": -50}, {"value": 2, "label": "MISSION", "angle": 0}],
+    })
+    p.label("STEER PT", "NAME", "STEERPT", "below")
+    p.rotary("PAGE", 480, 240, {
+        "id": "AAP_PAGE", "label": "PAGE", "type": "selector", "style": "rotary",
+        "positions": [
+            {"value": 0, "label": "OTHER", "angle": -90}, {"value": 1, "label": "POSITION", "angle": -50},
+            {"value": 2, "label": "STEER", "angle": 0}, {"value": 3, "label": "WAYPT", "angle": 50},
+        ],
+    })
+    p.label("PAGE", "NAME", "PAGE", "below")
+    p.toggle("STEER", 283, 240, {
+        "id": "AAP_STEER", "label": "STEER", "type": "selector", "rest": 1, "hold": 0.5,
+        "positions": [{"value": 2, "label": "UP", "momentary": True}, {"value": 1, "label": "CENTER"}, {"value": 0, "label": "DOWN", "momentary": True}],
+    })
+    p.label("STEER", "NAME", "STEER", "below")
+
+
+def ils_plate(g: PanelGroup):
+    p = g.panel("ILS", 640, 348, 0, 376)
+    p.mark("ILS", "TITLE", "CX", 58, "panel title")
+    p.rotary("PWR", 140, 118, {
+        "id": "ILS_PWR", "label": "POWER", "type": "selector", "style": "rotary",
+        "positions": [{"value": 0, "label": "OFF", "angle": -50}, {"value": 1, "label": "PWR", "angle": 0}],
+    })
+    p.knob("VOL", "KNOB_M", 500, 118, {"id": "ILS_VOL", "label": "VOL", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label("VOL", "NAME", "VOL", "above")
+    p.display("FREQ", 320, 170, 200, 64, readout("ILS_FREQUENCY_S", "ILS FREQUENCY", 6))
+    p.rocker("MHZ", 140, 252, step_rocker("ILS_MHZ", "MHZ"))
+    p.rocker("KHZ", 500, 252, step_rocker("ILS_KHZ", "KHZ"))
+
+
+def aap_pages() -> list[dict]:
+    g = PanelGroup("AAP / ILS", "a10c", scroll=True)
+    aap_plate(g)
+    ils_plate(g)
+    return [kit_page("AAP / ILS", [5, 9, 1, 2], g.build())]
+
+
 VIEWS = [
     {"name": "COCKPIT", "seats": [0], "layout": "map", "lamps": MASTER_LAMPS, "controls": [], "links": []},
     *brake_pages(),
@@ -628,6 +799,11 @@ VIEWS = [
     *fire_pages(),
     *cmsc_pages(),
     *gear_pages(),
+    *ahcp_pages(),
+    *nmsp_pages(),
+    *cmsp_pages(),
+    *caution_pages(),
+    *aap_pages(),
 ]
 
 CONTROL_NAMES = []
