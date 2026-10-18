@@ -49,8 +49,8 @@ From the manual and the DCS-BIOS mapping, to settle in DCS (phase 7):
 | 1 | Collect sources | user, Claude | Table above | manual and DCS-BIOS done; keybinds and screenshots need the module |
 | 2 | Read the manual: pp. 105–209 (cockpit panels, HOTAS, CDU), 303–311 (UFC, MFCD overview), 482 and 491–503 (HMCS HOTAS, defensive systems), 504–544 (start-up) | Claude | [PANELS.md](PANELS.md): 66 panel sections; [STARTUP.md](STARTUP.md): cold start in 164 steps | done |
 | 3 | Match with DCS-BIOS | Claude | [BIOS.md](BIOS.md): every PANELS.md control with its identifier and access, the 72 DCS-BIOS-only controls, gaps, cold start coverage | done |
-| 4 | Reference pictures per panel | Claude, then user (screenshots) | [PICTURES.md](PICTURES.md): 66 panels, 48 good, 15 partial, 2 poor (TISL, flap lever), 1 none (HMCS HOTAS); screenshot needed only for the flap lever | done |
+| 4 | Reference pictures per panel | Claude, then user (screenshots) | [PICTURES.md](PICTURES.md): 66 panels, 48 good, 15 partial, 2 poor (TISL, flap lever), 1 none (HMCS HOTAS); screenshot needed for the flap lever (three more found in phase 6) | done |
 | 5 | Compare with the engine | Claude, user decides | [ENGINE.md](ENGINE.md): 9 changes E1–E9, all decided (automatic aircraft choice with a manual switch, seats per aircraft, hand-drawn MFCD / CDU / UFC, A-10C-specific look, docs first) | done |
-| 6 | A-10C spec | Claude writes, user reviews | Spec of views, panel pages, controls, keybinds | open |
+| 6 | A-10C spec | Claude writes, user reviews | [SPEC.md](SPEC.md): 5 tabs, COCKPIT map with 23 panel pages, FLIGHT, FIGHT (HOTAS key hats), MFCD, CDU / UFC, lamp row, keybind names, engine behaviour, look, test run; 4 more screenshots needed | written, review pending |
 | 7 | Research in DCS (needs the module) | user flies, Claude analyses | Read test and control sweep adapted from the `research-v1` tag; export arguments and MFCD indication numbers | open |
 | 8 | Build plan and build | Claude delegates | Verified steps | open |

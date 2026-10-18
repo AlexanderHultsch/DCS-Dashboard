@@ -4,13 +4,27 @@ Specification of the A-10C II Tank Killer dashboard (planned, not built). The en
 
 ## 1. Overview
 
+A tablet dashboard for the single-seat A-10C II, with the same tabs as every aircraft: **COCKPIT | FLIGHT | FIGHT | MFCD | CDU**. The same bridge serves both aircraft; it chooses the A-10C files when DCS-BIOS reports the aircraft `A-10C_2` (section 9).
+
+| Tab | Content | AH-64D counterpart |
+| --- | --- | --- |
+| COCKPIT | Map of the cockpit; 23 panel pages and 4 link boxes (section 2) | COCKPIT |
+| FLIGHT | Speed brake, trim, gear, flaps, lights, throttle positions and a few values (section 3) | FLIGHT |
+| FIGHT | HOTAS core set (DMS, TMS, CMS, coolie hat, China hat, master mode), AHCP arming switches, countermeasure counts (section 4) | FIGHT |
+| MFCD | Left and right MFCD, hand-drawn, one at a time (section 5) | MPD |
+| CDU | CDU with its live 10-line screen and the UFC, hand-drawn (section 6) | KU |
+
+Differences to the AH-64D: one seat (no seat switch, no debug seat), no GEORGE tab, no trim display, the throttle levers are shown but not moved (DCS-BIOS can only read them), and the HOTAS controls are keypresses only (DCS-BIOS has none of them). Built after the engine changes of [ENGINE.md](ENGINE.md) (E1 to E9).
+
+**Blocked until the module is installed:** the A-10C default keybinds (section 8), four screenshots (flap lever, seat arm handle, auxiliary gear handle, canopy disengage lever; section 2 and PICTURES.md), and the DCS research of phase 7 (the open points of [RESEARCH.md](RESEARCH.md)). The pages that need no keypress (COCKPIT, MFCD, CDU) can be built before that.
+
 ## 2. COCKPIT
 
 COCKPIT is a simplified map of the A-10C II cockpit and one page for every cockpit panel that has a function in DCS, with every button, switch, knob and display of that panel. Tap a box on the map to open its page; on a page the COCKPIT tab keeps its highlight and shows a back chevron, and one tap on it goes back to the map; a long hold (0.5 s) on COCKPIT opens a list of every page. The boxes MFCD L, MFCD R, CDU and UFC are not pages: they open the MFCD tab (left or right side preselected) and the CDU tab (the UFC sits on the CDU tab), as the AH-64D map boxes open MPD and KU. The A-10C has one seat, so there is no seat badge switch and no seat-dependent page: every page is always on the map and in the list.
 
 Tabs at the top: **COCKPIT | FLIGHT | FIGHT | MFCD | CDU**.
 
-The panel pages get the A-10C look (drawn later); this section only says which panels are on which page and where. The instruments (ADI, HSI, standby instruments, altimeter, VVI, airspeed, AoA, engine instruments, fuel and hydraulic gauges, accelerometer, compass, clock, RWR scope) are displays for FLIGHT and FIGHT, and the HOTAS grips are controls for FIGHT and FLIGHT: none of them is a panel page. The small controls that sit on an instrument (cage knob, set knobs, clock keys, fuel selector) go with that instrument. The lamp row (section 7) stays at the top of the map and of every panel page.
+The panel pages get the A-10C look (drawn later); this section only says which panels are on which page and where. The instruments (ADI, HSI, standby instruments, altimeter, VVI, airspeed, AoA, engine instruments, fuel and hydraulic gauges, accelerometer, compass, clock, RWR scope) are not panel pages and are not drawn (section 3); FLIGHT and FIGHT show a few of their values as text, and the HOTAS grips are controls for FIGHT and FLIGHT: none of them is a panel page. The small controls that sit on an instrument (cage knob, set knobs, clock keys, fuel selector) go with that instrument. The lamp row (section 7) stays at the top of the map and of every panel page.
 
 **Lamps.** These lamps have no control and are not on a page; they go to the lamp row (section 7): GUN READY, STEERING ENGAGED, MARKER BEACON, CANOPY UNLOCKED. CANOPY UNLOCKED is also on the CANOPY / ELEC page. The three air refuel lights are on the FUEL SYSTEM page, next to the RCVR lever, and not on the lamp row. The three fire lamps, the gear lamps and the caution lamps are on their pages; section 7 may repeat them.
 
@@ -299,19 +313,118 @@ Counts: `rows` = rows of the PANELS.md tables of the panels on the page; `id` = 
 
 ## 3. FLIGHT
 
+The quick page for take-off, landing and flying, on the fixed 7 × 3 grid (`grid: [row, col, rows, cols]`). Flight instruments are not drawn (cockpit-replica graphics are out of scope, [../SPEC.md](../SPEC.md) section 11); FLIGHT shows the few values a pilot sets or checks from the tablet, as text or simple bars.
+
+| Control | Type | Source | Grid |
+| --- | --- | --- | --- |
+| SPEED BRAKE | two key buttons EXTEND / RETRACT (hold = keep moving, as the real switch) | keybinds `speed_brake_extend`, `speed_brake_retract`; position shown from `EXT_SPEED_BRAKE_LEFT` (external model, read only) | [1,1,1,1] |
+| TRIM | key hat: up / down / left / right (a tap trims one step, a hold keeps trimming) | keybinds `trim_up`, `trim_down`, `trim_left`, `trim_right` | [1,2,2,1] |
+| GEAR | selector UP / DOWN with the three SAFE lamps and the handle lamp | `GEAR_LEVER`; `GEAR_L_SAFE`, `GEAR_N_SAFE`, `GEAR_R_SAFE`, `HANDLE_GEAR_WARNING` | [1,3,2,1] |
+| FLAPS | selector UP / MVR / DN with the position as text (degrees) | `FLAPS_SWITCH`; `FLAP_POS` | [1,4,2,1] |
+| LIGHTS LAND | selector LAND / OFF / TAXI | `LANDING_LIGHTS` | [1,5,1,1] |
+| ANTI-SKID | selector | `ANTI_SKID_SWITCH` | [2,5,1,1] |
+| NWS | key button (nosewheel steering engage / disengage on the ground) with the STEERING ENGAGED lamp | keybind `nws`; `NOSEWHEEL_STEERING` | [1,6,1,1] |
+| THROTTLE L / R | two read-only bars 0 to 100 % | `ENG_THROTTLE_L`, `ENG_THROTTLE_R` | [1,7,3,1] |
+| FUEL | total fuel as text (pounds) | `FUEL_QTY_10000`, `FUEL_QTY_1000`, `FUEL_QTY_100` (counters) | [3,1,1,2] |
+| EMER BRAKE | selector PULL / IN (DCS-BIOS, no key) | `EMER_BRAKE` | [3,3,1,1] |
+| HARS FAST ERECT | button | `HARS_FAST_ERECT` | [3,4,1,1] |
+
+Speed brake, trim and NWS are keypresses with no confirmation (`confirmed: null`), as the AH-64D key buttons. Exact keys: section 8.
+
 ## 4. FIGHT
+
+The quick page for weapons and sensors, on the fixed 7 × 3 grid. The HOTAS controls are **key hats**: one grid cell per hat with its four directions (and a centre button where the real hat can be pressed). A tap sends a short press (0.15 s), a hold of 0.6 s on the tablet sends a long press (the key held 1.0 s), as the manual separates short and long. Labels show the function that is the same for every sensor of interest (SOI), and a short generic word where the function depends on the SOI (the dashboard cannot read the SOI: it has no DCS-BIOS output).
+
+| Control | Directions (short / long) | Grid |
+| --- | --- | --- |
+| DMS (Data Management Switch) | up, down, left, right; short and long (labels: SOI-dependent, e.g. "UP", "DN") | [1,1,1,1] |
+| TMS (Target Management Switch) | up: TRACK / MAKE SPI; down: UNHOOK / SPI TO STPT; left: ACK / SPI BCAST; right: MARK / MARK SPI | [1,2,1,1] |
+| CMS (Countermeasures Switch) | up: 1 FLARE / NEXT PROG; down: 1 CHAFF / PREV PROG; left: 6 FLARES; right: 6 CHAFF; centre: PROG ON-OFF / ECM ON-OFF | [1,3,1,1] |
+| COOLIE HAT | up: SOI HUD / MSG LOOK; down: SOI HMCS / DSMS LOOK; left: L MFCD PAGE / SOI L MFCD; right: R MFCD PAGE / SOI R MFCD | [1,4,1,1] |
+| CHINA HAT | forward: FOV-type / SLAVE ALL TO SPI; aft: CAGE-type / TGP TO STPT | [1,5,1,1] |
+| MASTER MODE (MMCB) | one button: tap = HUD mode, hold = A-A | [1,6,1,1] |
+| MASTER ARM | selector TRAIN / SAFE / ARM | `AHCP_MASTER_ARM`, [2,1,1,1] |
+| GUN / PAC | selector GUNARM / SAFE / ARM | `AHCP_GUNPAC`, [2,2,1,1] |
+| LASER | selector TRAIN / SAFE / ARM | `AHCP_LASER_ARM`, [2,3,1,1] |
+| TGP | selector OFF / ON | `AHCP_TGP`, [2,4,1,1] |
+| CHAFF / FLARE | display of the CMSC count text | `CMSC_TXT_CHAFF_FLARE`, [2,5,1,2] |
+| CMSP | display of the two CMSP lines | `CMSP1`, `CMSP2`, [3,1,1,3] |
+| GUN READY | lamp | `GUN_READY`, [1,7,1,1] |
+
+The CMS and coolie hat functions are the same in every SOI (manual pp. 106–112, PANELS.md "Control Stick" and "Throttles"); the CMS mapping differs between p. 106 and pp. 493 / 496 and is checked in the DCS research (RESEARCH.md). The key hat is a small extension of the existing `hat` control: the same widget, with key names instead of DCS-BIOS axes and a long press (ENGINE.md E8 assumed separate key buttons; six cells for 20 keys and 40 functions with short and long keep the 7 × 3 grid usable). The trigger and weapon release are not on the dashboard (section 11).
 
 ## 5. MFCD
 
+Both MFCDs, hand-drawn like the AH-64D MPD (ENGINE.md E5): one bezel at a time, a switch LEFT MFCD / RIGHT MFCD, the side preselected by the map boxes MFCD L and MFCD R and remembered per aircraft (E9).
+
+- **Bezel:** 20 option select buttons (OSB 1 to 5 on top, 6 to 10 on the right, 11 to 15 at the bottom, 16 to 20 on the left; `LMFD_01` … `LMFD_20`, `RMFD_01` … `RMFD_20`), the ADJ and BRT rockers (`LMFD_ADJ`, `LMFD_BRT` and the right ones) and the DAY / NT / OFF knob (`LMFD_PWR`, `RMFD_PWR`). The DSP, CON and SYM rockers are drawn but inert (no function in DCS; section 11). Drawing reference: PICTURES.md, Left MFCD p121-002.jpg.
+- **Screen:** empty in version 1: DCS-BIOS has no MFCD text, and the export script table of the A-10C is empty (E7). The OSB numbers are printed small beside the buttons. Live OSB labels can follow later through `list_indication`, as for the AH-64D MPD, once phase 7 has found the MFCD indication numbers.
+- OSB presses are DCS-BIOS buttons with readback; the rockers are 3-position spring switches (down, centre, up) held for the press time.
+
 ## 6. CDU
+
+The CDU and the UFC on one tab, hand-drawn like the AH-64D KU (E5). Side by side if both fit at the 56 px touch minimum on a 1180 × 820 screen, else a switch CDU / UFC like the MFCD side switch (decided in the layout step).
+
+- **CDU screen:** live, 10 lines of 24 characters from `CDU_LINE0` … `CDU_LINE9` (DCS-BIOS builds them from the CDU indication; the scratchpad is line 10 of the real screen, inside `CDU_LINE9`). Monospace, green on black, as the real screen.
+- **CDU keys:** 8 line select keys (L3, L5, L7, L9, R3, R5, R7, R9: `CDU_LSK_3L` … `CDU_LSK_9R`) beside the screen lines they serve; the function keys SYS, NAV, WP, OSET, FPM, PREV; the letter and digit keys, point and slash; CLR, BCK, SPC, FA, MK; the rockers BRT / DIM (`CDU_BRT`), page (`CDU_PG`), blank (`CDU_SCROLL`) and +/− (`CDU_DATA`). The two unlabelled keys (`CDU_NA1`, `CDU_NA2`) are drawn but inert.
+- **AAP PAGE:** the CDU keys work only with the AAP PAGE dial at OTHER, so the CDU tab also shows the AAP PAGE selector (`AAP_PAGE`: OTHER, POSITION, STEER, WAYPT) and the STEER PT selector (`AAP_STEERPT`).
+- **UFC:** the keypad (digits 0 to 9 = `UFC_1` … `UFC_10`, SPC, HACK, FUNC, LTR, CLR, ENT, MK, ALT ALRT), the rockers (STEER, DATA, SEL, DEPR, INTEN), the MASTER CAUTION lamp and reset button (`MASTER_CAUTION`, `UFC_MASTER_CAUTION`) and the six A-10C II buttons COM 1, COM SEC, IFF, COM 2, ECCM, IDM. Their positions in the drawing are open (RESEARCH.md: the six unlabelled buttons of the manual figure); they are placed after the DCS research. Several UFC keys act on the HUD only; the dashboard shows no result for them.
 
 ## 7. Lamp row
 
+The row of lamps at the top of every page (as on the AH-64D).
+
+| View | Lamps |
+| --- | --- |
+| COCKPIT map and every panel page | MASTER CAUTION (a lighted push button: `MASTER_CAUTION`, press = `UFC_MASTER_CAUTION`) |
+| COCKPIT map | also GUN READY, STEERING ENGAGED, MARKER BEACON, CANOPY UNLOCKED (`GUN_READY`, `NOSEWHEEL_STEERING`, `MARKER_BEACON`, `CANOPY_UNLOCKED`) |
+| FLIGHT | MASTER CAUTION, L ENG FIRE, APU FIRE, R ENG FIRE (`L_ENG_FIRE`, `APU_FIRE`, `R_ENG_FIRE`), CANOPY UNLOCKED |
+| FIGHT | MASTER CAUTION, GUN READY, missile launch (`CMSC_LAUNCH`) |
+| MFCD, CDU | none |
+
+The A-10C has no MASTER WARNING lamp of the AH-64D kind; the caution light panel (48 lamps) is a COCKPIT page.
+
 ## 8. Keybinds
+
+DCS-BIOS has no HOTAS control, so these functions are keypresses ([../SPEC.md](../SPEC.md) section 4). The aircraft file holds their defaults in `KEYS`; `[keys]` in `config/config.toml` overrides them (E8). The defaults are **open**: they are taken from the A-10C default keybinds once the module is installed and its control list is exported from DCS (Options, Controls, "Make HTML"). Keys the key table does not know yet (numpad, Tab, Esc, punctuation) are added to `core/keys.py` then (E8). Until then the key controls cannot be built (the bridge checks every needed key at start).
+
+| Key name | DCS command (A-10C) | Used on |
+| --- | --- | --- |
+| `dms_up`, `dms_down`, `dms_left`, `dms_right` | Data Management Switch directions | FIGHT |
+| `tms_up`, `tms_down`, `tms_left`, `tms_right` | Target Management Switch directions | FIGHT |
+| `cms_up`, `cms_down`, `cms_left`, `cms_right`, `cms_press` | Countermeasures Switch directions and press | FIGHT |
+| `coolie_up`, `coolie_down`, `coolie_left`, `coolie_right` | Coolie hat directions | FIGHT |
+| `china_fwd`, `china_aft` | China hat forward and aft | FIGHT |
+| `mmcb` | Master Mode Control Button | FIGHT |
+| `speed_brake_extend`, `speed_brake_retract` | Speed brake extend and retract | FLIGHT |
+| `trim_up`, `trim_down`, `trim_left`, `trim_right` | Trim hat directions | FLIGHT |
+| `nws` | Nosewheel steering button | FLIGHT |
+
+A long press is the same key held 1.0 s; no extra key names. The AH-64D keys (power levers, trim reset, canopy, monocle, controls overlay, George) are not needed for the A-10C (E3, E4).
 
 ## 9. Engine behaviour for the A-10C
 
+The engine changes of [ENGINE.md](ENGINE.md) as they apply to this aircraft.
+
+- **E1 Aircraft choice.** `aircraft/a10c.py` lists `DCS_NAMES = ["A-10C_2"]` and `DCSBIOS_MODULE = "A-10C"`. The bridge reads `_ACFT_NAME` from the DCS-BIOS stream and switches to the A-10C files when it reads `A-10C_2`; the page reloads its layout. `[dcs] aircraft = "auto"` is the default; a fixed value forces an aircraft. The settings page shows the detected aircraft and has a switch AUTO / AH-64D / A-10C for debugging (it overrides the detection until set back to AUTO or the bridge restarts).
+- **E2 Seats.** One seat: `SEATS = [{"prefix": "", "label": "A-10C"}]`, `SEAT_OUTPUT = None`. The badge shows `A-10C`; no seat switch, no debug-seat hold; "DCS data present" comes from the packet age.
+- **E3 Trim.** No trim display; no trim tracking; `trim_reset` is not required.
+- **E4 Throttles.** No `lever` control; the throttle positions are read-only bars on FLIGHT (a read-only bar is a small new display type, the only new control type besides the key hat of section 4). No `power_*` keys required.
+- **E5 Displays.** New hand-drawn layouts `mfcd` and `cdu` (CDU and UFC) in the page, next to `mpd` and `ku`.
+- **E6 Look.** A second plate style for A-10C panel pages (section 10), chosen by the aircraft file.
+- **E7 Export script.** The script's table for `A-10C_2` is empty in version 1; the bridge needs no export data for the A-10C.
+- **E8 Keys.** The A-10C `KEYS` (section 8); key table extended when the defaults are known.
+- **E9 Memory and docs.** The remembered tab and MFCD side are stored per aircraft; this spec and the README aircraft section describe the A-10C.
+
 ## 10. A-10C look
+
+The A-10C panel pages are drawn in an A-10C style, different from the AH-64D plates (E6). Reference: the manual renders listed in [PICTURES.md](PICTURES.md) (48 of 66 panels have a good picture).
+
+- **Plates:** dark grey, flat panels with a thin lighter edge; corner fasteners (round slotted Dzus heads) instead of the AH-64D ears and screws; panels in a console column sit edge to edge.
+- **Labels:** white sans-serif placard text, position labels beside the switches, as in the renders.
+- **Switches:** chrome bat-handle toggles; guarded switches with a red or striped cover where the real panel has one; rotary knobs black with a white pointer line.
+- **Lamps and buttons:** legend lamps with the text on the lamp face; lit colours green, amber, red and white (the panel kit gets a plain LAMP part and the red / white lit styles, E6).
+- **Same mechanics:** touch areas, chooser, knob bar, guard covers and the panel-kit layout rules stay those of the engine; only the drawing style changes. Details (colours, sizes) are fixed in the layout step with the pictures.
 
 ## 11. Not on the dashboard
 
@@ -326,6 +439,7 @@ Left off on purpose in version 1, one line each.
 - **Antenna panel** (3 switches, DCS-BIOS only): no manual description.
 - **VHF AM radio head** (16 controls, DCS-BIOS only): not fitted in the A-10C II, the ARC-210 on RADIO 1 replaces it (DCS-BIOS exports one of the two at run time).
 - **HUD**: no DCS-BIOS output; the HUD is not shown.
+- **Trigger and weapon release** (stick): keybinds only, kept on the real stick so a tablet tap never fires a weapon.
 
 **Outputs and toggles**
 
@@ -357,3 +471,16 @@ Left off on purpose in version 1, one line each.
 The NMSP TISL button is in the TISL line above. The SAS MONITOR TEST switch and the NVIS LTS switch also read "no function" in the manual, but the cold start uses them (STARTUP.md steps 160 and 13), so they stay on their page.
 
 ## 12. Manual test run (A-10C)
+
+Preparation: the A-10C II module, DCS-BIOS, the export script, the A-10C keybinds (section 8). A throwaway single-player mission, cold and dark on the ground.
+
+1. **Aircraft choice.** Start the bridge, then an AH-64D mission: the AH-64D dashboard appears. Switch to an A-10C mission: the page reloads with the A-10C tabs and the badge `A-10C`, without a restart. In the settings page, switch to AH-64D and back to AUTO.
+2. **Cold start from the tablet.** Follow [STARTUP.md](STARTUP.md) on the COCKPIT pages as far as the tablet allows (power, APU, engines with the real throttle, avionics, MFCDs, CDU alignment, countermeasures, SAS). Note every step that fails or shows "not confirmed".
+3. **COCKPIT.** Every page opens from the map and from the page list; switches, knobs and lamps follow the cockpit when you move them with the mouse.
+4. **CDU.** The 10 screen lines match the cockpit; type a waypoint name with the keys; the line select keys act on their lines; AAP PAGE at OTHER.
+5. **MFCD.** OSB 1 to 20 of both MFCDs change pages; ADJ, BRT and DAY / NT / OFF act.
+6. **FLIGHT.** Speed brake extend and retract (the position bar moves), trim in four directions, gear and flaps on the ground (gear handle only with the override, as in the cockpit), landing lights, NWS, throttle bars follow the real throttle.
+7. **FIGHT.** Each key hat direction short and long with the TGP and the TAD as SOI; CMS flare and chaff (counts change); MASTER ARM, GUN / PAC, LASER, TGP.
+8. **Open points.** Check the items of [RESEARCH.md](RESEARCH.md) "Open points" that need DCS (CMS mapping, UFC buttons, OSB page links, ARC-210 knob order, AAP STEER, MFCD DSP / CON / SYM).
+
+Done when a cold start to taxi works from the tablet plus the real throttle, and every page acts in DCS.

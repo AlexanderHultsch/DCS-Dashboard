@@ -128,3 +128,6 @@ Quality: `good` (every label and part readable), `partial` (some labels hidden, 
 ### Screenshots needed
 
 - Flap lever, left of the throttles: only a tiny overview view, lever under throttle grip
+- Ejection seat arm handle, beside the LASTE panel: no picture in the manual (found in phase 6)
+- Auxiliary landing gear extension handle and its lock button, on the dash: no picture (found in phase 6)
+- Canopy actuator disengage lever: no picture (found in phase 6)
