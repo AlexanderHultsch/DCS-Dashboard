@@ -1,6 +1,6 @@
 # A-10C II – engine changes
 
-What the dashboard engine (bridge, page, panel kit, export script) must change so that a second aircraft, the single-seat A-10C II, can use it next to the AH-64D. Based on a full read of the code (findings with file and line references were collected during phase 5) and on [BIOS.md](BIOS.md). Every change has options, a recommendation and a decision (all decided on 2026-10-18, see the table at the end). Nothing is built before the A-10C spec (phase 6) is approved.
+What the dashboard engine (bridge, page, panel kit, export script) must change so that a second aircraft, the single-seat A-10C II, can use it next to the AH-64D. Based on a full read of the code (findings with file and line references were collected during phase 5) and on [BIOS.md](BIOS.md). Every change has options, a recommendation and a decision (all decided on 2026-10-18, see the table at the end; E10 was added during the A-10C spec). Nothing is built before the A-10C spec (phase 6) is approved.
 
 Already generic and unchanged: DCS-BIOS decoding and commands (`core/dcsbios.py`), keypresses (`core/keys.py`, apart from its key table), log, config loader, HTTP server, settings page, guard covers, knob bar, chooser, the panel-page builders and the multi-line text display of the panel kit.
 
@@ -17,6 +17,7 @@ Already generic and unchanged: DCS-BIOS decoding and commands (`core/dcsbios.py`
 | E7 | Export script per aircraft | Cockpit arguments and MPD indication numbers are hard-coded for the AH-64D; the script does not know the aircraft | Tables per aircraft name in the script; A-10C version 1 needs none | small |
 | E8 | Keys | Key table lacks numpad, Tab, Esc, punctuation; trim reset key required for every aircraft | Add keys when the A-10C keybinds need them; required keys per aircraft | small |
 | E9 | Per-aircraft memory and docs | Remembered tab / MPD side not scoped by aircraft; README and SPEC say "AH-64D only" | Scope by aircraft; docs updated at the end | small |
+| E10 | Scroll page | A panel page larger than 640 × 600 du is a layout error; four A-10C pages are tight | **Decided:** a page that does not fit scrolls vertically, only that page, with clear boundaries | small |
 
 ## Details
 
@@ -74,11 +75,18 @@ Today: the cockpit arguments 470–478 (stick and pedal positions) and the MPD i
 
 - `core/keys.py` knows modifiers, letters, digits, F1–F12, Home / End / PageUp / PageDown / Insert / Delete, arrows, Space and Enter. If an A-10C default keybind (HOTAS: TMS, DMS, coolie hat, CMS, speed brake, trim) uses numpad, Tab, Esc or punctuation keys, the table gets those keys. Known once the A-10C keybinds are exported from DCS (phase 1, needs the module).
 - HOTAS buttons on the dashboard use the existing `key` and `macro` controls (one button per direction; a long press is a macro with a 1 s hold); no new control type.
+- **Changed in phase 6 (A-10C SPEC.md sections 4 and 3):** the HOTAS hats are a **key hat**, the existing `hat` widget with key names and a long press (a tap sends a 0.15 s press, a 0.6 s hold sends the key held 1.0 s), so 20 keys fit six grid cells; and the throttles get a **read-only bar**, a small new display type.
 
 ### E9 Per-aircraft memory and docs
 
 - The page remembers the last tab and MPD side in the browser without the aircraft; scope these by aircraft.
 - README and SPEC say "AH-64D only" in many places; section 8 of SPEC ("Adding another aircraft") lists fewer exceptions than this analysis found. Update both after the A-10C works.
+
+### E10 Scroll page
+
+Today: every panel page fits the fixed 640 × 600 du budget; a larger page is a layout error. Four A-10C pages are tight (CAUTION, RADIO 1, INTERCOM / STALL, ENVIRONMENT).
+
+- **Decided:** a page that does not fit is flagged `scroll` in the aircraft file and scrolls vertically; only that page, every other page keeps the fixed budget and the layout error. Same width (640 du) and scale as every page. Only the plate area scrolls; tabs, lamp row and settings button stay fixed. Clear boundaries: a visible frame around the scroll area, an always visible scroll bar, a shaded edge with a chevron where more is hidden. A touch that moves more than 10 px is a scroll, never a tap, hold or knob turn. The page opens at the top. The layout checker measures the whole height of a scroll page. Details: A-10C [SPEC.md](SPEC.md) section 2, "Scroll page".
 
 ## Decisions
 
@@ -91,5 +99,6 @@ Today: the cockpit arguments 470–478 (stick and pedal positions) and the MPD i
 | E5 | Option A: hand-drawn layouts for MFCD, CDU and UFC, like the AH-64D MPD and KU | 2026-10-18 |
 | E6 | A-10C-specific look for the A-10C panel pages (not the AH-64D plate style) | 2026-10-18 |
 | E7 | As recommended: one export script with a table per aircraft name; A-10C table empty in version 1 | 2026-10-18 |
-| E8 | As recommended: add keys when the exported A-10C keybinds need them; HOTAS buttons as key / macro controls; required keys per aircraft | 2026-10-18 |
+| E8 | As recommended: add keys when the exported A-10C keybinds need them; HOTAS buttons as key / macro controls; required keys per aircraft. Changed in phase 6: HOTAS hats as a key hat with short and long press, throttles as a read-only bar | 2026-10-18 |
 | E9 | Docs first: update README and SPEC for several aircraft before building; remembered tab and display side scoped by aircraft | 2026-10-18 |
+| E10 | Scroll page for a panel page that does not fit, only that page, with clear boundaries (frame, scroll bar, shaded edge); never split a page | 2026-10-18 |

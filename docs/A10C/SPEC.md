@@ -1,6 +1,6 @@
 # DCS-Dashboard – A-10C II
 
-Specification of the A-10C II Tank Killer dashboard (planned, not built). The engine all aircraft share is in [../SPEC.md](../SPEC.md); the engine changes this aircraft needs and their decisions are in [ENGINE.md](ENGINE.md). Controls are named as in [PANELS.md](PANELS.md), DCS-BIOS identifiers are in [BIOS.md](BIOS.md), reference pictures in [PICTURES.md](PICTURES.md), the cold start in [STARTUP.md](STARTUP.md).
+Specification of the A-10C II Tank Killer dashboard (planned, not built; reviewed and approved 2026-10-18). The engine all aircraft share is in [../SPEC.md](../SPEC.md); the engine changes this aircraft needs and their decisions are in [ENGINE.md](ENGINE.md). Controls are named as in [PANELS.md](PANELS.md), DCS-BIOS identifiers are in [BIOS.md](BIOS.md), reference pictures in [PICTURES.md](PICTURES.md), the cold start in [STARTUP.md](STARTUP.md).
 
 ## 1. Overview
 
@@ -14,7 +14,7 @@ A tablet dashboard for the single-seat A-10C II, with the same tabs as every air
 | MFCD | Left and right MFCD, hand-drawn, one at a time (section 5) | MPD |
 | CDU | CDU with its live 10-line screen and the UFC, hand-drawn (section 6) | KU |
 
-Differences to the AH-64D: one seat (no seat switch, no debug seat), no GEORGE tab, no trim display, the throttle levers are shown but not moved (DCS-BIOS can only read them), and the HOTAS controls are keypresses only (DCS-BIOS has none of them). Built after the engine changes of [ENGINE.md](ENGINE.md) (E1 to E9).
+Differences to the AH-64D: one seat (no seat switch, no debug seat), no GEORGE tab, no trim display, the throttle levers are shown but not moved (DCS-BIOS can only read them), and the HOTAS controls are keypresses only (DCS-BIOS has none of them). Built after the engine changes of [ENGINE.md](ENGINE.md) (E1 to E10).
 
 **Blocked until the module is installed:** the A-10C default keybinds (section 8), four screenshots (flap lever, seat arm handle, auxiliary gear handle, canopy disengage lever; section 2 and PICTURES.md), and the DCS research of phase 7 (the open points of [RESEARCH.md](RESEARCH.md)). The pages that need no keypress (COCKPIT, MFCD, CDU) can be built before that.
 
@@ -77,10 +77,11 @@ The panel pages get the A-10C look (drawn later); this section only says which p
 **Rules for the pages**
 
 - **Plates.** A page is one plate per physical panel inside the 640 × 600 du budget of the panel kit (touch minimum 56 px, see [../SPEC.md](../SPEC.md) section 7). Several panels on one page are separate plates, 16 du apart, as on the AH-64D CENTER page. Lamps and displays are drawn on the plate; a lamp is a touch target only where the real lamp is a button (the IFF REPLY and TEST lamps).
-- **Fit.** The yardstick is the AH-64D COMM page: 26 touch targets (volume knobs, PULL chips, switches) fill the whole budget. Up to about 20 touch targets fit; 21 to 26 are tight; more than 26 do not fit. Every page below has a `Fit` line: `fits`, `tight` (check in the layout step) or `probably not` (with a proposal).
+- **Fit.** The yardstick is the AH-64D COMM page: 26 touch targets (volume knobs, PULL chips, switches) fill the whole budget. Up to about 20 touch targets fit; 21 to 26 are tight; more than 26 do not fit. Every page below has a `Fit` line: `fits` or `tight` (check in the layout step). A page that does not fit the 600 du height becomes a **scroll page** (next rule); it is never split and no plate moves to another page.
 - **No function in DCS.** A control that the manual calls "no function" is left off the page and listed in section 11, with its DCS-BIOS identifier. Exceptions stay: lamps (so a lamp grid stays whole) and the two switches the cold start uses (SAS MONITOR TEST, STARTUP.md step 160; NVIS LTS, step 13). A position that does nothing (the EMER position of the IFF master dial, ADF on the UHF function dial, DF on the VHF FM mode dial) stays on the dial, greyed out.
+- **Scroll page.** Only a page whose plates do not fit is flagged `scroll` in the aircraft file; every other page keeps the fixed 640 × 600 du budget. A scroll page keeps the width of 640 du and the scale of every page (parts stay the same size) and is as tall as its plates. Only its plate area scrolls, vertically; the tabs, the lamp row and the settings button stay fixed. Clear boundaries: the scroll area has a visible frame, an always visible scroll bar at its right edge (iPadOS hides the browser's own), and a shaded edge with a small chevron where more of the page is hidden. Touch: a touch that moves more than 10 px is a scroll and never a tap, a hold or a knob turn; a control acts only on a touch that did not move. The page opens at the top. ENGINE.md E10.
 - **Throttle levers.** The two throttle levers are read only in DCS-BIOS: they are shown as gauges on THROTTLE, with no command.
-- **Guarded candidates.** Some controls end the flight or cannot be undone. They are candidates for the guarded-control rule of the AH-64D spec (a cover, then a tap): the five controls of FIRE / JETT, JTSN on CMSP, the ladder button and the canopy jettison handle on CANOPY / ELEC, LOAD on UHF (it has a real DCS cover, `UHF_COVER`). Whether they get the rule is decided outside this section.
+- **Guarded controls.** Controls that end the flight or cannot be undone get the guarded-control rule of the AH-64D spec (a cover, then a tap): the five controls of FIRE / JETT, JTSN on CMSP, the ladder button and the canopy jettison handle on CANOPY / ELEC, LOAD on UHF (it has a real DCS cover, `UHF_COVER`, which the dashboard cover opens).
 - **Cold start.** STARTUP.md uses every page except IFF, INTERCOM / STALL, CMSC and HARS / HMCS.
 
 ### Panel pages
@@ -121,7 +122,7 @@ Counts: `rows` = rows of the PANELS.md tables of the panels on the page; `id` = 
 - **Controls:** 14 rows (12 + 2), 14 id, 0 read only, 1 left off (CALL switch). On the page: 13 controls.
 - **Special:** eight listening controls (INT, AIM, FM, VHF, ILS, UHF, TCN, IFF), each a volume knob with an in / out state (two DCS-BIOS ids each, like the AH-64D COMM volume knob with its PULL chip); HM button; VOL knob; rotary selector (INT, FM, VHF, HF). Stall warning: the STALL and PEAK PRFM volume dials.
 - **Picture:** `p182-002.jpg` (good), `p183-002.jpg` (good).
-- **Fit:** tight: 13 controls plus 8 in / out chips make 21 touch targets. If it does not fit, STALL WARNING moves to the BRAKE / AUX LT / SAS page.
+- **Fit:** tight: 13 controls plus 8 in / out chips make 21 touch targets. If it does not fit, it is a scroll page.
 
 #### FUEL SYSTEM
 
@@ -157,7 +158,7 @@ Counts: `rows` = rows of the PANELS.md tables of the panels on the page; `id` = 
 - **Controls:** 24 rows, 24 id, 1 read only (the screen), 0 left off. On the page: 23 controls (14 buttons, 7 knobs, 2 dials) and the screen. Plus: 21 read only controls (20 screen text fields, such as COMSEC mode, active channel, modulation, and `ARC210_PRESENT`).
 - **Special:** a display with text (the screen: main frequency and the 20 fields; which fields show on which screen page comes from the DCS research); two 7-position dials with a pull position (ZERO on the left dial, 121 on the right dial); the left-to-right order of the five frequency knobs is assumed.
 - **Picture:** `p167-002.jpg` (partial: shadow over the screen and the left knobs).
-- **Fit:** tight: 23 touch targets and a screen. If it does not fit, split the plate: screen and buttons on one page, knobs and dials on a second.
+- **Fit:** tight: 23 touch targets and a screen. If it does not fit, it is a scroll page.
 
 #### UHF
 
@@ -182,7 +183,7 @@ Counts: `rows` = rows of the PANELS.md tables of the panels on the page; `id` = 
 - **Panels:** Left Engine "T-Handle" Fire Extinguisher Discharge Select (p. 114), APU "T Handle" Fire Extinguisher Discharge Select (p. 136), RIGHT Engine "T Handle" Fire Extinguisher Discharge Select (p. 147), Fire Extinguisher Discharge (p. 144), Emergency Jettison Button (p. 120).
 - **Arrangement:** five small plates, left to right as in the cockpit: EXT STORES JETT button, left engine T-handle, APU T-handle, right engine T-handle, FIRE EXTING DISCH switch. One row or two rows: layout step.
 - **Controls:** 8 rows (2 + 2 + 2 + 1 + 1), 8 id, 3 read only (the fire lamps in the handles), 0 left off. On the page: 5 controls and 3 lamps.
-- **Special:** every control has a consequence that cannot be undone or ends the flight (guarded candidates). The FIRE EXTING DISCH switch has three positions (left, centre, right); spring return is not stated. The three fire lamps are also candidates for the lamp row.
+- **Special:** every control has a consequence that cannot be undone or ends the flight (guarded controls). The FIRE EXTING DISCH switch has three positions (left, centre, right); spring return is not stated. The three fire lamps are also on the FLIGHT lamp row (section 7).
 - **Picture:** `p114-002.jpg`, `p136-002.jpg`, `p147-002.jpg`, `p144-002.jpg`, `p120-000.jpg` (all good).
 - **Fit:** fits.
 
@@ -227,7 +228,7 @@ Counts: `rows` = rows of the PANELS.md tables of the panels on the page; `id` = 
 - **Panels:** Countermeasure Signal Processor (CMSP) Panel (p. 491).
 - **Arrangement:** one plate: the display (two lines of four segments) on top, the four SET buttons under the segments, the NXT rocker, RTN button, JTSN switch and BRT knob, the four system switches (MWS, JMR, RWR, DISP) and the mode dial.
 - **Controls:** 15 rows, 15 id, 2 read only (the two display lines), 0 left off. On the page: 13 controls and the display.
-- **Special:** a display of two lines of 19 characters (4 segments each); the mode dial has five positions (OFF, STBY, MAN, SEMI, AUTO; the DCS-BIOS order is not documented); the system switches have three positions (MENU, ON, OFF; MENU on DISP is momentary); JTSN dumps all chaff and flares (guarded candidate).
+- **Special:** a display of two lines of 19 characters (4 segments each); the mode dial has five positions (OFF, STBY, MAN, SEMI, AUTO; the DCS-BIOS order is not documented); the system switches have three positions (MENU, ON, OFF; MENU on DISP is momentary); JTSN dumps all chaff and flares (guarded control).
 - **Picture:** `p491-002.jpg` (good).
 - **Fit:** fits (13 touch targets and a display).
 
@@ -238,7 +239,7 @@ Counts: `rows` = rows of the PANELS.md tables of the panels on the page; `id` = 
 - **Controls:** 49 rows, 48 id, 48 read only, 1 left off (INU AIR HOT: not exported, no function). On the page: 48 lamps (46 legends and 2 blank).
 - **Special:** lamps only, no touch target. The longest legend is L-MAIN FUEL LOW (15 characters). Five lamps are "no function" in DCS (ANTI-SKID, SEAT NOT ARMED, SERVICE AIR HOT, WINDSHIELD HOT, IFF MODE-4) and stay on the grid.
 - **Picture:** `p195-002.jpg` (good).
-- **Fit:** tight. Lamps are not touch targets (no 56 px minimum); rows of about 40 du with a small two-line legend fit the about 528 du usable height. Fallback: two pages CAUTION 1 (rows 1 to 6) and CAUTION 2 (rows 7 to 12).
+- **Fit:** tight. Lamps are not touch targets (no 56 px minimum); rows of about 40 du with a small two-line legend fit the about 528 du usable height. If it does not fit, it is a scroll page.
 
 #### AAP / ILS
 
@@ -272,7 +273,7 @@ Counts: `rows` = rows of the PANELS.md tables of the panels on the page; `id` = 
 - **Panels:** Cockpit Canopy Switch and Canopy Ejection Handle (p. 186), Electrical Power Panel (p. 187); the CANOPY UNLOCKED lamp of Marker and Canopy Lights (p. 148).
 - **Arrangement:** two plates, canopy above electrical power (front to back as in the cockpit). Electrical: APU GEN, INVERTER and EMER FLOOD in the top row; AC GEN left, AC GEN right and BATTERY in the bottom row.
 - **Controls:** 9 rows (3 + 6), 9 id, 0 read only, 0 left off. Plus: `CANOPY_JTSN_UNLOCK` (command), `CANOPY_DISENGAGE` (canopy actuator disengage lever, command) and `CANOPY_POS` (read only, canopy position), and the CANOPY UNLOCKED lamp (also on the lamp row).
-- **Special:** the canopy switch (OPEN, HOLD, CLOSE; OPEN and CLOSE are held); the ladder button under a cover (real DCS cover `LADDER_EXTEND_COVER`); the canopy jettison handle (guarded candidate, with its unlock); the INVERTER switch is spring-loaded (TEST); the three-position toggles of the electrical panel (PWR, OFF/RESET).
+- **Special:** the canopy switch (OPEN, HOLD, CLOSE; OPEN and CLOSE are held); the ladder button under a cover (real DCS cover `LADDER_EXTEND_COVER`); the canopy jettison handle (guarded control, with its unlock); the INVERTER switch is spring-loaded (TEST); the three-position toggles of the electrical panel (PWR, OFF/RESET).
 - **Picture:** `p187-002.jpg` (partial: ladder button under its cover), `p188-000.jpg` (good). The canopy actuator disengage lever has no picture.
 - **Fit:** fits (12 touch targets, two plates).
 
@@ -283,7 +284,7 @@ Counts: `rows` = rows of the PANELS.md tables of the panels on the page; `id` = 
 - **Controls:** 18 rows, 18 id, 4 read only (flow indicator, pressure gauge, quantity gauge, cabin pressure gauge), 2 left off (rain remove and wash switch, temperature level dial). On the page: 12 controls and 4 gauges.
 - **Special:** three oxygen levers (emergency: spring-loaded, only NORMAL works; dilution; supply); several toggles have an unprinted ON label; the order of the flow level dial positions is unclear in the manual (check in DCS); CABIN AIR COND has three positions in the manual and four states in DCS-BIOS.
 - **Picture:** `p189-002.jpg` (partial: rain remove labels under the amber lever, ON labels unprinted).
-- **Fit:** tight: 12 touch targets and 4 gauges on a panel taller than wide; check in the layout step.
+- **Fit:** tight: 12 touch targets and 4 gauges on a panel taller than wide; if it does not fit, it is a scroll page.
 
 #### LIGHTING
 
@@ -305,10 +306,10 @@ Counts: `rows` = rows of the PANELS.md tables of the panels on the page; `id` = 
 
 ### Pages that may not fit
 
-- **CAUTION:** tight (48 lamps in 12 rows). Lamps are not touch targets, so the 56 px touch minimum does not apply; rows of about 40 du with a small two-line legend fit the about 528 du usable height. Fallback if the layout check fails: CAUTION 1 and CAUTION 2.
-- **RADIO 1:** tight (23 touch targets and a screen). Proposal: two pages if the check fails.
-- **INTERCOM / STALL:** tight (21 touch targets with the in / out chips). Proposal: STALL WARNING moves to BRAKE / AUX LT / SAS.
-- **ENVIRONMENT:** tight (a tall panel). Check in the layout step.
+- **CAUTION:** tight (48 lamps in 12 rows). Lamps are not touch targets, so the 56 px touch minimum does not apply; rows of about 40 du with a small two-line legend fit the about 528 du usable height. Scroll page if the layout check fails.
+- **RADIO 1:** tight (23 touch targets and a screen). Scroll page if the check fails.
+- **INTERCOM / STALL:** tight (21 touch targets with the in / out chips). Scroll page if the check fails.
+- **ENVIRONMENT:** tight (a tall panel). Scroll page if the check fails.
 - Every other page fits by the yardstick (20 touch targets or fewer); the IFF code wheels, AHCP and BRAKE / AUX LT / SAS are to check in the layout step.
 
 ## 3. FLIGHT
@@ -351,7 +352,7 @@ The quick page for weapons and sensors, on the fixed 7 × 3 grid. The HOTAS cont
 | CMSP | display of the two CMSP lines | `CMSP1`, `CMSP2`, [3,1,1,3] |
 | GUN READY | lamp | `GUN_READY`, [1,7,1,1] |
 
-The CMS and coolie hat functions are the same in every SOI (manual pp. 106–112, PANELS.md "Control Stick" and "Throttles"); the CMS mapping differs between p. 106 and pp. 493 / 496 and is checked in the DCS research (RESEARCH.md). The key hat is a small extension of the existing `hat` control: the same widget, with key names instead of DCS-BIOS axes and a long press (ENGINE.md E8 assumed separate key buttons; six cells for 20 keys and 40 functions with short and long keep the 7 × 3 grid usable). The trigger and weapon release are not on the dashboard (section 11).
+The CMS and coolie hat functions are the same in every SOI (manual pp. 106–112, PANELS.md "Control Stick" and "Throttles"); the CMS mapping differs between p. 106 and pp. 493 / 496 and is checked in the DCS research (RESEARCH.md). The key hat is a small extension of the existing `hat` control: the same widget, with key names instead of DCS-BIOS axes and a long press (decided in phase 6, ENGINE.md E8; six cells for 20 keys and 40 functions with short and long keep the 7 × 3 grid usable). The trigger and weapon release are not on the dashboard (section 11).
 
 ## 5. MFCD
 
@@ -404,17 +405,18 @@ A long press is the same key held 1.0 s; no extra key names. The AH-64D keys (po
 
 ## 9. Engine behaviour for the A-10C
 
-The engine changes of [ENGINE.md](ENGINE.md) as they apply to this aircraft.
+The engine changes of [ENGINE.md](ENGINE.md) (E1 to E10) as they apply to this aircraft.
 
 - **E1 Aircraft choice.** `aircraft/a10c.py` lists `DCS_NAMES = ["A-10C_2"]` and `DCSBIOS_MODULE = "A-10C"`. The bridge reads `_ACFT_NAME` from the DCS-BIOS stream and switches to the A-10C files when it reads `A-10C_2`; the page reloads its layout. `[dcs] aircraft = "auto"` is the default; a fixed value forces an aircraft. The settings page shows the detected aircraft and has a switch AUTO / AH-64D / A-10C for debugging (it overrides the detection until set back to AUTO or the bridge restarts).
 - **E2 Seats.** One seat: `SEATS = [{"prefix": "", "label": "A-10C"}]`, `SEAT_OUTPUT = None`. The badge shows `A-10C`; no seat switch, no debug-seat hold; "DCS data present" comes from the packet age.
 - **E3 Trim.** No trim display; no trim tracking; `trim_reset` is not required.
-- **E4 Throttles.** No `lever` control; the throttle positions are read-only bars on FLIGHT (a read-only bar is a small new display type, the only new control type besides the key hat of section 4). No `power_*` keys required.
+- **E4 Throttles.** No `lever` control; the throttle positions are read-only bars on FLIGHT (a read-only bar is a small new display type, decided in phase 6 with the key hat of section 4, ENGINE.md E8). No `power_*` keys required.
 - **E5 Displays.** New hand-drawn layouts `mfcd` and `cdu` (CDU and UFC) in the page, next to `mpd` and `ku`.
 - **E6 Look.** A second plate style for A-10C panel pages (section 10), chosen by the aircraft file.
 - **E7 Export script.** The script's table for `A-10C_2` is empty in version 1; the bridge needs no export data for the A-10C.
 - **E8 Keys.** The A-10C `KEYS` (section 8); key table extended when the defaults are known.
 - **E9 Memory and docs.** The remembered tab and MFCD side are stored per aircraft; this spec and the README aircraft section describe the A-10C.
+- **E10 Scroll page.** Only the panel pages that do not fit are scroll pages (section 2, "Scroll page").
 
 ## 10. A-10C look
 

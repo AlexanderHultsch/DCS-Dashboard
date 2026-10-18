@@ -157,7 +157,7 @@ A view is one entry of the `VIEWS` list of the aircraft file ([section 8](#8-the
 
 `core/panel_kit.py` is a small layout compiler. A page entry names a part and a centre point, never a size; the compiler writes the resolved geometry (boxes in du, label positions, plate, ears, screws) into the page data in the format the page already draws. The page draws what it is given and has no hard-coded sizes. The photos only say what is on a panel, its text and the arrangement of the parts, not pixel sizes.
 
-**Design units and one scale.** All panel geometry is in design units (du); one du is the same size on every page. Every page is drawn at the same scale `S = min(area width / 640, area height / 600)`, at most 1.6, for both seats: 1.045 at 1180 × 820, 0.958 at 1024 × 768 (the app area is about 627 px and 575 px high). 640 × 600 du is a fixed budget (POWER and COMM use all of it); a larger page is a layout error. A part of 56 du is 58.5 px at the first and 53.7 px at the second size.
+**Design units and one scale.** All panel geometry is in design units (du); one du is the same size on every page. Every page is drawn at the same scale `S = min(area width / 640, area height / 600)`, at most 1.6, for both seats: 1.045 at 1180 × 820, 0.958 at 1024 × 768 (the app area is about 627 px and 575 px high). 640 × 600 du is a fixed budget (POWER and COMM use all of it); a larger page is a layout error (planned exception: a scroll page, section 9, E10). A part of 56 du is 58.5 px at the first and 53.7 px at the second size.
 
 **Page definition.** Panel pages are `VIEWS` entries flagged `"panel": True`, one entry per seat where the seats differ. `kit_pages` in `aircraft/ah64d.py` writes the entry from a `Panel` (or a `PanelGroup` of several plates):
 
@@ -326,8 +326,9 @@ Planned, not built: the A-10C II is being added as a second aircraft, nothing in
 - **E5 Display pages.** Hand-drawn layouts for the MFCD, CDU and UFC, like the AH-64D MPD and KU.
 - **E6 Panel look.** The A-10C panel pages get an A-10C-specific look, not the AH-64D plate style.
 - **E7 Export script.** One script with a table per aircraft name; the A-10C table is empty in version 1.
-- **E8 Keys.** Keys are added to the key table when the exported A-10C keybinds need them; HOTAS buttons are `key` / `macro` controls; the required keys depend on the aircraft.
+- **E8 Keys.** Keys are added to the key table when the exported A-10C keybinds need them; HOTAS hats are a key hat (the `hat` widget with keys and a long press) and the throttles a read-only bar; the required keys depend on the aircraft.
 - **E9 Docs and memory.** README and this spec are updated for several aircraft before anything is built; the remembered tab and display side are scoped by aircraft.
+- **E10 Scroll page.** A panel page that does not fit 640 × 600 du is flagged `scroll` and scrolls vertically, only that page, inside a visible frame with a scroll bar and a shaded edge where more is hidden; a touch that moves is a scroll, never a control action.
 
 ## 10. Manual test run
 
