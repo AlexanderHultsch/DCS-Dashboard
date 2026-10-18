@@ -44,7 +44,16 @@ Stop the bridge with Ctrl+C or close the window.
 
 The power levers, the canopy and a few other controls are moved by keypresses, so DCS must be the active window on the PC; the dashboard brings it to the front itself. The keys must match your DCS bindings; the defaults are in `aircraft\ah64d.py` and can be overridden in `[keys]` of `config\config.toml`.
 
-The GEORGE tab uses its own keys (`LCtrl+LAlt` plus a letter), which are not DCS defaults. Bind them once in DCS under Options, Controls, in the AH-64D Pilot, CPG and George AI Helper entries; the table is in [docs/SPEC.md](docs/SPEC.md), section GEORGE. George needs electrical power.
+The GEORGE tab uses its own keys (`LCtrl+LAlt` plus a letter), which are not DCS defaults. Bind them once in DCS under Options, Controls: choose the aircraft entry in the dropdown, double-click the command and press the keys. The DCS defaults keep working. George needs electrical power.
+
+| DCS aircraft entry | Command | Key |
+| --- | --- | --- |
+| AH-64D Pilot and AH-64D CPG | George AI - Show/Hide | `LCtrl+LAlt+G` |
+| AH-64D Pilot and AH-64D CPG | George AI - Multifunctional Input (Center) | `LCtrl+LAlt+M` |
+| AH-64D Pilot only | George AI - TADS Store Target | `LCtrl+LAlt+T` |
+| AH-64D CPG only | Request Aircraft Control | `LCtrl+LAlt+R` |
+| AH-64D George AI Helper | George AI - Hide | `LCtrl+LAlt+H` |
+| AH-64D George AI Helper | George AI - Up / Down / Left / Right | `LCtrl+LAlt+I` / `K` / `J` / `L` |
 
 The gear button at the bottom right opens the settings: logging on or off, keep the tablet screen on, and information such as the detected DCS folder. The iPad cannot lock the rotation from a web page; use the rotation lock in Control Center.
 
