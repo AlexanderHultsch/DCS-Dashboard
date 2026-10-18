@@ -17,6 +17,8 @@ PWR_POSITIONS = [
 MASTER_LAMPS = [
     {"id": "MASTER_CAUTION", "label": "MASTER CAUTION", "color": "amber", "button": "UFC_MASTER_CAUTION"},
 ]
+GUN_READY_LAMP = {"id": "GUN_READY", "label": "GUN READY", "color": "green"}
+CANOPY_LAMP = {"id": "CANOPY_UNLOCKED", "label": "CANOPY UNLOCKED", "color": "red"}
 
 
 def kit_page(name: str, cell: list, page: dict) -> dict:
@@ -29,16 +31,19 @@ def kit_page(name: str, cell: list, page: dict) -> dict:
     }
 
 
+EMER_BRAKE = {
+    "id": "EMER_BRAKE", "label": "EMER BRAKE", "type": "selector",
+    "positions": [{"value": 1, "label": "PULLED"}, {"value": 0, "label": "IN"}],
+}
+
+
 def brake_plate(g: PanelGroup):
     p = g.panel("EMER BRAKE", 340, 240, 0, 0)
     p.toggle("SEAT", 90, 148, {
         "id": "SEAT_ADJUST", "label": "SEAT ADJUST", "type": "selector", "rest": 1, "hold": 0.5,
         "positions": [{"value": 2, "label": "UP", "momentary": True}, {"value": 1, "label": "HOLD"}, {"value": 0, "label": "DOWN", "momentary": True}],
     }, "above_side_below")
-    p.toggle("BRAKE", 250, 148, {
-        "id": "EMER_BRAKE", "label": "EMER BRAKE", "type": "selector",
-        "positions": [{"value": 1, "label": "PULLED"}, {"value": 0, "label": "IN"}],
-    }, "above_below")
+    p.toggle("BRAKE", 250, 148, EMER_BRAKE, "above_below")
     p.label("EMER\nBRAKE", "NAME", "BRAKE", "above")
 
 
@@ -310,12 +315,15 @@ def fuel_pages() -> list[dict]:
     return [kit_page("FUEL SYSTEM", [1, 3, 1, 2], g.build())]
 
 
+FLAPS_SWITCH = {
+    "id": "FLAPS_SWITCH", "label": "FLAP LEVER", "type": "selector",
+    "positions": [{"value": 2, "label": "UP"}, {"value": 1, "label": "MVR"}, {"value": 0, "label": "DN"}],
+}
+
+
 def flap_plate(g: PanelGroup):
     p = g.panel("FLAP LEVER", 176, 150, 0, 0)
-    p.toggle("FLAP", 64, 76, {
-        "id": "FLAPS_SWITCH", "label": "FLAP LEVER", "type": "selector",
-        "positions": [{"value": 2, "label": "UP"}, {"value": 1, "label": "MVR"}, {"value": 0, "label": "DN"}],
-    }, "right_triple")
+    p.toggle("FLAP", 64, 76, FLAPS_SWITCH, "right_triple")
 
 
 def throttle_toggle_pair(p: Panel, name: str, bios: str, label: str, positions: list, y: int, extra: dict):
@@ -324,10 +332,13 @@ def throttle_toggle_pair(p: Panel, name: str, bios: str, label: str, positions: 
         p.label(side, "POS", f"{name}_{side}", "above")
 
 
+ENG_THROTTLE = {side: {"id": f"ENG_THROTTLE_{side}", "label": f"{side} THROTTLE", "type": "bar", "max": 65535} for side in ("L", "R")}
+
+
 def throttles_plate(g: PanelGroup):
     p = g.panel("THROTTLES", 448, 600, 192, 0)
     for side, x in (("L", 60), ("R", 116)):
-        p.bar(f"THR_{side}", x, 170, {"id": f"ENG_THROTTLE_{side}", "label": f"{side} THROTTLE", "type": "bar", "max": 65535})
+        p.bar(f"THR_{side}", x, 170, ENG_THROTTLE[side])
         p.label(side, "POS", f"THR_{side}", "above")
     p.knob("FRICT", "KNOB_M", 190, 346, {"id": "ENGINE_THROTTLE_FRICTION", "label": "FRICTION", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
     p.label("FRICTION", "NAME", "FRICT", "above")
@@ -572,18 +583,26 @@ def cmsc_pages() -> list[dict]:
     return [kit_page("CMSC", [3, 6, 1, 2], p.build())]
 
 
+ANTI_SKID_SWITCH = {
+    "id": "ANTI_SKID_SWITCH", "label": "ANTI-SKID", "type": "selector",
+    "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}],
+}
+LANDING_LIGHTS = {
+    "id": "LANDING_LIGHTS", "label": "LIGHTS LAND", "type": "selector",
+    "positions": [{"value": 2, "label": "LAND"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "TAXI"}],
+}
+GEAR_LEVER = {
+    "id": "GEAR_LEVER", "label": "LANDING GEAR", "type": "selector",
+    "positions": [{"value": 1, "label": "UP"}, {"value": 0, "label": "DOWN"}],
+}
+
+
 def gear_plate(g: PanelGroup):
     p = g.panel("LANDING GEAR", 436, 600, 0, 0)
-    p.toggle("SKID", 100, 156, {
-        "id": "ANTI_SKID_SWITCH", "label": "ANTI-SKID", "type": "selector",
-        "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}],
-    })
+    p.toggle("SKID", 100, 156, ANTI_SKID_SWITCH)
     p.label("ANTI-\nSKID", "NAME", "SKID", "above")
     p.label("OFF", "POS", "SKID", "below")
-    p.toggle("LAND", 336, 156, {
-        "id": "LANDING_LIGHTS", "label": "LIGHTS LAND", "type": "selector",
-        "positions": [{"value": 2, "label": "LAND"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "TAXI"}],
-    }, "above_side_below")
+    p.toggle("LAND", 336, 156, LANDING_LIGHTS, "above_side_below")
     p.label("LIGHTS\nLAND", "NAME", "LAND", "above")
     for side, x in (("L", 80), ("N", 160), ("R", 240)):
         p.lamp(f"{side}_SAFE", x, 262, {"id": f"GEAR_{side}_SAFE", "legend": f"{side} SAFE", "color": "green"})
@@ -594,10 +613,7 @@ def gear_plate(g: PanelGroup):
     p.lamp("HANDLE", 215, 500, {"id": "HANDLE_GEAR_WARNING", "legend": "LGD GEAR DOWN", "color": "red"}, "LAMP_WIDE")
     p.round("DOWNLOCK", 336, 316, {"id": "DOWNLOCK_OVERRIDE", "label": "DOWNLOCK OVERRIDE", "type": "button", "shape": "round", "hold": BUTTON_HOLD})
     p.hazard("DOWNLOCK", "DOWNLOCK\nOVERRIDE", "POS", "above")
-    p.toggle("GEAR", 336, 490, {
-        "id": "GEAR_LEVER", "label": "LANDING GEAR", "type": "selector",
-        "positions": [{"value": 1, "label": "UP"}, {"value": 0, "label": "DOWN"}],
-    }, "above_below")
+    p.toggle("GEAR", 336, 490, GEAR_LEVER, "above_below")
 
 
 def aux_gear_plate(g: PanelGroup):
@@ -618,36 +634,44 @@ def gear_pages() -> list[dict]:
     return [kit_page("LANDING GEAR", [5, 5, 2, 1], g.build())]
 
 
-def ahcp_toggle(p: Panel, name: str, label: str, bios: str, x: int, y: int, positions: tuple):
-    p.toggle(name, x, y, {
-        "id": bios, "label": label, "type": "selector",
-        "positions": [{"value": value, "label": text} for value, text in positions],
-    }, "right_triple" if len(positions) == 3 else "right_pair")
+def ahcp_switch(label: str, bios: str, positions: tuple) -> dict:
+    return {"id": bios, "label": label, "type": "selector", "positions": [{"value": value, "label": text} for value, text in positions]}
+
+
+def ahcp_toggle(p: Panel, name: str, x: int, y: int, control: dict):
+    p.toggle(name, x, y, control, "right_triple" if len(control["positions"]) == 3 else "right_pair")
+
+
+AHCP_ARM = ((2, "ARM"), (1, "SAFE"), (0, "TRAIN"))
+AHCP_ON_OFF = ((1, "ON"), (0, "OFF"))
+AHCP_MASTER_ARM = ahcp_switch("MASTER ARM", "AHCP_MASTER_ARM", AHCP_ARM)
+AHCP_GUNPAC = ahcp_switch("GUN/PAC ARM", "AHCP_GUNPAC", ((2, "ARM"), (1, "SAFE"), (0, "GUNARM")))
+AHCP_LASER_ARM = ahcp_switch("LASER ARM", "AHCP_LASER_ARM", AHCP_ARM)
+AHCP_TGP = ahcp_switch("TGP", "AHCP_TGP", AHCP_ON_OFF)
+HARS_FAST_ERECT = {"id": "HARS_FAST_ERECT", "label": "HARS FAST ERECT", "type": "button", "hold": BUTTON_HOLD}
 
 
 def ahcp_pages() -> list[dict]:
     g = PanelGroup("AHCP", "a10c", scroll=True)
     p = g.panel("AHCP", 640, 510, 0, 0)
-    arm = ((2, "ARM"), (1, "SAFE"), (0, "TRAIN"))
-    on_off = ((1, "ON"), (0, "OFF"))
-    for name, title, label, bios, x, y, positions in (
-        ("MASTER", "MASTER ARM", "MASTER ARM", "AHCP_MASTER_ARM", 190, 100, arm),
-        ("GUNPAC", "GUN/PAC ARM", "GUN/PAC ARM", "AHCP_GUNPAC", 450, 100, ((2, "ARM"), (1, "SAFE"), (0, "GUNARM"))),
-        ("LASER", "LASER ARM", "LASER ARM", "AHCP_LASER_ARM", 190, 212, arm),
-        ("TGP", "TGP", "TGP", "AHCP_TGP", 450, 212, on_off),
-        ("ALT", "ALT SCE", "ALT SCE", "AHCP_ALT_SCE", 110, 324, ((2, "BARO"), (1, "DELTA"), (0, "RADAR"))),
-        ("DAYNIGHT", None, "HUD MODE DAY/NIGHT", "AHCP_HUD_DAYNIGHT", 300, 324, ((1, "DAY"), (0, "NIGHT"))),
-        ("HUDMODE", None, "HUD MODE NORM/STBY", "AHCP_HUD_MODE", 500, 324, ((1, "NORM"), (0, "STBY"))),
-        ("CICU", "CICU", "CICU", "AHCP_CICU", 110, 436, on_off),
-        ("JTRS", "JTRS", "JTRS", "AHCP_JTRS", 300, 436, on_off),
-        ("IFFCC", "IFFCC", "IFFCC", "AHCP_IFFCC", 500, 436, ((2, "ON"), (1, "TEST"), (0, "OFF"))),
+    for name, title, x, y, control in (
+        ("MASTER", "MASTER ARM", 190, 100, AHCP_MASTER_ARM),
+        ("GUNPAC", "GUN/PAC ARM", 450, 100, AHCP_GUNPAC),
+        ("LASER", "LASER ARM", 190, 212, AHCP_LASER_ARM),
+        ("TGP", "TGP", 450, 212, AHCP_TGP),
+        ("ALT", "ALT SCE", 110, 324, ahcp_switch("ALT SCE", "AHCP_ALT_SCE", ((2, "BARO"), (1, "DELTA"), (0, "RADAR")))),
+        ("DAYNIGHT", None, 300, 324, ahcp_switch("HUD MODE DAY/NIGHT", "AHCP_HUD_DAYNIGHT", ((1, "DAY"), (0, "NIGHT")))),
+        ("HUDMODE", None, 500, 324, ahcp_switch("HUD MODE NORM/STBY", "AHCP_HUD_MODE", ((1, "NORM"), (0, "STBY")))),
+        ("CICU", "CICU", 110, 436, ahcp_switch("CICU", "AHCP_CICU", AHCP_ON_OFF)),
+        ("JTRS", "JTRS", 300, 436, ahcp_switch("JTRS", "AHCP_JTRS", AHCP_ON_OFF)),
+        ("IFFCC", "IFFCC", 500, 436, ahcp_switch("IFFCC", "AHCP_IFFCC", ((2, "ON"), (1, "TEST"), (0, "OFF")))),
     ):
-        ahcp_toggle(p, name, label, bios, x, y, positions)
+        ahcp_toggle(p, name, x, y, control)
         if title:
             p.mark(title, "NAME", x, y - 52, "title above the position labels of the switch")
     p.mark("HUD MODE", "NAME", 400, 272, "title of the two switches")
     h = g.panel("HARS FAST ERECT", 320, 188, 0, 526)
-    h.push("ERECT", 160, 110, {"id": "HARS_FAST_ERECT", "label": "HARS FAST ERECT", "type": "button", "hold": BUTTON_HOLD})
+    h.push("ERECT", 160, 110, HARS_FAST_ERECT)
     h.label("HARS FAST ERECT", "NAME", "ERECT", "above")
     return [kit_page("AHCP", [5, 6, 2, 1], g.build())]
 
@@ -681,9 +705,12 @@ def cmsp_toggle(p: Panel, name: str, label: str, x: int, disabled: bool):
     p.label(name, "NAME", name, "above")
 
 
+CMSP_DISPLAY = {"id": "CMSP1", "label": "CMSP", "type": "display", "cols": 19, "ids": ["CMSP1", "CMSP2"]}
+
+
 def cmsp_pages() -> list[dict]:
     p = Panel("CMSP", 640, 488, "a10c")
-    p.display("DISPLAY", 236, 80, 400, 88, {"id": "CMSP1", "label": "CMSP", "type": "display", "cols": 19, "ids": ["CMSP1", "CMSP2"]})
+    p.display("DISPLAY", 236, 80, 400, 88, CMSP_DISPLAY)
     p.rocker("NXT", 486, 96, {"id": "CMSP_UPDN", "label": "NXT", "type": "hat", "ud": "CMSP_UPDN", "hold": BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}})
     p.push("RTN", 560, 96, {"id": "CMSP_RTN", "label": "RTN", "type": "button", "legend": "RTN", "hold": BUTTON_HOLD})
     for n, x in enumerate((86, 186, 286, 386), 1):
@@ -1085,7 +1112,13 @@ def ufc_controls() -> list[dict]:
 
 VIEWS = [
     {
-        "name": "COCKPIT", "seats": [0], "layout": "map", "lamps": MASTER_LAMPS, "controls": [],
+        "name": "COCKPIT", "seats": [0], "layout": "map", "controls": [],
+        "lamps": MASTER_LAMPS + [
+            GUN_READY_LAMP,
+            {"id": "NOSEWHEEL_STEERING", "label": "NWS", "color": "green"},
+            {"id": "MARKER_BEACON", "label": "MARKER", "color": "green"},
+            CANOPY_LAMP,
+        ],
         "links": [
             {"label": "MFCD L", "view": "MFCD", "side": "L", "seats": [0], "map": [3, 5, 2, 1]},
             {"label": "MFCD R", "view": "MFCD", "side": "R", "seats": [0], "map": [3, 8, 2, 1]},
@@ -1116,6 +1149,46 @@ VIEWS = [
     *canopy_pages(),
     *env_pages(),
     *lighting_pages(),
+    {
+        "name": "Flight", "seats": [0],
+        "lamps": MASTER_LAMPS + [
+            {"id": "GEAR_L_SAFE", "label": "L SAFE", "color": "green"},
+            {"id": "GEAR_N_SAFE", "label": "N SAFE", "color": "green"},
+            {"id": "GEAR_R_SAFE", "label": "R SAFE", "color": "green"},
+            {"id": "HANDLE_GEAR_WARNING", "label": "GEAR", "color": "red"},
+            {"id": "L_ENG_FIRE", "label": "L ENG FIRE", "color": "red"},
+            {"id": "APU_FIRE", "label": "APU FIRE", "color": "red"},
+            {"id": "R_ENG_FIRE", "label": "R ENG FIRE", "color": "red"},
+            CANOPY_LAMP,
+        ],
+        "controls": [
+            {"id": "EXT_SPEED_BRAKE_LEFT", "label": "SPD BRK", "type": "bar", "max": 65535, "grid": [1, 1, 1, 1]},
+            {**GEAR_LEVER, "grid": [1, 3, 2, 1]},
+            {**FLAPS_SWITCH, "grid": [1, 4, 2, 1]},
+            {"id": "FLAP_POS", "label": "FLAPS POS", "type": "bar", "max": 65535, "grid": [3, 5, 1, 1]},
+            {**LANDING_LIGHTS, "grid": [1, 5, 1, 1]},
+            {**ANTI_SKID_SWITCH, "grid": [2, 5, 1, 1]},
+            {**ENG_THROTTLE["L"], "grid": [1, 6, 3, 1]},
+            {**ENG_THROTTLE["R"], "grid": [1, 7, 3, 1]},
+            {"id": "FUEL_QTY_L", "label": "FUEL L", "type": "bar", "max": 65535, "grid": [3, 1, 1, 1]},
+            {"id": "FUEL_QTY_R", "label": "FUEL R", "type": "bar", "max": 65535, "grid": [3, 2, 1, 1]},
+            {**EMER_BRAKE, "grid": [3, 3, 1, 1]},
+            {**HARS_FAST_ERECT, "grid": [3, 4, 1, 1]},
+        ],
+    },
+    {
+        "name": "Fight", "seats": [0],
+        "lamps": MASTER_LAMPS + [GUN_READY_LAMP, {"id": "CMSC_LAUNCH", "label": "LAUNCH", "color": "red"}],
+        "controls": [
+            {**AHCP_MASTER_ARM, "grid": [2, 1, 1, 1]},
+            {**AHCP_GUNPAC, "grid": [2, 2, 1, 1]},
+            {**AHCP_LASER_ARM, "grid": [2, 3, 1, 1]},
+            {**AHCP_TGP, "grid": [2, 4, 1, 1]},
+            {**readout("CMSC_TXT_CHAFF_FLARE", "CHAFF / FLARE", 8), "grid": [2, 5, 1, 2]},
+            {"id": "CMSP1", "label": "CMSP 1", "type": "display", "grid": [3, 1, 1, 3]},
+            {"id": "CMSP2", "label": "CMSP 2", "type": "display", "grid": [3, 4, 1, 3]},
+        ],
+    },
     {"name": "MFCD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfcd_controls("L") + mfcd_controls("R")},
     {"name": "CDU", "seats": [0], "layout": "cdu", "lamps": [], "controls": cdu_controls() + ufc_controls()},
 ]
