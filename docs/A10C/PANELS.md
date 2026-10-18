@@ -426,3 +426,259 @@ Where: Left front canopy rail, beneath the G-meter (item 6 on p. 152).
 | Low-speed symbol | lamp | lit; unlit | V shape, top in figure | Colours per symbol not stated; text names green and yellow |
 | On-speed symbol | lamp | lit; unlit | circle, middle in figure | With a chevron: slightly slow or fast |
 | High-speed symbol | lamp | lit; unlit | inverted V, bottom in figure | Works only with nose gear down |
+
+## Left console
+
+Overview on p. 156 and p. 157 (Figure 107). Inboard column, front to back: fuel panel, throttles, LASTE, radio 1, UHF, radio 2, KY-58. Outboard column, front to back: emergency brake handle, auxiliary lighting, SAS, IFF, emergency flight control, intercom, stall warning. Item numbers in the tables follow the manual text unless a Where line says otherwise.
+
+### Fuel System Control Panel (p. 158)
+
+Where: Forward end of the left console, inboard column, top of the overview (item 1 on p. 156; figure on p. 158); positions listed top to bottom. Figure arrows 6 to 10 are one number below the text numbers 7 to 11; text numbers are used here.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Main boost pump switch, left | toggle | on (label not printed); OFF | none | Left main tank pump |
+| 1. Main boost pump switch, right | toggle | on (label not printed); OFF | none | Right main tank pump |
+| 2. Wing boost pump switch, left | toggle | on (label not printed); OFF | none | Left wing tank pump |
+| 2. Wing boost pump switch, right | toggle | on (label not printed); OFF | none | Right wing tank pump |
+| 3. EXT TKS switch, WING | toggle | WING; OFF | none | Transfer from external tanks on the wings |
+| 3. EXT TKS switch, FUS | toggle | FUS; OFF | none | Transfer from the centre fuselage external tank |
+| 4. Crossfeed switch | toggle | CROSS FEED; OFF | none | Links both fuel systems; used after a pump failure |
+| 5. Tank gate switch (TK GATE) | toggle | OPEN; CLOSE | none | Links the main tanks; can upset centre of gravity |
+| 7. Air refuel control lever (RCVR) | lever | CLOSE (forward, top); OPEN (aft, bottom) | READY, LATCHED, DISCONNECT lights on the canopy rail | Opens the slipway door; lights on p. 153 |
+| 8. Fill disable button, wing left | button | in; pulled out disables refill | none | Acts like a circuit breaker |
+| 8. Fill disable button, wing right | button | in; pulled out disables refill | none | Acts like a circuit breaker |
+| 8. Fill disable button, main left | button | in; pulled out disables refill | none | Acts like a circuit breaker |
+| 8. Fill disable button, main right | button | in; pulled out disables refill | none | Acts like a circuit breaker |
+| 9. Receiver light dial (RCVR LT) | knob | OFF to BRT | none | Refuel receptacle lights and engine flood light |
+| 10. Line check button | button | press | none | No function |
+| 11. Signal amplifier switch (SIG AMPL) | toggle | NORM; OVERRIDE | none | No function |
+
+### Throttles Panel (p. 160)
+
+Where: Left console, middle of the overview (item 2 on p. 156; figure on p. 161); the two levers at the left, the switch panel on their inboard (right) side; switch positions listed top to bottom.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. APU switch | toggle | START; OFF | none | Start needs battery switch at PWR |
+| 2. Left throttle lever | lever | OFF (full aft); IDLE; MAX (full forward) | none | Same lever as in the HOTAS section |
+| 2. Right throttle lever | lever | OFF (full aft); IDLE; MAX (full forward) | none | Levers can move separately |
+| 3. Engine fuel flow switch, left | toggle | NORM; OVERRIDE | none | OVERRIDE bypasses the ITT amplifier |
+| 3. Engine fuel flow switch, right | toggle | NORM; OVERRIDE | none | OVERRIDE bypasses the ITT amplifier |
+| 4. Engine operate switch, left | toggle | IGN; NORM; MOTOR | none | NORM is the default; IGN is held |
+| 4. Engine operate switch, right | toggle | IGN; NORM; MOTOR | none | MOTOR purges fuel after a failed start |
+| 5. Landing gear horn silence button (LDG WARN SILENCE) | button | press | none | Below the APU switch |
+| Throttle friction lever | lever | INCR at the top; other end not legible | none | In figure only; not named in text |
+
+### Flap lever, left of the throttles (p. 156)
+
+Where: Left console, directly left of the throttle levers, between the SAS panel and the throttles (figure on p. 156, unlabelled). The Throttles Panel text and Figure 109 do not show it; p. 181 calls it the flap control on the throttle.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| Flap lever | lever | UP; MVR; DN (names from p. 127; not given on pp. 156 to 184) | flap position indicator on the gear panel | No description or label in these pages |
+
+### LASTE Control Panel (p. 163)
+
+Where: Left console, directly aft of the throttles panel, inboard column (item 3 on p. 156; figure on p. 165); positions listed top to bottom. The figure arrows for items 3 and 4 carry no numbers.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. EAC switch | toggle | ARM; OFF | EAC light on the caution panel | OFF disables EAC functions |
+| 2. Radar altimeter switch (RDR ALTM) | toggle | NRM; DIS | none | DIS also disables GCAS |
+| 3. Autopilot select switch | toggle | PATH; ALT/HDG; ALT | none | Picks the LAAP mode; right side of panel |
+| 4. Autopilot engage/disengage button | button | press | none | Left of the select switch |
+
+### AN/ARC-186(V) Radio Control Panel (p. 167)
+
+Where: Left console, inboard column, below the LASTE panel (item 4 on p. 156). Text says only that the ARC-210 will replace this radio later. The page holds one figure captioned ARC-210 Radio Head, so every row is read from that figure and no functions are stated. The overview photo of item 4 shows a window-type panel, not this head.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| TOD SND button | button | press | none | Top row, first; function not stated |
+| TOD RCV button | button | press | none | Top row, second; legend EMER TOD between both |
+| GPS button | button | press | none | Top row, third; function not stated |
+| RT SELECT button | button | press | none | Top row, fourth; function not stated |
+| Line select button 1 (top) | button | press | dash mark beside the screen | Left edge; legend VHF/UHF |
+| Line select button 2 | button | press | dash mark beside the screen | Left edge; function not stated |
+| Line select button 3 | button | press | dash mark beside the screen | Left edge; function not stated |
+| Brightness up button | button | press | none | Arrow with sun symbol; function not stated |
+| Brightness down button | button | press | none | Arrow with sun symbol; function not stated |
+| Screen | display | content not shown | not stated | Large, centre of the panel |
+| SQL knob | knob | OFF to ON | none | Upper right; legend SQL |
+| MENU / TIME button | button | press | none | Legends MENU above, TIME below |
+| XMT/RCV / SEND button | button | press | none | Legends XMT/RCV above, SEND below |
+| AM/FM button | button | press | none | Dark button, upper right |
+| OFFSET / RCV button | button | press | none | Dark button; legends OFFSET above, RCV below |
+| ENTER button | button | press | none | Dark button, vertical legend |
+| Unlabelled knob 1 (leftmost) | knob | range not stated | none | Under the screen; function not stated |
+| Unlabelled knob 2 | knob | range not stated | none | Under the screen; function not stated |
+| Unlabelled knob 3 | knob | range not stated | none | Under the screen; function not stated |
+| Unlabelled knob 4 | knob | range not stated | none | Under the screen; function not stated |
+| Unlabelled knob 5 (rightmost) | knob | range not stated | none | Under the screen; function not stated |
+| Left mode dial | rotary | OFF; TR G; TR; ADF; CHG PRST; TEST; ZERO (pull) | none | Clockwise from lower left; ZERO is a pull |
+| CHANNEL knob | knob | range not stated | none | Bottom centre |
+| Right mode dial | rotary | ECCM MASTER; ECCM; PRST; MAN; MAR; 243; 121 (pull) | none | Clockwise from lower left; 121 is a pull |
+
+### AN/ARC-164 UHF Radio Control Panel (p. 168)
+
+Where: Left console, inboard column, below the radio 1 panel and aft of the throttle panel (item 5 on p. 156; figure on p. 168). 20 presets; range 225.000 to 399.975 MHz. Figure arrow 14 points at the channel card over the display.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Preset channel selector | rotary | channels 1 to 20 | channel window; UHF repeater on the dash | Top right; turns either way |
+| 2. Preset channel indicator window | display | 1 to 20 | legend CHAN | Shows the selected preset |
+| 3. Frequency status indicator window | display | six digits, 225.000 to 399.975 MHz | frequency readout | Shows the preset or manual frequency |
+| 4. 100 MHz selector | rotary | 2; 3; A | frequency window | Meaning of A not stated |
+| 5. 10 MHz selector | rotary | 0 to 9 | frequency window | Second knob from the left |
+| 6. 1 MHz selector | rotary | 0 to 9 | frequency window | Third knob |
+| 7. 0.1 MHz selector | rotary | 0 to 9 | frequency window | Fourth knob |
+| 8. 0.025 MHz selector | rotary | 00; 25; 50; 75 | frequency window | Steps of 25; rightmost knob |
+| 9. Frequency mode dial | rotary | MNL; PRESET; GRD | none | GRD sets the guard channel |
+| 10. Function dial | rotary | OFF; MAIN; BOTH; ADF | none | Text marks ADF as no function |
+| 11. Volume knob (VOL) | knob | range not stated | none | Small knob above the function dial |
+| 12. T-tone control (T TONE) | toggle | positions not stated | none | No function; text says button, figure a toggle |
+| 13. Squelch control | toggle | ON; OFF | none | Text says button, figure a toggle |
+| 14. LOAD button under the preset cover | guarded | cover closed; cover open; press LOAD | none | Colour given as orange and as red |
+| TEST DISPLAY button | button | press | none | In figure only; function not stated |
+| STATUS button | button | press | none | In figure only; function not stated |
+
+### AN/ARC-186(V) VHF FM Radio 2 Control Panel (p. 171)
+
+Where: Left console, inboard column, below the UHF radio (item 6 on p. 156; figure on p. 171). 20 presets; range 30.000 to 76.000 MHz; a warning tone sounds out of range.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Preset channel selector wheel | rotary | channels 1 to 20 | preset window above it | Wheel along the bottom |
+| 2. Preset channel indicator window | display | 1 to 20 | legend PRESET | Shows the selected preset |
+| 3. Frequency selector knob 1 (leftmost) | rotary | 0 to 9: tens of MHz | first window | Window shows 3 in figure |
+| 3. Frequency selector knob 2 | rotary | 0 to 9: units of MHz | second window | Window shows 0 in figure |
+| 3. Frequency selector knob 3 | rotary | range not stated | third window, legend .0 | Text says keep at 0 |
+| 3. Frequency selector knob 4 | rotary | range not stated | fourth window, legend 00 | Text says keep at 0 |
+| Frequency windows | display | four windows | manual frequency | Preset frequency is not shown |
+| 4. Load button | button | press | none | Saves manual frequency to shown preset |
+| 5. Volume knob (VOL) | knob | range not stated | none | Top left corner |
+| 6. Frequency mode dial | rotary | OFF; TR; DF | none | DF is not functional |
+| 7. Frequency selection dial | rotary | EMER FM; EMER AM; MAN; PRE | none | Both EMER positions pick guard |
+| 8. Squelch switch | toggle | legends SQ DIS and TONE; positions not stated | none | Left edge; squelch tone |
+
+### KY-58 Secure Voice Control Panel (p. 173)
+
+Where: Left console, bottom of the inboard column, below the radio 2 panel (item 7 on p. 156; figure on p. 173). Whole panel is non-functional in this simulation. Figure arrows 4 to 6 mark the code dial, delay switch and zeroize guard, not the text items 4 to 6.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Power switch | toggle | ON; off position not labelled | none | Legend POWER below it |
+| 2. Mode dial | rotary | OP; LD; RV | none | OP is the normal setting |
+| 3. Radio select dial | rotary | C/RAD 1; PLAIN; C/RAD 2 | none | C/RAD 1 is UHF; C/RAD 2 is VHF |
+| 7. Encryption code preset dial | rotary | 1 to 6 | none | Both ends must use the same code |
+| 8. Delay switch | toggle | positions not stated | none | No function |
+| 9. Zeroize switch | guarded | cover closed; cover raised then switch on | none | Erases all six codes |
+
+### Emergency Brake System (p. 174)
+
+Where: Forward end of the left console, outboard column, left of the fuel panel (item 8 on p. 156; figure on p. 174).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| EMER BRAKE handle | handle | positions not stated | none | Right hydraulics feed brakes if left fails |
+| Unnamed toggle above the handle | toggle | UP; HOLD; DOWN | none | In figure only; title cut off, function not stated |
+
+### Auxiliary Lighting Control Panel (p. 175)
+
+Where: Left console, outboard column, aft of the brake handle and left of the throttles (item 9 on p. 156; figure on p. 175); toggles listed top to bottom.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Refuel status and indexer lights dial | knob | DIM to BRT | none | Dims the AoA indexer and refuel lights |
+| 2. NVIS lights switch (NVIS LTS) | toggle | TOP; ALL; OFF | none | No function in this simulation |
+| 3. Signal lights lamp test button | button | press and hold | lamps listed on p. 175 and 176 | Text also says test lamp; none seen in figure |
+| 4. Weapon station dimmer dial (WPN STA STATUS LTS) | knob | OFF to BRT | none | No function in the A-10C |
+| 5. HARS/SAS override switch | toggle | OVERRIDE; NORM | none | NORM drops SAS on bad HARS data |
+| 6. Fire detect bleed air leak test button | button | press | T-handle lamps light | Tests fire detection |
+
+### Stability Augmentation System (SAS) Panel (p. 176)
+
+Where: Left console, outboard column, aft of the auxiliary lighting panel and left of the throttles (item 10 on p. 156; figure on p. 177); toggles listed top to bottom.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Yaw trim control knob | knob | L; R | none | Yaw trim bias; needs SAS on |
+| 2. Takeoff trim button (T/O TRIM) | button | press | takeoff trim light | Sets all trim to takeoff settings |
+| Takeoff trim light | lamp | lit; unlit | window with legend TAKEOFF TRIM | Above the button; legend not legible in figure |
+| 3. Pitch SAS engage switch, left | toggle | ENGAGE; OFF | none | Both pitch switches must be at ENGAGE |
+| 3. Pitch SAS engage switch, right | toggle | ENGAGE; OFF | none | Both pitch switches must be at ENGAGE |
+| 4. Yaw SAS engage switch, left | toggle | ENGAGE; OFF | none | Both yaw switches must be at ENGAGE |
+| 4. Yaw SAS engage switch, right | toggle | ENGAGE; OFF | none | Both yaw switches must be at ENGAGE |
+| 5. Monitor test switch | toggle | L; R; rest position not stated | none | No function |
+
+### Identify Friend or Foe (IFF) Panel (p. 178)
+
+Where: Left console, outboard column, aft of the SAS panel (item 11 on p. 156; figure on p. 179); toggles listed top to bottom. Text calls the panel non-functional yet describes working controls; which items act is only stated per item.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Master mode dial | rotary | OFF; STBY; LOW; NORM; EMER | none | EMER no function; counter-clockwise from top |
+| 2. M-1 switch | toggle | TEST (shared legend); ON; OUT | none | ON enables Mode 1 |
+| 3. M-2 switch | toggle | TEST (shared legend); ON; OUT | none | ON enables Mode 2 |
+| 4. M-3/A switch | toggle | TEST (shared legend); ON; OUT | none | ON enables Mode 3/A |
+| 5. M-C switch | toggle | TEST (shared legend); ON; OUT | none | ON enables Mode C |
+| 6. Radiation test monitor switch (RAD TEST) | toggle | RAD TEST; OUT; MON | none | No function |
+| 7. Identification of position switch (IDENT) | toggle | IDENT; OUT; MIC | none | No function |
+| 8. Mode 1 code wheel, left | rotary | digit range not stated; whole code 00 to 73 | digit shown | Two wheels set the Mode 1 code |
+| 8. Mode 1 code wheel, right | rotary | digit range not stated; whole code 00 to 73 | digit shown | Two wheels set the Mode 1 code |
+| 9. Mode 3/A code wheel 1 (leftmost) | rotary | 0 to 7 | digit shown | Four wheels set the Mode 3/A code |
+| 9. Mode 3/A code wheel 2 | rotary | 0 to 7 | digit shown | Four wheels set the Mode 3/A code |
+| 9. Mode 3/A code wheel 3 | rotary | 0 to 7 | digit shown | Four wheels set the Mode 3/A code |
+| 9. Mode 3/A code wheel 4 | rotary | 0 to 7 | digit shown | Four wheels set the Mode 3/A code |
+| 10. Mode 4 switch | toggle | ON; OUT | none | ON enables the encrypted reply |
+| 11. Audio light switch | toggle | AUDIO; OUT; LIGHT | REPLY light | OUT or AUDIO gives tone; LIGHT gives lamp |
+| 12. Code dial | rotary | ZERO; B; A; HOLD | none | No function; clockwise from upper left |
+| 13. Reply light | lamp | lit; unlit | push-to-test lamp with DIM ring | Lit when replying to Mode 4 |
+| 14. Test light | lamp | lit; unlit | push-to-test lamp with DIM ring | Lit during a Mode 1, 2, 3/A or C test |
+
+### Emergency Flight Control Panel (p. 180)
+
+Where: Left console, outboard column, aft of the IFF panel (item 12 on p. 156; figure on p. 180); toggles listed top to bottom. Panel is unused in normal flight.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Pitch/roll trim switch | toggle | NORM; EMER OVERRIDE | none | NORM uses the trim hat on the stick |
+| 1. Emergency pitch and roll switch | hat | NOSE DN; NOSE UP; L WING DN; R WING DN | none | Works only in EMER OVERRIDE; right label partly hidden |
+| 2. Speed brake emergency retract switch (SPD BK EMER RETR) | toggle | up: close by airflow; down: throttle switch controls | none | Up arrow printed beside it |
+| 3. Flap emergency retract switch (FLAP EMER RETR) | toggle | up: retract by airflow; down: flap lever controls | none | Up arrow printed beside it |
+| 4. Aileron emergency disengage switch | toggle | L; centre; R | none | Disengages the chosen aileron actuator |
+| 5. Elevator emergency disengage switch | toggle | L; centre; R | none | Disengages the chosen elevator actuator |
+| 6. MRFCS switch (FLT CONT) | toggle | NORM (up); MAN REVERSION (down) | none | Backup after dual hydraulic failure |
+| L-AIL lamp | lamp | lit; unlit | rectangular lamp | Named on p. 175; place in figure not stated |
+| R-AIL lamp | lamp | lit; unlit | rectangular lamp | Named on p. 175; place in figure not stated |
+| L-ELEV lamp | lamp | lit; unlit | rectangular lamp | Named on p. 175; place in figure not stated |
+| R-ELEV lamp | lamp | lit; unlit | rectangular lamp | Named on p. 175; place in figure not stated |
+
+### Intercom Control Panel (p. 182)
+
+Where: Left console, outboard column, aft of the emergency flight control panel (item 13 on p. 156; figure on p. 182). Intercom settings override the radio volume knobs. The text calls the eight listening controls two-position buttons (in or out); the figure draws them as pointer knobs.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Volume control knob (VOL) | knob | range not stated | none | Master level for the panel |
+| 2. HM switch | button | press | none | Needs rotary at INT and INT switch in |
+| 3. INT switch | knob | in; out (per text) | none | Link to ground crew or tanker |
+| 4. AIM switch | knob | in; out (per text) | none | Needs AIM-9 mode switch at SELECT |
+| 5. FM switch | knob | in; out (per text) | none | Monitors VHF/FM audio |
+| 6. VHF switch | knob | in; out (per text) | none | Monitors VHF/AM audio |
+| 7. ILS switch | knob | in; out (per text) | none | Localizer and marker beacon audio |
+| 8. UHF switch | knob | in; out (per text) | none | Monitors UHF audio |
+| 9. TCN switch | knob | in; out (per text) | none | TACAN ident tone; legend reads TCH in figure |
+| 10. Rotary selector dial | rotary | INT; FM; VHF; HF (as printed) | none | Text lists INT, VHF, FM, HF |
+| 11. IFF switch | knob | range not stated | none | Volume of the interrogation tone |
+| 12. Call switch | button | press | none | No function |
+
+### Stall Warning Control Panel (p. 183)
+
+Where: Left console, aft end of the outboard column (item 14 on p. 156; figure on p. 183).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| STALL volume dial | knob | range not stated | none | Chopped tone; cannot go to zero |
+| PEAK PRFM volume dial | knob | range not stated | none | Steady tone; can go to zero |
