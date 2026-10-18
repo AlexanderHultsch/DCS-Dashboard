@@ -682,3 +682,190 @@ Where: Left console, aft end of the outboard column (item 14 on p. 156; figure o
 | --- | --- | --- | --- | --- |
 | STALL volume dial | knob | range not stated | none | Chopped tone; cannot go to zero |
 | PEAK PRFM volume dial | knob | range not stated | none | Steady tone; can go to zero |
+
+## Right console
+
+Overview on p. 185 and p. 186 (Figure 123). Inboard column, front to back: CMSP, caution lights, CDU, AAP, ILS, TACAN, HMCS, HARS. Outboard column, front to back: canopy switch with jettison handle, electrical power, environment (oxygen regulator on top), lighting. The CMSP panel (item 5) and the CDU (item 7) have their own chapters and are not listed here. Item numbers in the tables follow the manual text unless a Where line says otherwise.
+
+### Cockpit Canopy Switch and Canopy Ejection Handle (p. 186)
+
+Where: Outboard column, forward end of the right console, top (item 1 on p. 185; figure on p. 187); ladder button and jettison handle sit just below the switch.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Canopy switch (CANOPY) | toggle | OPEN (up); HOLD (centre); CLOSE (down) | CANOPY UNLOCKED light on the front dash (p. 148) | OPEN and CLOSE are held; spring return not stated |
+| 2. Boarding ladder button | guarded | cover closed; cover raised; press the red button | none | Lowers the ladder; ground crew raises it on intercom request |
+| 3. Canopy jettison handle | handle | positions not stated | none | Black and yellow striped; jettisons the canopy explosively |
+
+### Electrical Power Panel (p. 187)
+
+Where: Outboard column, below the canopy switch, forward right of the console (item 2 on p. 185; figure on p. 188); listed row by row, left to right.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 3. APU GEN switch (APU GEN PWR) | toggle | PWR (up); OFF/RESET (down) | none | APU takes the load from the battery; top left |
+| 2. Inverter switch (INVERTER STBY) | toggle | STBY (up); OFF (centre); TEST (down) | none | STBY powers AC engine instruments; TEST not described; top centre |
+| 5. EMER FLOOD switch | toggle | EMER FLOOD (up); OFF (down) | none | Both flood lights to full brightness; top right |
+| 4. AC GEN switch, left | toggle | PWR (up); OFF/RESET (down) | none | Puts left generator AC on the buses; lower left |
+| 4. AC GEN switch, right | toggle | PWR (up); OFF/RESET (down) | none | Puts right generator AC on the buses; lower centre |
+| 1. Battery switch (BATTERY PWR) | toggle | PWR (up); OFF (down) | none | First cold-start step; lower right |
+
+### Environment System Panel (p. 189)
+
+Where: Outboard column, below the electrical panel (item 3 on p. 185; figure on p. 189); oxygen regulator in the upper half, air controls below. Oxygen items use text numbers 1 to 7 and air items use text numbers 4 to 14; figure arrows for air items are the text number plus 4 (8 to 18). Listed top to bottom, left to right.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 4. Oxygen flow indicator | display | black; white | window, legend FLOW | Flips with each breath; top left |
+| 5. Oxygen supply pressure gauge | gauge | 0 to 500 psi | legend OXYGEN SUPPLY PRESSURE | Regulator pressure; top right |
+| 3. Oxygen emergency lever | lever | EMERGENCY; NORMAL; TEST MARK (top to bottom) | none | Red; only NORMAL is modelled |
+| 2. Oxygen dilution lever | lever | 100% OXYGEN (up); NORMAL OXYGEN (down) | none | Normal setting dilutes oxygen and lengthens supply |
+| 1. Oxygen supply lever | lever | ON (up); OFF (down) | none | Green; oxygen flows only when ON |
+| 6. Oxygen quantity gauge | gauge | 0 to 5 litres | legend LIQUID OXYGEN LITERS | Liquid oxygen left in the regulator |
+| 7. Oxygen indicator test button (OXY IND TEST) | button | press and hold | OXY LOW lamp on the caution panel | Held with system normal: gauge needle spins |
+| 4. Windshield defog/deice switch | toggle | on (label not printed); OFF | none | Windshield heater against fog and ice |
+| 8. Canopy defog dial | knob | OFF to MAX | none | Bleed air blown from the canopy base |
+| 6. Windshield rain remove and wash switch | toggle | up: blow with bleed air; centre: OFF; down: wash | none | Labels hidden in figure; text says no function |
+| 5. Pitot heater switch | toggle | PITOT HEAT (up); OFF (down) | none | Switch on before takeoff; icing can cause CADC failure |
+| 7. Bleed air switch | toggle | up: on (label not printed); OFF (down) | none | Sends engine and APU bleed air to the system |
+| 14. Cabin air pressure gauge | gauge | labels 10 to 50; scale not stated in text | legends CABIN and PRESS ALT x 1000 | Cockpit pressure |
+| 9. TEMP/PRESS switch | toggle | NORM; DUMP; RAM (top to bottom) | none | Chooses air source; DUMP legend printed vertically |
+| 11. Main air supply switch | toggle | on (label not printed); OFF (bottom) | none | OFF closes ECS valve; ram air stays |
+| 10. Flow level dial | knob | LO; MED; HI as labelled; order around the dial not clear | none | Air flow from the air conditioning |
+| 13. Cabin air conditioner switch (CABIN AIR COND) | toggle | OPER AUTO (up); MAN toward COLD; MAN toward HOT | none | Text gives only manual or automatic control |
+| 12. Temperature level dial | knob | MIN; MED; MAX as labelled; order around the dial not clear | none | Cockpit temperature; no function |
+
+### Lighting Control Panel (p. 191)
+
+Where: Aft end of the outboard column, below the environment panel (item 4 on p. 185; figure on p. 192); top block exterior lights, bottom block cockpit lights; listed row by row, left to right. The pinky switch on the left throttle (p. 111) can override the exterior settings.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. POSITION switch | toggle | FLASH (up); OFF (centre); STEADY (down) | none | Red left, green right, white tail position lights |
+| 3. FORMATION dial | knob | OFF to BRT | none | Formation light strips; nose floodlights follow it |
+| 2. ANTI-COLLISION switch | toggle | ANTI-COLLISION (up); OFF (down) | none | Strobes on both wingtips and the tail |
+| 5. ENG INST dial | knob | OFF to BRT | none | Lights engine and APU gauges |
+| 4. NOSE ILLUM switch | toggle | NOSE ILLUM (up); OFF (down) | none | Nose floodlights, switched apart from the formation dial |
+| 7. AUX INST dial | knob | OFF to BRT | none | Lights hydraulic, fuel, gear, flap, SAI and similar |
+| 8. SIGNAL LTS switch | toggle | BRT (up); DIM (down) | none | Warning and caution light brightness |
+| 6. FLT INST dial | knob | OFF to BRT | none | Lights flight instruments and the NMSP |
+| 9. ACCEL & COMP switch | toggle | on (up, label not printed); OFF (down) | none | Lights G-meter and standby compass |
+| 10. FLOOD dial | knob | OFF; BRT; TSTORM (past BRT) | none | Cockpit floodlights; TSTORM sits beyond BRT |
+| 11. CONSOLE dial | knob | OFF to BRT | none | Lights console panels; 21 panels listed on pp. 194 and 195 |
+
+### Caution Light Panel (p. 195)
+
+Where: Inboard column, second from the front, below the CMSP panel and above the CDU (item 6 on p. 185; figure on p. 195). 12 rows of 4 lamps, listed row by row, left to right. Legends glow green in the figure; the text names no colour. A lamp stays on until its cause is fixed, and any caution also lights Master Caution on the UFC. The text list (pp. 196 and 197) and the figure differ in three places, marked in the rows.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| ENG START CYCLE | lamp | lit; unlit | row 1, column 1 | Engine start in progress |
+| L-HYD PRESS | lamp | lit; unlit | row 1, column 2 | Left hydraulic pressure under 1,000 psi |
+| R-HYD PRESS | lamp | lit; unlit | row 1, column 3 | Right hydraulic pressure under 1,000 psi |
+| GUN UNSAFE | lamp | lit; unlit | row 1, column 4 | Gun can fire |
+| ANTI-SKID | lamp | lit; unlit | row 2, column 1 | Gear down, anti-skid off; no function |
+| L-HYD RES | lamp | lit; unlit | row 2, column 2 | Left hydraulic reservoir low |
+| R-HYD RES | lamp | lit; unlit | row 2, column 3 | Right hydraulic reservoir low |
+| OXY LOW | lamp | lit; unlit | row 2, column 4 | Oxygen at 0.5 litre or less |
+| ELEV DISENG | lamp | lit; unlit | row 3, column 1 | At least one elevator disengaged |
+| Blank lamp (dash legend) | lamp | lit; unlit | row 3, column 2 | In figure only; function not stated |
+| SEAT NOT ARMED | lamp | lit; unlit | row 3, column 3 | Ground safety lever safe; no function |
+| BLEED AIR LEAK | lamp | lit; unlit | row 3, column 4 | Bleed air at 400 F or more |
+| AIL DISENG | lamp | lit; unlit | row 4, column 1 | At least one aileron disengaged |
+| L-AIL TAB | lamp | lit; unlit | row 4, column 2 | Left aileron off normal due to MRFCS |
+| R-AIL TAB | lamp | lit; unlit | row 4, column 3 | Right aileron off normal due to MRFCS |
+| SERVICE AIR HOT | lamp | lit; unlit | row 4, column 4 | ECS air too hot; no function |
+| PITCH SAS | lamp | lit; unlit | row 5, column 1 | A pitch SAS channel is off |
+| L-ENG HOT | lamp | lit; unlit | row 5, column 2 | Left ITT above 880 C |
+| R-ENG HOT | lamp | lit; unlit | row 5, column 3 | Right ITT above 880 C |
+| WINDSHIELD HOT | lamp | lit; unlit | row 5, column 4 | Windshield above 150 F; no function |
+| YAW SAS | lamp | lit; unlit | row 6, column 1 | A yaw SAS channel is off |
+| L-ENG OIL PRESS | lamp | lit; unlit | row 6, column 2 | Left oil pressure under 27.5 psi |
+| R-ENG OIL PRESS | lamp | lit; unlit | row 6, column 3 | Right oil pressure under 27.5 psi |
+| CICU | lamp | lit; unlit | row 6, column 4 | In figure only; not in the text list; meaning not stated |
+| GCAS | lamp | lit; unlit | row 7, column 1 | LASTE fault that affects GCAS |
+| L-MAIN PUMP | lamp | lit; unlit | row 7, column 2 | Left main tank boost pressure low |
+| R-MAIN PUMP | lamp | lit; unlit | row 7, column 3 | Right main tank boost pressure low |
+| Blank lamp (dash legend) | lamp | lit; unlit | row 7, column 4 | In figure only; function not stated |
+| LASTE | lamp | lit; unlit | row 8, column 1 | Fault in the LASTE computer |
+| L-WING PUMP | lamp | lit; unlit | row 8, column 2 | Left wing tank boost pressure low |
+| R-WING PUMP | lamp | lit; unlit | row 8, column 3 | Right wing tank boost pressure low |
+| HARS | lamp | lit; unlit | row 8, column 4 | HARS heading or attitude invalid |
+| IFF MODE-4 | lamp | lit; unlit | row 9, column 1 | Mode 4 not working; no function |
+| L-MAIN FUEL LOW | lamp | lit; unlit | row 9, column 2 | Left main tank 500 lb or less |
+| R-MAIN FUEL LOW | lamp | lit; unlit | row 9, column 3 | Right main tank 500 lb or less |
+| L-R TKS UNEQUAL | lamp | lit; unlit | row 9, column 4 | Main tanks differ by 750 lb |
+| EAC | lamp | lit; unlit | row 10, column 1 | EAC switched off |
+| L-FUEL PRESS | lamp | lit; unlit | row 10, column 2 | Low left engine fuel feed pressure |
+| R-FUEL PRESS | lamp | lit; unlit | row 10, column 3 | Low right engine fuel feed pressure |
+| NAV | lamp | lit; unlit | row 10, column 4 | Text calls it INERTIAL NAV: CDU failure during alignment |
+| STALL SYS | lamp | lit; unlit | row 11, column 1 | AoA and Mach meters lost power |
+| L-CONV | lamp | lit; unlit | row 11, column 2 | Left electrical converter failed |
+| R-CONV | lamp | lit; unlit | row 11, column 3 | Right electrical converter failed |
+| CADC | lamp | lit; unlit | row 11, column 4 | CADC failed |
+| APU GEN | lamp | lit; unlit | row 12, column 1 | APU generator off-line with switch at PWR |
+| L-GEN | lamp | lit; unlit | row 12, column 2 | Left generator down or AC out of limits |
+| R-GEN | lamp | lit; unlit | row 12, column 3 | Right generator down or AC out of limits |
+| INST INV | lamp | lit; unlit | row 12, column 4 | AC systems get no inverter power |
+| INU AIR HOT | lamp | lit; unlit | not in figure; position not stated | Text list only: air too hot for INU; no function |
+
+### TACAN Operation and Control Panel (p. 198)
+
+Where: Inboard column, behind the CDU and AAP, below the ILS panel (arrow 10 on p. 185, though the list there calls it item 9; figure on p. 198); listed top to bottom, left to right.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 3. Channel display window | display | three digits and a letter in figure (000X) | digit drums | Text says a two-digit channel; letter is X or Y |
+| 5. Volume knob (VOL) | knob | range not stated | none | Top right; TACAN audio level |
+| 2. Channel selector, left | rotary | 0 to 9 | channel window | Figure line runs to the first two digits |
+| 2. Channel selector, middle | rotary | 0 to 9; X or Y by right click | channel window | Figure labels it 5; lines run to third digit and letter |
+| 4. Test button | button | press | red lamp below it (figure only) | Tests TACAN; result shown on the HSI |
+| Test lamp | lamp | lit; unlit | red, below the TEST legend | In figure only; function not stated |
+| 1. Mode dial | rotary | OFF; REC; T/R; A/A REC; A/A T/R | none | Clockwise from lower left; REC bearing only, T/R adds range |
+
+### ILS Control Panel and ILS Operation (p. 199)
+
+Where: Inboard column, directly below the AAP, above the TACAN panel (arrow 9 on p. 185, though the list there calls it item 10; figure on p. 199).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Power control knob, outer part | rotary | OFF; PWR | none | Powers the ILS |
+| 1. Power control knob, base | knob | steps of 1 whole number; range not stated | ILS setting window | Sets whole-number part of the frequency |
+| 3. ILS setting window | display | five digits in figure (000.00) | frequency readout; legend ILS | Current ILS frequency |
+| 2. Volume knob, outer part (VOL) | knob | range not stated | none | Localizer capture tone and marker beacon tone volume |
+| 2. Volume knob, base | knob | steps of 0.05; range not stated | ILS setting window | Sets tenths and hundredths of the frequency |
+
+### Heading and Attitude Reference Systems (HARS) Control Panel (p. 200)
+
+Where: Inboard column, back end, below the HMCS panel; drawn on p. 185 without an item number (figure on p. 200); listed row by row, left to right.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. SYN-IND annunciator | gauge | needle in the window; centred means aligned | legends SYN and IND | Sync level between HARS and remote compass in slave mode |
+| 2. Mode switch | toggle | SLAVE (up); DG (down) | none | SLAVE is normal; DG frees the gyro for manual setting |
+| 3. LAT correction dial | knob | 0 to 90, labels every 10 | none | Set to current latitude to offset gyro drift |
+| 6. Sync control (PUSH TO SYNC, HDG) | knob | press: sync; turn: minus or plus | none | Text calls it a button; figure shows a push-turn knob |
+| 5. Magnetic variation switch (MAG VAR) | toggle | +15; 0; -15 (top to bottom) | none | Match local magnetic variation; 0 not printed |
+| 4. Hemisphere selector switch | toggle | N (up); S (down) | none | Set for the hemisphere being flown in |
+
+### Helmet Mounted Cueing System (HMCS) Control Panel (p. 201)
+
+Where: Inboard column, back end, below the TACAN panel (item 11 on p. 185; figure on p. 201). The figure also shows two covers under the legends; the text does not describe them.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| HMCS power switch | toggle | ON; OFF; BAT (top to bottom) | none | BAT uses the panel battery, so tests need no aircraft power |
+| HVI UNSAFE legend | lamp | lit; unlit | legend HVI UNSAFE, top left | In figure only; lamp or label and meaning not stated |
+| REPLACE BATTERY legend | lamp | lit; unlit | legend REPLACE BATTERY, top right | In figure only; lamp or label and meaning not stated |
+
+### Auxiliary Avionics Panel (AAP) (p. 203)
+
+Where: Inboard column, below the CDU, above the ILS panel (item 8 on p. 185; figure on p. 203); top row switches, then two dials, steer switch at the bottom centre.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. CDU power switch | toggle | ON (up); OFF (down) | none | Switch on soon after engine start; alignment takes long |
+| 2. EGI power switch | toggle | ON (up); OFF (down) | none | Switch on soon after engine start; alignment takes long |
+| 4. STEER PT dial | rotary | FLT PLAN; MARK; MISSION (clockwise from left) | none | Picks the waypoint set the STEER switch cycles |
+| 3. PAGE dial | rotary | OTHER; POSITION; STEER; WAYPT (clockwise from left) | CDU pages POSINFO, STRINFO, WP INFO | Only OTHER allows CDU key entry; the rest are read only |
+| 5. STEER switch | toggle | up; centre (default); down | none | Cycles steerpoints forward and back; text is on p. 205 |
