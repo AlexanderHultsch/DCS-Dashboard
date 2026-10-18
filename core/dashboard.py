@@ -415,6 +415,14 @@ def hold_until(name: str, level, hold: float, limit: float) -> bool:
         time.sleep(CONFIRM_POLL)
 
 
+def press_and_release(target: str, level, rest, hold: float) -> bool:
+    with command_lock:
+        send(target, level)
+        confirmed = hold_until(target, level, max(hold, PRESS_MIN), PRESS_MAX)
+        send(target, rest)
+    return confirmed
+
+
 def open_real_cover(name: str) -> bool:
     with command_lock:
         send(name, 1)
@@ -463,9 +471,7 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
         return False, "unknown control", None
     if seat is None:
         return False, "no DCS data", None
-    if seat not in view["seats"]:
-        return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only", None
-    if "seats" in control and seat not in control["seats"]:
+    if seat not in view["seats"] or seat not in control.get("seats", view["seats"]):
         return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only", None
     if body.get("guard") == "open":
         if not control.get("guard"):
@@ -504,10 +510,7 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
             if current != requires["value"]:
                 return False, "locked: open the cover first", None
         target = expand(control.get("bios", identifier), seat)
-        with command_lock:
-            send(target, control.get("value", 1))
-            confirmed = hold_until(target, control.get("value", 1), max(control.get("hold", 0.3), PRESS_MIN), PRESS_MAX)
-            send(target, control.get("rest", 0))
+        confirmed = press_and_release(target, control.get("value", 1), control.get("rest", 0), control.get("hold", 0.3))
         log.line("dash", name, "pressed" if confirmed else "pressed, not confirmed")
         return True, "", confirmed
     if control["type"] == "knob":
@@ -551,10 +554,7 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
             return False, "position not available", None
         axis, level = axes[value]
         target = expand(control[axis], seat)
-        with command_lock:
-            send(target, level)
-            confirmed = hold_until(target, level, max(control.get("hold", 0.3), PRESS_MIN), PRESS_MAX)
-            send(target, 1)
+        confirmed = press_and_release(target, level, 1, control.get("hold", 0.3))
         log.line("dash", name, f"{value} ({control['positions'][value]}) sent" + ("" if confirmed else ", not confirmed"))
         return True, "", confirmed
     position = next((p for p in control["positions"] if p["value"] == value and not isinstance(value, bool)), None)
