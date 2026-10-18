@@ -38,7 +38,7 @@ To settle with DCS-BIOS (phase 3) or in DCS (phase 7):
 | --- | --- | --- | --- | --- |
 | 0 | Scope and layout | user, Claude | Decisions above | done |
 | 1 | Collect sources | user, Claude | Table above | manual and DCS-BIOS done; keybinds and screenshots need the module |
-| 2 | Read the manual: pp. 105–209 (cockpit panels, HOTAS, CDU), 303–311 (UFC, MFCD overview), 482 and 491–503 (HMCS HOTAS, defensive systems), 504–544 (start-up) | Claude | [PANELS.md](PANELS.md): 75 panel sections; [STARTUP.md](STARTUP.md): cold start in 164 steps | done |
+| 2 | Read the manual: pp. 105–209 (cockpit panels, HOTAS, CDU), 303–311 (UFC, MFCD overview), 482 and 491–503 (HMCS HOTAS, defensive systems), 504–544 (start-up) | Claude | [PANELS.md](PANELS.md): 66 panel sections; [STARTUP.md](STARTUP.md): cold start in 164 steps | done |
 | 3 | Match with DCS-BIOS | Claude | Per panel: DCS-BIOS identifier of each control; gaps (keybind or `list_indication` candidates) | open |
 | 4 | Reference pictures per planned panel page | Claude, then user (screenshots) | Pictures outside the repo; list of panels that need screenshots | open |
 | 5 | Compare with the engine | Claude | List of engine changes, each with a user decision: single seat (no CP/G), MFCD / CDU / UFC drawings, export script arguments, trim display | open |
