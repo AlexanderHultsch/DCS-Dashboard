@@ -20,6 +20,7 @@ A "not confirmed" reply is fine (the simulator does not move switches). _ACFT_NA
 Prints PASS / FAIL / SKIP per control; exit code 1 if any control fails.
 """
 import ast
+import importlib
 import json
 import os
 import socket
@@ -275,10 +276,40 @@ def check_one(sock: socket.socket, control: dict) -> tuple[str, str]:
     return "PASS", f"{json.dumps(body)} -> {hit[0]}" + ("" if reply.get("confirmed") else " (not confirmed)")
 
 
+def aircraft_name(dcs_name: str) -> str | None:
+    sys.path.insert(0, str(REPO / "core"))
+    sys.path.insert(0, str(REPO / "aircraft"))
+    for path in sorted((REPO / "aircraft").glob("*.py")):
+        module = importlib.import_module(path.stem)
+        if dcs_name in module.DCS_NAMES:
+            return module.NAME
+    return None
+
+
+def switch_aircraft() -> bool:
+    name = aircraft_name(ACFT)
+    if name is None:
+        print(f"no file in aircraft/ lists {ACFT} in DCS_NAMES", file=sys.stderr)
+        return False
+    sim(f"_ACFT_NAME={ACFT}", *([] if SEAT is None else [f"SEAT_POSITION={SEAT}"]))
+    deadline = time.monotonic() + 10
+    seen = None
+    while time.monotonic() < deadline:
+        with urllib.request.urlopen(BRIDGE + "/state", timeout=15) as reply:
+            seen = json.loads(reply.read())["aircraft"]
+        if seen == name:
+            return True
+        time.sleep(0.2)
+    print(f"the bridge does not switch to {ACFT} ({name}) within 10 s, /state shows {seen}", file=sys.stderr)
+    return False
+
+
 def main(names: list[str]) -> int:
     if not names:
         print(__doc__)
         return 2
+    if not switch_aircraft():
+        return 1
     with urllib.request.urlopen(BRIDGE + "/layout", timeout=15) as reply:
         layout = json.loads(reply.read())
     views = {}
