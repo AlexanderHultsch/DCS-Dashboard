@@ -703,4 +703,6 @@ MPD_SEATS = {0: (7, 9), 1: (11, 13)}
 
 TRIM_RELEASED = 2
 
-SEAT_NAMES = {0: "PLT", 1: "CPG"}
+SEATS = [{"prefix": "PLT", "label": "PILOT"}, {"prefix": "CPG", "label": "CP/G"}]
+SEAT_OUTPUT = "SEAT_POSITION"
+TRIM_SWITCH = "{seat}_CYCLIC_TRIM_UD"

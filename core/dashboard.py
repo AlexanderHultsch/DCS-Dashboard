@@ -34,7 +34,6 @@ STICK_DIGITAL = 0.3
 CONTROLS_STALE = 3
 TRIM_POLL = 0.05
 
-SEAT = "SEAT_POSITION"
 INDEX = Path(__file__).resolve().parent / "web" / "index.html"
 ICON = Path(__file__).resolve().parent / "web" / "apple-touch-icon.png"
 SETTINGS_FILE = config.ROOT / "config" / "settings.json"
@@ -61,17 +60,17 @@ cmd_sock = None
 
 
 def expand(name: str, seat: int) -> str:
-    return name.replace("{seat}", ac.SEAT_NAMES[seat])
+    return name.replace("{seat}", ac.SEATS[seat]["prefix"])
 
 
 def expand_all(name: str) -> list[str]:
     if "{seat}" in name:
-        return [expand(name, seat) for seat in ac.SEAT_NAMES]
+        return [expand(name, seat) for seat in range(len(ac.SEATS))]
     return [name]
 
 
 def read_names() -> list[str]:
-    names = [SEAT]
+    names = [ac.SEAT_OUTPUT] if ac.SEAT_OUTPUT else []
     for view in ac.VIEWS:
         for lamp in view["lamps"]:
             names += expand_all(lamp["id"])
@@ -126,10 +125,13 @@ def reader(sock: socket.socket) -> None:
 
 
 def track_trim() -> None:
+    if not ac.TRIM_SWITCH:
+        return
     now = time.monotonic()
     fresh = control_packet is not None and now - control_packet <= CONTROLS_STALE
-    for prefix in ac.SEAT_NAMES.values():
-        current = read(f"{prefix}_CYCLIC_TRIM_UD")
+    for seat in range(len(ac.SEATS)):
+        prefix = ac.SEATS[seat]["prefix"]
+        current = read(expand(ac.TRIM_SWITCH, seat))
         if current is None:
             continue
         before = trim_switch.get(prefix)
@@ -153,9 +155,9 @@ def trim_reset_watcher() -> None:
         pressed = keys.is_pressed(combo) and title in keys.foreground_title()
         if pressed and not was_pressed:
             with lock:
-                seat = read(SEAT)
-                if seat in ac.SEAT_NAMES:
-                    prefix = ac.SEAT_NAMES[seat]
+                seat = current_seat()
+                if seat in range(len(ac.SEATS)):
+                    prefix = ac.SEATS[seat]["prefix"]
                     trim[prefix] = {"pitch": 0.0, "roll": 0.0, "pedals": 0.0, "reset": True, "time": time.monotonic()}
                     log.line("dash", "trim", f"{prefix} reset")
         was_pressed = pressed
@@ -217,6 +219,12 @@ def read(name: str):
     return dcsbios.read_value(state, outputs[name])
 
 
+def current_seat():
+    if ac.SEAT_OUTPUT:
+        return read(ac.SEAT_OUTPUT)
+    return 0 if last_packet is not None else None
+
+
 def load_settings() -> dict:
     result = {"logging": True}
     try:
@@ -262,13 +270,13 @@ def snapshot() -> dict:
         now = time.monotonic()
         age = None if last_packet is None else round(now - last_packet, 1)
         controls_age = None if control_packet is None else round(now - control_packet, 1)
-        seat = read(SEAT)
+        seat = current_seat()
         left, right = ac.MPD_SEATS.get(seat, (None, None))
         received = [mpd_times[n] for n in (left, right) if n in mpd_times]
         return {
             "seat": seat,
             "age": age,
-            "values": {name: read(name) for name in outputs if name != SEAT},
+            "values": {name: read(name) for name in outputs if name != ac.SEAT_OUTPUT},
             "controls": dict(control_values),
             "controls_age": controls_age,
             "mpd_labels": {
@@ -465,14 +473,14 @@ def command(body: dict) -> tuple[bool, str, bool | None]:
 
 def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | None]:
     with lock:
-        seat = read(SEAT)
+        seat = current_seat()
     control, view = find_control(identifier, seat)
     if control is None:
         return False, "unknown control", None
     if seat is None:
         return False, "no DCS data", None
     if seat not in view["seats"] or seat not in control.get("seats", view["seats"]):
-        return False, "CP/G seat: read only" if seat == 1 else "pilot seat: read only", None
+        return False, f"{ac.SEATS[seat]['label']} seat: read only", None
     if body.get("guard") == "open":
         if not control.get("guard"):
             return False, "not guarded", None
@@ -664,8 +672,11 @@ def load_aircraft(value: str):
 
 
 def needed_keys() -> list[str]:
-    names = [f"power_{side}_{step}" for side in ("left", "right") for step in LEVER_KEYS.values()]
-    names.append("trim_reset")
+    names = []
+    if any(control["type"] == "lever" for view in ac.VIEWS for control in view["controls"]):
+        names += [f"power_{side}_{step}" for side in ("left", "right") for step in LEVER_KEYS.values()]
+    if ac.TRIM_SWITCH:
+        names.append("trim_reset")
     for view in ac.VIEWS:
         for control in view["controls"]:
             if control["type"] == "key":
@@ -712,7 +723,8 @@ def main() -> None:
     threading.Thread(target=reader, args=(bios_sock,), daemon=True).start()
     if export_sock:
         threading.Thread(target=export_reader, args=(export_sock,), daemon=True).start()
-    threading.Thread(target=trim_reset_watcher, daemon=True).start()
+    if ac.TRIM_SWITCH:
+        threading.Thread(target=trim_reset_watcher, daemon=True).start()
     threading.Thread(target=cover_watcher, daemon=True).start()
     log.line("bridge", "start", f"dashboard on port {port}, DCS-BIOS {group}:{export_port}, commands to port {command_port}")
     print(f"Open http://{lan_ip()}:{port} on the tablet")
