@@ -548,6 +548,11 @@ body.settings-open #gear { display: none; }
   </header>
   <div id="setbody">
     <div class="panel">
+      <div class="title">AIRCRAFT</div>
+      <div class="seg" id="acftseg"></div>
+      <div class="help" id="acfthelp"></div>
+    </div>
+    <div class="panel">
       <div class="title">LOGGING</div>
       <div class="seg" id="logseg"></div>
       <div class="help">Writes logs\dcs-dashboard.log on the PC.</div>
@@ -606,8 +611,6 @@ const TAB_KEY = 'dcs-dashboard-tab';
 const WAKE_KEY = 'dcs-dashboard-wake';
 const MPD_KEY = 'dcs-dashboard-mpd';
 const UNREACHABLE = 'bridge not reachable';
-const SEAT_PREFIX = ['PLT', 'CPG'];
-const SEAT_LABEL = ['PILOT', 'CP/G'];
 const BADGES = {
   nodata: { text: 'NO DCS DATA', cls: 'bad' },
   offline: { text: 'BRIDGE OFFLINE', cls: 'bad' },
@@ -717,6 +720,8 @@ const KU_GUIDES = [[468, 152, 468, 420], [255, 422, 665, 422], [255, 422, 255, 4
 const KU_SCREWS = [[42, 60], [706, 60], [42, 522], [706, 522]];
 
 let views = [];
+let layoutAircraft = null;
+let seats = [];
 let activeIndex = 0;
 let lamps = [];
 let controls = [];
@@ -737,6 +742,8 @@ let bar = null;
 let chooser = null;
 let serverSettings = null;
 let loggingPending = null;
+let aircraftPending = null;
+let acftButtons = [];
 let wakeWanted = false;
 let wakeLock = null;
 
@@ -799,9 +806,12 @@ function makeStream(gap, post) {
   };
 }
 
+function seatPrefix() {
+  return (seats[current.seat] || seats[0]).prefix;
+}
+
 function resolve(name) {
-  const prefix = SEAT_PREFIX[current.seat] || SEAT_PREFIX[0];
-  return name.replace(/\{seat\}/g, prefix);
+  return name.replace(/\{seat\}/g, seatPrefix());
 }
 
 function activeSeat() {
@@ -828,7 +838,7 @@ function viewIndex(name) {
 
 function loadTab() {
   try {
-    const i = viewIndex(localStorage.getItem(TAB_KEY));
+    const i = viewIndex(localStorage.getItem(TAB_KEY + ':' + layoutAircraft));
     if (i >= 0) return i;
   } catch (e) { /* storage not available, use the first view */ }
   return 0;
@@ -836,7 +846,7 @@ function loadTab() {
 
 function saveTab(name) {
   try {
-    localStorage.setItem(TAB_KEY, name);
+    localStorage.setItem(TAB_KEY + ':' + layoutAircraft, name);
   } catch (e) { /* storage not available, the choice is not remembered */ }
 }
 
@@ -904,16 +914,15 @@ async function run(c, body, target) {
 
 function statusOf(s) {
   if (s.seat === null || s.age === null || s.age > STALE_S) return 'nodata';
-  if (s.seat === 0 || s.seat === 1) return 'live';
-  return 'nodata';
+  return typeof s.seat === 'number' && seats[s.seat] ? 'live' : 'nodata';
 }
 
 function renderBadge() {
   let b = BADGES[current.status];
   if (debugSeat !== null) {
-    b = { text: 'DEBUG ' + SEAT_LABEL[debugSeat], cls: 'ro' };
+    b = { text: 'DEBUG ' + seats[debugSeat].label, cls: 'ro' };
   } else if (!b) {
-    const seat = SEAT_LABEL[current.seat];
+    const seat = seats[current.seat].label;
     b = usable() ? { text: seat, cls: 'ok' } : { text: seat + ' – READ ONLY', cls: 'ro' };
   }
   const el = document.getElementById('seat');
@@ -1095,7 +1104,7 @@ function buildTrim(def) {
   const show = (e, on) => { e.style.display = on ? '' : 'none'; };
   const c = { def, el: panel };
   c.update = () => {
-    const prefix = (SEAT_PREFIX[current.seat] || SEAT_PREFIX[0]).toLowerCase();
+    const prefix = seatPrefix().toLowerCase();
     const t = current.trim[prefix];
     const set = !!t && typeof t.pitch === 'number' && typeof t.roll === 'number' && typeof t.pedals === 'number';
     show(el.none, !set);
@@ -2271,7 +2280,7 @@ function mpdLabel(pb) {
 
 function loadMpdSide() {
   try {
-    const side = localStorage.getItem(MPD_KEY);
+    const side = localStorage.getItem(MPD_KEY + ':' + layoutAircraft);
     if (side === 'R' || side === 'T') return side;
   } catch (e) { /* storage not available, start on the left MPD */ }
   return 'L';
@@ -2279,7 +2288,7 @@ function loadMpdSide() {
 
 function saveMpdSide(side) {
   try {
-    localStorage.setItem(MPD_KEY, side);
+    localStorage.setItem(MPD_KEY + ':' + layoutAircraft, side);
   } catch (e) { /* storage not available, the choice is not remembered */ }
 }
 
@@ -2742,6 +2751,7 @@ function holdPress(el, ms, action) {
 }
 
 function cycleDebugSeat() {
+  if (seats.length < 2) return;
   const real = current.status === 'live' ? realSeat : null;
   const order = real === null ? [null, 1, 0] : [null, 1 - real];
   debugSeat = order[(order.indexOf(debugSeat) + 1) % order.length];
@@ -2816,9 +2826,9 @@ function setWake(on) {
   applyWake(true);
 }
 
-function buildSeg(box, onPick) {
-  return [false, true].map((value) => {
-    const btn = make('button', 'pos', value ? 'ON' : 'OFF');
+function buildSeg(box, onPick, items = [['OFF', false], ['ON', true]]) {
+  return items.map(([label, value]) => {
+    const btn = make('button', 'pos', label);
     btn.type = 'button';
     btn.addEventListener('click', () => onPick(value));
     box.append(btn);
@@ -2850,8 +2860,37 @@ async function setLogging(on) {
   renderSettings();
 }
 
+async function setAircraft(mode) {
+  if (!serverSettings || aircraftPending !== null || serverSettings.aircraft_mode === mode) return;
+  aircraftPending = mode;
+  renderSettings();
+  try {
+    const r = await fetch('/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aircraft: mode }),
+    });
+    if (r.ok) {
+      serverSettings = await r.json();
+    } else {
+      let message = 'error ' + r.status;
+      try { message = (await r.json()).error || message; } catch (e) { /* keep the status text */ }
+      toast(message);
+    }
+  } catch (e) {
+    toast(UNREACHABLE);
+  }
+  aircraftPending = null;
+  renderSettings();
+}
+
 function renderSettings() {
   const known = !!serverSettings;
+  acftButtons.forEach(([btn, value]) => {
+    btn.classList.toggle('cur', known && serverSettings.aircraft_mode === value);
+    btn.classList.toggle('pending', aircraftPending === value);
+    btn.setAttribute('aria-disabled', String(!known || aircraftPending !== null));
+  });
   logButtons.forEach(([btn, value]) => {
     btn.classList.toggle('cur', known && serverSettings.logging === value);
     btn.classList.toggle('pending', loggingPending === value);
@@ -2866,6 +2905,9 @@ function renderSettings() {
     ? 'Stops the tablet from dimming and locking.'
     : 'Not supported on this device.';
   const none = serverSettings === false ? UNREACHABLE : '';
+  document.getElementById('acfthelp').textContent = known
+    ? 'Detected in DCS: ' + (serverSettings.detected || 'none') + '. Active: ' + serverSettings.aircraft + '.'
+    : none;
   document.getElementById('info-saved').textContent = known ? serverSettings.saved_games : none;
   document.getElementById('info-address').textContent = known ? serverSettings.address : none;
 }
@@ -2877,6 +2919,9 @@ async function openSettings() {
   renderSettings();
   try {
     serverSettings = await getJson('/settings');
+    const box = document.getElementById('acftseg');
+    box.replaceChildren();
+    acftButtons = buildSeg(box, setAircraft, [['AUTO', 'auto'], ...serverSettings.aircraft_names.map((n) => [n, n])]);
   } catch (e) {
     serverSettings = false;
   }
@@ -2891,6 +2936,10 @@ function closeSettings() {
 async function poll() {
   try {
     const s = await getJson('/state');
+    if (s.aircraft !== layoutAircraft) {
+      location.reload();
+      return;
+    }
     realSeat = s.seat;
     current = { status: statusOf(s), seat: activeSeat(), values: s.values || {}, controls: s.controls || {}, controlsAge: s.controls_age, trim: s.trim || {}, mpdLabels: s.mpd_labels || null };
   } catch (e) {
@@ -2906,7 +2955,10 @@ async function init() {
   applyWake(false);
   for (;;) {
     try {
-      views = (await getJson('/layout')).views;
+      const layout = await getJson('/layout');
+      views = layout.views;
+      layoutAircraft = layout.aircraft;
+      seats = layout.seats;
       break;
     } catch (e) {
       await sleep(1000);
