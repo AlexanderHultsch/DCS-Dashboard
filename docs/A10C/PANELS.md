@@ -960,3 +960,72 @@ Where: Both MFCDs; bezel controls are in the sections on pp. 121 and 144. This s
 - Changing links: hold a bottom OSB for more than 1 s to open the DP page (p. 311).
 - DP page figure: left side lists TAD, TGP, DSMS, MSG, CDU; right side lists STAT, LOAD, MAV, CLR; how a choice is assigned to a slot is not stated.
 - Top OSB row: its use for page selection is not stated on pp. 309 to 311.
+
+## Defensive systems
+
+### Countermeasure Signal Processor (CMSP) Panel (p. 491)
+
+Where: Forward end of the right console, inboard column, top (item 5 on p. 185; figure on p. 491); items numbered as in the manual. One DISP switch serves both chaff and flare; a separate OTR1 count appears on its page.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 3. Display, upper line | display | 16 characters in 4 segments of 4; test view: OFF or RDY per system; DISP on: counts for chaff, flare, OTR1, program; MENU: values for chaff, flare, interval, cycles | green characters | Count flashes while dispensing; text calls this the status line |
+| 3. Display, lower line | display | labels under the segments: MWS, JMR, RWR, DISP; DISP on: CHAF, FLAR, OTR1, PROG; MENU: CHAF, FLAR, INTV, CYCL | green characters | Text says inventory sits on the second line; figures show it above |
+| 4. SET button, segment 1 (left) | button | press | none | Selects the field under MWS; in MENU, the CHAF field |
+| 4. SET button, segment 2 | button | press | none | Selects the field under JMR; in MENU, the FLAR field |
+| 4. SET button, segment 3 | button | press | none | Selects the field under RWR; in MENU, the INTV field |
+| 4. SET button, segment 4 (right) | button | press | none | Selects the field under DISP; in MENU, the CYCL field |
+| 5. NXT switch | rocker | up; down | none | Changes selected value or program; up on last program adds a copy |
+| 6. RTN button | button | press | none | Saves program; second press leaves MENU |
+| 7. JTSN switch | toggle | JTSN (up); OFF (down, normal) | none | Up dumps all chaff and flares |
+| 8. BRT knob | knob | turn; stops not stated | none | Lights the panel labels |
+| 2. System switch, MWS | toggle | MENU (up); ON (middle); OFF (down) | none | Powers MWS detectors; MENU has no function |
+| 2. System switch, JMR | toggle | MENU (up); ON (middle); OFF (down) | none | Powers the ECM jammer; MENU has no function |
+| 2. System switch, RWR | toggle | MENU (up); ON (middle); OFF (down) | none | Powers the RWR; MENU starts RWR test mode |
+| 2. System switch, DISP | toggle | MENU (up); ON (middle); OFF (down) | RDY for 5 s after ON | MENU is momentary per text; programming mode |
+| 1. Mode select dial | rotary | OFF: all CMS dark and dead; STBY: powered and editable, no dispensing, ECM or MWS action; MAN: you run chaff/flare and ECM, MWS only indicates; SEMI: system picks program, you start and stop, ECM needs consent; AUTO: system picks and runs chaff/flare, ECM and MWS releases | status on CMSP and CMSC displays | Five positions; figure order OFF, STBY, MAN, SEMI, AUTO clockwise |
+
+Activate a program (p. 496):
+- Pick the program letter with NXT on the CMSP, or CMS left and right on the stick; the CMSC shows the letter.
+- MAN or SEMI: CMS forward starts the program, CMS aft stops it.
+- AUTO: no control over program choice or start.
+- The stick directions are as printed on p. 496; the Control Stick section (p. 106) gives different ones.
+
+Edit a program (p. 496):
+- NXT to select the program; new program: NXT up on the last one copies it to the next letter.
+- DISP switch up to MENU.
+- SET under CHAF, FLAR, INTV or CYCL; the value flashes.
+- NXT changes it (interval .25 to 5 s in .25 steps, cycles 1 to 99).
+- RTN saves; RTN again leaves MENU.
+
+### CMSC operation (p. 497)
+
+Where: The CMSC of p. 136 (figure 300 on p. 497). Every control already has a row there; this adds what pp. 497 to 499 say about them.
+
+- BRT knob: lights the panel labels. AUD knob: RWR audio volume; each radar gets its own tone from its pulse repetition frequency.
+- JMR window: up to 8 characters; left half is state OFF, SBY or OPR, right half is the jammer program AIR, SAM1, SAM2 or AAA (air radars; older SAMs such as SA-3, SA-6, SA-8; newer SAMs such as SA-10, SA-11, SA-15; radar guns such as ZSU-23-4).
+- JMR button (upper arrow): cycles jammer programs in MAN and SEMI. The stick CMS switch also picks programs and toggles SBY and OPR.
+- JMR behaviour: search or acquisition keeps SBY; a tracking lock moves to OPR (program auto-picked in SEMI and AUTO; ECM consent in SEMI per p. 492), the field flashes, and it returns to SBY when the lock ends.
+- MWS window: ACTIVE when powered, OFF when not, LAUNCH on a detected missile launch. The lower arrow button is not described.
+- CHAFF-FLARE window: 8 characters. Left letter is the dispenser program A to Z; chaff count (default 240) then underlined mode letter (X standby, M manual, S semi, A auto) then flare count (default 120).
+- Counts: LOW at 50 or fewer, N/L at zero, OFF when the DISP switch is OFF; a diamond in the middle blinks per release and stays on during continuous release.
+- PRI button: toggles OPEN (16 highest-priority symbols on the RWR) and PRI (5 highest); the green lamp above the button is lit in PRI.
+- SEP button: pushes grouped RWR symbols apart radially so they read separately; toggle behaviour not stated. UNK button: no function; the lamp above it is not described.
+- ML lamp: red, flashes when the RWR or MWS detects a missile launch near you, with a launch tone.
+
+### ALR-69(V) Radar Warning Receiver (RWR) (p. 500)
+
+Where: Left front dash scope of p. 115 (figure 301 on p. 500). Its controls sit on the CMSC (above) and the CMSP RWR switch.
+
+- Plan view, own aircraft at the centre; icon angle is the bearing, distance from the centre is signal strength (closer usually means nearer radar), not true range.
+- Normal: centre dot, four noise bars forming a cross, and a vertical timer line flashing up and down at the end of the right bar. An F replacing the centre dot means unreliable data.
+- Symbol states: no ring is search or acquisition (new-threat tone); steady ring is tracking or lock (lock tone); flashing ring is a radar supporting a missile launched at you (launch tone, ML lamp).
+- M: MWS launch on its azimuth, kept 10 s after burnout; cannot tell friendly from enemy or air from ground launches. L: laser illumination, shown while it lasts.
+- Ground: A Gepard and ZSU-23-4; S6 2S6; 3, 6, 8, 13, 15 SA-3, SA-6, SA-8, SA-13, SA-15; 10 SA-10 track, CS SA-10 low-altitude search, BB SA-10 search; 11 SA-11/17 track, SD SA-11/17 search; DE Dog Ear; RO Roland; PA Patriot; HA I-HAWK; S early warning or GCI.
+- Air: E3, E2, 50 AWACS (E-3A, E-2C, A-50U); 23 MiG-23ML; 25 MiG-25PD; 29 MiG-29, Su-27, Su-33; 31 MiG-31; 30 Su-30; 34 Su-34; M2 Mirage 2000-5; F4, F5, 14, 15, 16, 18 the matching Western fighters.
+- Priority marks: none described; the PRI and OPEN limits above are the only priority handling stated.
+- Controls: power and test on the CMSP RWR switch; AUD, PRI, SEP on the CMSC. A round button marked INT sits top left of the scope in the figure; the text does not describe it.
+
+### HMCS HOTAS Controls (p. 482)
+
+Every DMS and TMS function listed on pp. 482 and 483 is already in the Control Stick (p. 106) and Throttles (p. 111) sections under the HMCS columns; nothing is added here.
