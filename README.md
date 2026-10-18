@@ -78,6 +78,7 @@ The gear button at the bottom right opens the settings: logging on or off, keep 
 start_dashboard.bat   starts the dashboard
 core/                 the generic bridge: web server, DCS-BIOS, keys, config, log, panel layout kit,
                       the HTML page (web/), the DCS export script (lua/), the layout checker (tools/, for developers only)
+core/tools/test/      developer test kit: test bridge with a fake keyboard, DCS-BIOS simulator, page checks (for developers only)
 aircraft/ah64d.py     everything specific to the AH-64D: views, controls, labels, default keybinds
 aircraft/a10c.py      everything specific to the A-10C II: panel pages, views, controls, labels
 config/               config.example.toml (config.toml and settings.json are local and ignored)

@@ -51,6 +51,7 @@ core/                      generic infrastructure
   web/                     index.html (the page: HTML, CSS and JavaScript in one file), apple-touch-icon.png
   lua/                     DCS-Dashboard-Export.lua (DCS-side export script)
   tools/                   check_panels.js (layout checker, run in the browser console)
+    test/                  developer test kit (test bridge with a fake keyboard, DCS-BIOS simulator, page checks; see its README.md)
 aircraft/ah64d.py          all AH-64D data: views, controls, labels, MPD indications, trim data, default keybinds
 aircraft/a10c.py           all A-10C II data: panel pages, views, controls, labels
 config/                    config.example.toml (tracked); config.toml (optional, ignored: machine settings and
