@@ -1,6 +1,6 @@
 # DCS-Dashboard
 
-A tablet dashboard for the **AH-64D Apache** and the **A-10C II Tank Killer** in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Touch panels replace keyboard combinations and mouse clicks for cockpit commands.
+A tablet dashboard for the **AH-64D Apache** and the **A-10C II Tank Killer** (under development) in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Touch panels replace keyboard combinations and mouse clicks for cockpit commands.
 
 The AH-64D has these tabs:
 
@@ -17,12 +17,12 @@ The A-10C II has these tabs:
 
 The dashboard follows the aircraft DCS reports and, in the AH-64D, the seat you are in; a long hold on the seat badge shows the pages of the other seat, view only, for debugging. Everything is plain Python (standard library only) and one HTML file. Full description: the engine in [docs/SPEC.md](docs/SPEC.md), the AH-64D in [docs/AH64D/SPEC.md](docs/AH64D/SPEC.md), the A-10C II in [docs/A10C/SPEC.md](docs/A10C/SPEC.md).
 
-**Status:** the cold start from the tablet works in DCS. The AH-64D panel pages, FLIGHT, FIGHT, MPD and KU, and everything of the A-10C II, are tested against a simulated DCS-BIOS and are waiting for a full test run in DCS. Open points: [docs/FIXES.md](docs/FIXES.md).
+**Status:** the AH-64D is mature and tested in DCS. The A-10C II is under development: it is tested only against a simulated DCS-BIOS, and its keypress controls are not built yet. Open points: [docs/FIXES.md](docs/FIXES.md).
 
 ## Aircraft
 
-- **AH-64D Apache** (pilot and CP/G seat): supported. Specification: [docs/AH64D/SPEC.md](docs/AH64D/SPEC.md).
-- **A-10C II Tank Killer**: supported, tested only against a simulated DCS-BIOS, not yet in DCS. The controls that need a keypress (speed brake, trim, nosewheel steering, the HOTAS hats) are not built yet: the A-10C default keybinds are not known until they are exported from DCS. Specification: [docs/A10C/SPEC.md](docs/A10C/SPEC.md); research and plan: [docs/A10C/RESEARCH.md](docs/A10C/RESEARCH.md).
+- **AH-64D Apache** (pilot and CP/G seat): mature and tested. Specification: [docs/AH64D/SPEC.md](docs/AH64D/SPEC.md).
+- **A-10C II Tank Killer**: under development, tested only against a simulated DCS-BIOS, not yet in DCS. The controls that need a keypress (speed brake, trim, nosewheel steering, the HOTAS hats) are not built yet: the A-10C default keybinds are not known until they are exported from DCS. Specification: [docs/A10C/SPEC.md](docs/A10C/SPEC.md); research and plan: [docs/A10C/RESEARCH.md](docs/A10C/RESEARCH.md).
 
 The bridge loads every aircraft file and follows the aircraft that DCS-BIOS reports, so you can fly one after the other without a restart; the page reloads when the aircraft changes. The settings page has an AIRCRAFT switch (AUTO or one button per aircraft) for debugging. The engine that all aircraft share is described in [docs/SPEC.md](docs/SPEC.md).
 
@@ -70,7 +70,7 @@ The GEORGE tab uses its own keys (`LCtrl+LAlt` plus a letter), which are not DCS
 | AH-64D George AI Helper | George AI - Hide | `LCtrl+LAlt+H` |
 | AH-64D George AI Helper | George AI - Up / Down / Left / Right | `LCtrl+LAlt+I` / `K` / `J` / `L` |
 
-The gear button at the bottom right opens the settings: logging on or off, keep the tablet screen on, the aircraft (AUTO or one aircraft), and information such as the detected DCS folder and aircraft. The iPad cannot lock the rotation from a web page; use the rotation lock in Control Center.
+The gear button at the bottom right opens the settings: logging on or off, keep the tablet screen on, the aircraft (AUTO or one aircraft), information such as the detected DCS folder and aircraft, and a REPORT A BUG button that opens the issue page of the project on GitHub. The iPad cannot lock the rotation from a web page; use the rotation lock in Control Center.
 
 ## Repository
 

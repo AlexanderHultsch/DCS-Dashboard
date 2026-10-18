@@ -76,4 +76,4 @@ From the build (phase 8), to check in DCS:
 | 5 | Compare with the engine | Claude, user decides | [ENGINE.md](ENGINE.md): 10 changes E1–E10, all decided and built (automatic aircraft choice with a manual switch, seats per aircraft, hand-drawn MFCD / CDU / UFC, A-10C-specific look, docs first) | done |
 | 6 | A-10C spec | Claude writes, user reviews | [SPEC.md](SPEC.md): 5 tabs, COCKPIT map with 23 panel pages, FLIGHT, FIGHT (HOTAS key hats), MFCD, CDU / UFC, lamp row, keybind names, engine behaviour, look, test run; 4 more screenshots needed | done (approved 2026-10-18: decisions as written, plus scroll pages, ENGINE.md E10) |
 | 7 | Research in DCS (needs the module) | user flies, Claude analyses | Read test and control sweep adapted from the `research-v1` tag; export arguments and MFCD indication numbers | open |
-| 8 | Build plan and build | Claude delegates | Verified steps | built except the keypress controls; phase 7 (DCS research, keybinds, screenshots) open |
+| 8 | Build plan and build | Claude delegates | Verified steps | under development: built except the keypress controls; phase 7 (DCS research, keybinds, screenshots) open |

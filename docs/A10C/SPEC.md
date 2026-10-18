@@ -1,6 +1,6 @@
 # DCS-Dashboard – A-10C II
 
-Specification of the A-10C II Tank Killer dashboard as built, except the keypress controls, which wait for the A-10C keybinds (section 8). It is tested only against a simulated DCS-BIOS, not yet in DCS. The engine all aircraft share is in [../SPEC.md](../SPEC.md); the engine changes this aircraft needs and their decisions are in [ENGINE.md](ENGINE.md). Controls are named as in [PANELS.md](PANELS.md), DCS-BIOS identifiers are in [BIOS.md](BIOS.md), reference pictures in [PICTURES.md](PICTURES.md), the cold start in [STARTUP.md](STARTUP.md).
+Specification of the A-10C II Tank Killer dashboard as built, except the keypress controls, which wait for the A-10C keybinds (section 8). It is under development and tested only against a simulated DCS-BIOS, not yet in DCS. The engine all aircraft share is in [../SPEC.md](../SPEC.md); the engine changes this aircraft needs and their decisions are in [ENGINE.md](ENGINE.md). Controls are named as in [PANELS.md](PANELS.md), DCS-BIOS identifiers are in [BIOS.md](BIOS.md), reference pictures in [PICTURES.md](PICTURES.md), the cold start in [STARTUP.md](STARTUP.md).
 
 ## 1. Overview
 

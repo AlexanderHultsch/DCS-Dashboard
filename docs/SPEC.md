@@ -6,7 +6,7 @@ The specification of the product as built, for the engine that all aircraft shar
 
 A self-made helper dashboard on a tablet (iPad) for aircraft in DCS World. It replaces keyboard combinations and mouse clicks for cockpit commands and shows the cockpit state. Flying itself stays on stick, collective and pedals. It is an open-source hobby project.
 
-Aircraft: the AH-64D (pilot and CP/G seat) is supported, see [AH64D/SPEC.md](AH64D/SPEC.md); the A-10C II is supported except its keypress controls, and tested only against a simulated DCS-BIOS, see [A10C/SPEC.md](A10C/SPEC.md). The bridge serves the aircraft that DCS reports, see [Several aircraft](#9-several-aircraft). For the AH-64D the dashboard shows a COCKPIT map with one page per cockpit panel, quick pages for flight and fight, both MPDs, the TEDAC, the KU and direct buttons for George, the AI crew member.
+Aircraft: the AH-64D (pilot and CP/G seat) is mature and tested, see [AH64D/SPEC.md](AH64D/SPEC.md); the A-10C II is under development (built except its keypress controls, tested only against a simulated DCS-BIOS), see [A10C/SPEC.md](A10C/SPEC.md). The bridge serves the aircraft that DCS reports, see [Several aircraft](#9-several-aircraft). For the AH-64D the dashboard shows a COCKPIT map with one page per cockpit panel, quick pages for flight and fight, both MPDs, the TEDAC, the KU and direct buttons for George, the AI crew member.
 
 Principles:
 
@@ -26,7 +26,7 @@ Public repo rules:
 
 | Topic | Decision |
 | --- | --- |
-| Aircraft | One file per aircraft in `aircraft/`, see [section 8](#8-the-bridge-interface); AH-64D built (pilot and CP/G seat), A-10C II built except its keypress controls; the bridge follows the aircraft DCS reports |
+| Aircraft | One file per aircraft in `aircraft/`, see [section 8](#8-the-bridge-interface); AH-64D mature and tested (pilot and CP/G seat), A-10C II under development (built except its keypress controls); the bridge follows the aircraft DCS reports |
 | Game mode | Single player only |
 | Platform | DCS World on Windows (Steam or standalone), Python 3.12 or newer; tablet and PC share the local network |
 | Language | Python for the bridge; plain HTML, CSS and JavaScript for the dashboard (no framework, no external files); Lua only for the small DCS-side export script |
