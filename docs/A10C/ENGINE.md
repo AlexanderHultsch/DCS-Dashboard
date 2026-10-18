@@ -84,12 +84,12 @@ Today: the cockpit arguments 470–478 (stick and pedal positions) and the MPD i
 
 | # | Decision | Date |
 | --- | --- | --- |
-| E1 | open | |
+| E1 | Automatic from the DCS-BIOS aircraft name (`_ACFT_NAME`); for debugging the aircraft can also be switched by hand in the settings page | 2026-10-18 |
 | E2 | open | |
 | E3 | open | |
 | E4 | open | |
-| E5 | open | |
-| E6 | open | |
+| E5 | Option A: hand-drawn layouts for MFCD, CDU and UFC, like the AH-64D MPD and KU | 2026-10-18 |
+| E6 | A-10C-specific look for the A-10C panel pages (not the AH-64D plate style) | 2026-10-18 |
 | E7 | open | |
 | E8 | open | |
 | E9 | open | |
