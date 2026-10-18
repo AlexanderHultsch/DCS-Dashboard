@@ -42,6 +42,10 @@ ac = None
 cfg = {}
 settings = {}
 outputs = {}
+aircraft = {}
+aircraft_mode = "auto"
+detected = None
+name_output = None
 state = dcsbios.new_state()
 lock = threading.Lock()
 command_lock = threading.Lock()
@@ -63,50 +67,50 @@ def expand(name: str, seat: int) -> str:
     return name.replace("{seat}", ac.SEATS[seat]["prefix"])
 
 
-def expand_all(name: str) -> list[str]:
+def expand_all(name: str, a) -> list[str]:
     if "{seat}" in name:
-        return [expand(name, seat) for seat in range(len(ac.SEATS))]
+        return [name.replace("{seat}", seat["prefix"]) for seat in a.SEATS]
     return [name]
 
 
-def read_names() -> list[str]:
-    names = [ac.SEAT_OUTPUT] if ac.SEAT_OUTPUT else []
-    for view in ac.VIEWS:
+def read_names(a) -> list[str]:
+    names = [a.SEAT_OUTPUT] if a.SEAT_OUTPUT else []
+    for view in a.VIEWS:
         for lamp in view["lamps"]:
-            names += expand_all(lamp["id"])
+            names += expand_all(lamp["id"], a)
             if "button" in lamp:
-                names += expand_all(lamp["button"])
+                names += expand_all(lamp["button"], a)
         for lamp in view.get("indicators", []):
-            names += expand_all(lamp["bright"]) + expand_all(lamp["dim"])
+            names += expand_all(lamp["bright"], a) + expand_all(lamp["dim"], a)
         for control in view["controls"]:
             if control["type"] == "lever":
-                names += expand_all(control["readback"])
+                names += expand_all(control["readback"], a)
             elif control["type"] in ("key", "macro"):
                 if "readback" in control:
-                    names += expand_all(control["readback"])
+                    names += expand_all(control["readback"], a)
             elif control["type"] == "hat":
                 if "ud" in control:
-                    names += expand_all(control["ud"])
+                    names += expand_all(control["ud"], a)
                 if "lr" in control:
-                    names += expand_all(control["lr"])
+                    names += expand_all(control["lr"], a)
             elif control["type"] == "controls":
                 if "trim_switch" in control:
-                    names += expand_all(control["trim_switch"])
+                    names += expand_all(control["trim_switch"], a)
             elif control["type"] == "stick":
-                names += expand_all(control["x"]) + expand_all(control["y"])
+                names += expand_all(control["x"], a) + expand_all(control["y"], a)
             elif control["type"] == "display" and "ids" in control:
                 for identifier in control["ids"]:
-                    names += expand_all(identifier)
+                    names += expand_all(identifier, a)
             else:
-                names += expand_all(control.get("bios", control["id"]))
+                names += expand_all(control.get("bios", control["id"]), a)
             if "lamp" in control:
-                names += expand_all(control["lamp"])
+                names += expand_all(control["lamp"], a)
             for lamp in control.get("lamps", []):
-                names += expand_all(lamp["id"])
+                names += expand_all(lamp["id"], a)
             if "cover" in control:
-                names += expand_all(control["cover"])
+                names += expand_all(control["cover"], a)
             if "requires" in control:
-                names += expand_all(control["requires"]["id"])
+                names += expand_all(control["requires"]["id"], a)
     return list(dict.fromkeys(names))
 
 
@@ -121,7 +125,42 @@ def reader(sock: socket.socket) -> None:
                 log.line("bridge", "dcsbios packet skipped", e)
                 continue
             last_packet = time.monotonic()
+            follow_aircraft()
             track_trim()
+
+
+def follow_aircraft() -> None:
+    global detected
+    name = dcsbios.read_value(state, name_output)
+    if name is None or name == detected:
+        return
+    detected = name
+    if aircraft_mode != "auto":
+        return
+    for found, entry in aircraft.items():
+        if name in entry["module"].DCS_NAMES:
+            select_aircraft(found)
+            if settings.get("aircraft") != found:
+                settings["aircraft"] = found
+                save_settings(settings)
+            return
+
+
+def select_aircraft(name: str) -> None:
+    global ac, outputs
+    if ac is not None and ac.NAME == name:
+        return
+    ac = aircraft[name]["module"]
+    outputs = aircraft[name]["outputs"]
+    cfg["keys"] = aircraft[name]["keys"]
+    trim.clear()
+    trim_switch.clear()
+    guard_open.clear()
+    real_cover.clear()
+    mpd_labels.clear()
+    mpd_times.clear()
+    control_values.clear()
+    log.line("bridge", "aircraft", name)
 
 
 def track_trim() -> None:
@@ -147,12 +186,13 @@ def track_trim() -> None:
 
 
 def trim_reset_watcher() -> None:
-    combo = cfg["keys"]["trim_reset"]
     title = cfg["dcs"]["window_title"]
     was_pressed = False
     while True:
         time.sleep(TRIM_POLL)
-        pressed = keys.is_pressed(combo) and title in keys.foreground_title()
+        if ac.TRIM_SWITCH is None:
+            continue
+        pressed = keys.is_pressed(cfg["keys"]["trim_reset"]) and title in keys.foreground_title()
         if pressed and not was_pressed:
             with lock:
                 seat = current_seat()
@@ -245,23 +285,45 @@ def save_settings(data: dict) -> None:
 def settings_reply() -> dict:
     return {
         "logging": settings["logging"],
+        "aircraft": ac.NAME,
+        "aircraft_mode": aircraft_mode,
+        "aircraft_names": list(aircraft),
+        "detected": detected,
         "saved_games": cfg["dcs"]["saved_games"],
         "address": f"http://{lan_ip()}:{cfg['dashboard']['port']}",
     }
 
 
 def change_settings(body: dict) -> bool:
+    global aircraft_mode
     enabled = body.get("logging")
-    if not isinstance(enabled, bool):
+    chosen = body.get("aircraft")
+    if "logging" not in body and "aircraft" not in body:
         return False
-    if enabled:
-        log.set_file_logging(True)
-        log.line("bridge", "settings", "file logging on")
-    else:
-        log.line("bridge", "settings", "file logging off")
-        log.set_file_logging(False)
-    settings["logging"] = enabled
-    save_settings(settings)
+    if "logging" in body and not isinstance(enabled, bool):
+        return False
+    if "aircraft" in body and chosen != "auto" and chosen not in aircraft:
+        return False
+    if "logging" in body:
+        if enabled:
+            log.set_file_logging(True)
+            log.line("bridge", "settings", "file logging on")
+        else:
+            log.line("bridge", "settings", "file logging off")
+            log.set_file_logging(False)
+        settings["logging"] = enabled
+        save_settings(settings)
+    if "aircraft" in body:
+        log.line("bridge", "settings", f"aircraft {chosen}")
+        with lock:
+            aircraft_mode = chosen
+            if chosen != "auto":
+                select_aircraft(chosen)
+            else:
+                for found, entry in aircraft.items():
+                    if detected in entry["module"].DCS_NAMES:
+                        select_aircraft(found)
+                        break
     return True
 
 
@@ -274,6 +336,8 @@ def snapshot() -> dict:
         left, right = ac.MPD_SEATS.get(seat, (None, None))
         received = [mpd_times[n] for n in (left, right) if n in mpd_times]
         return {
+            "aircraft": ac.NAME,
+            "detected": detected,
             "seat": seat,
             "age": age,
             "values": {name: read(name) for name in outputs if name != ac.SEAT_OUTPUT},
@@ -618,7 +682,7 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self.reply(200, "image/png", ICON.read_bytes())
         elif self.path == "/layout":
-            self.reply_json(200, {"views": ac.VIEWS})
+            self.reply_json(200, {"aircraft": ac.NAME, "seats": ac.SEATS, "views": ac.VIEWS})
         elif self.path == "/state":
             self.reply_json(200, snapshot())
         elif self.path == "/settings":
@@ -662,22 +726,18 @@ def lan_ip() -> str:
         sock.close()
 
 
-def load_aircraft(value: str):
-    name = re.sub(r"[^a-z0-9]", "", str(value).lower())
+def load_all() -> list:
     sys.path.insert(0, str(config.ROOT / "aircraft"))
-    try:
-        return importlib.import_module(name)
-    except ImportError:
-        raise SystemExit(f"Unknown aircraft: {value}")
+    return [importlib.import_module(path.stem) for path in sorted((config.ROOT / "aircraft").glob("*.py"))]
 
 
-def needed_keys() -> list[str]:
+def needed_keys(a) -> list[str]:
     names = []
-    if any(control["type"] == "lever" for view in ac.VIEWS for control in view["controls"]):
+    if any(control["type"] == "lever" for view in a.VIEWS for control in view["controls"]):
         names += [f"power_{side}_{step}" for side in ("left", "right") for step in LEVER_KEYS.values()]
-    if ac.TRIM_SWITCH:
+    if a.TRIM_SWITCH:
         names.append("trim_reset")
-    for view in ac.VIEWS:
+    for view in a.VIEWS:
         for control in view["controls"]:
             if control["type"] == "key":
                 names.append(control["key"])
@@ -686,29 +746,54 @@ def needed_keys() -> list[str]:
     return names
 
 
-def check_keys(key_map: dict) -> None:
-    for name in needed_keys():
+def check_keys(key_map: dict, a) -> None:
+    for name in needed_keys(a):
         try:
             keys.parse(key_map[name])
         except (KeyError, ValueError):
             raise SystemExit(f"Invalid {name} key in [keys] of config/config.toml, see config/config.example.toml.")
 
 
+def simple(value: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(value).lower())
+
+
 def main() -> None:
-    global ac, cfg, settings, outputs, cmd_sock
+    global cfg, settings, aircraft_mode, name_output, cmd_sock
     cfg = config.load()
-    ac = load_aircraft(cfg["dcs"].get("aircraft", "AH-64D"))
+    modules = load_all()
     log.setup(cfg["log"])
     settings = load_settings()
     log.set_file_logging(settings["logging"])
     for problem in export.install_problems(cfg["dcs"]["saved_games"]):
         log.line("bridge", "export script", problem)
-    cfg["keys"] = {**ac.KEYS, **cfg.get("keys", {})}
-    check_keys(cfg["keys"])
-    names = read_names()
-    outputs, missing = dcsbios.load_outputs(dcsbios.json_path(cfg["dcs"]["saved_games"], ac.DCSBIOS_MODULE), names)
+    saved_games = cfg["dcs"]["saved_games"]
+    unavailable = []
+    for m in modules:
+        key_map = {**m.KEYS, **cfg.get("keys", {})}
+        check_keys(key_map, m)
+        found, missing = dcsbios.load_outputs(dcsbios.json_path(saved_games, m.DCSBIOS_MODULE), read_names(m))
+        if missing:
+            log.line("bridge", "aircraft", f"{m.NAME} not available, not in DCS-BIOS: {', '.join(missing)}")
+            unavailable += missing
+            continue
+        aircraft[m.NAME] = {"module": m, "outputs": found, "keys": key_map}
+    if not aircraft:
+        raise SystemExit("Not in DCS-BIOS: " + ", ".join(unavailable))
+    found, missing = dcsbios.load_outputs(dcsbios.json_path(saved_games, "MetadataStart"), ["_ACFT_NAME"])
     if missing:
         raise SystemExit("Not in DCS-BIOS: " + ", ".join(missing))
+    name_output = found["_ACFT_NAME"]
+    value = cfg["dcs"]["aircraft"]
+    if simple(value) == "auto":
+        start = settings.get("aircraft")
+        start = start if start in aircraft else next(iter(aircraft))
+    else:
+        start = next((name for name in aircraft if simple(name) == simple(value)), None)
+        if start is None:
+            raise SystemExit(f"Unknown aircraft: {value}")
+        aircraft_mode = start
+    select_aircraft(start)
     group, export_port = cfg["dcs_bios"]["export_multicast"], cfg["dcs_bios"]["export_port"]
     command_port = cfg["dcs_bios"]["command_port"]
     host, port = cfg["dashboard"]["host"], cfg["dashboard"]["port"]
@@ -723,7 +808,7 @@ def main() -> None:
     threading.Thread(target=reader, args=(bios_sock,), daemon=True).start()
     if export_sock:
         threading.Thread(target=export_reader, args=(export_sock,), daemon=True).start()
-    if ac.TRIM_SWITCH:
+    if any(entry["module"].TRIM_SWITCH for entry in aircraft.values()):
         threading.Thread(target=trim_reset_watcher, daemon=True).start()
     threading.Thread(target=cover_watcher, daemon=True).start()
     log.line("bridge", "start", f"dashboard on port {port}, DCS-BIOS {group}:{export_port}, commands to port {command_port}")

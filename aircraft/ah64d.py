@@ -3,6 +3,8 @@ import math
 from panel_kit import PARTS, REF, Panel, PanelGroup
 
 DCSBIOS_MODULE = "AH-64D"
+NAME = "AH-64D"
+DCS_NAMES = ["AH-64D_BLK_II"]
 
 KEYS = {
     "power_left_idle": "RAlt+Home",
