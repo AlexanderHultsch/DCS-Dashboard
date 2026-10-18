@@ -8,6 +8,11 @@ KEYS = {}
 
 KNOB_STEP = 3200
 BUTTON_HOLD = 0.3
+PWR_POSITIONS = [
+    {"value": 2, "label": "DAY"},
+    {"value": 1, "label": "NT"},
+    {"value": 0, "label": "OFF"},
+]
 
 MASTER_LAMPS = [
     {"id": "MASTER_CAUTION", "label": "MASTER CAUTION", "color": "amber", "button": "UFC_MASTER_CAUTION"},
@@ -1014,8 +1019,28 @@ def lighting_pages() -> list[dict]:
     return [kit_page("LIGHTING", [6, 11, 2, 2], p.build())]
 
 
+def mfcd_controls(side: str) -> list[dict]:
+    prefix = f"{side}MFD"
+    controls = [
+        {"id": f"{prefix}_{n:02d}", "label": str(n), "type": "button", "hold": BUTTON_HOLD, "side": side, "slot": str(n)}
+        for n in range(1, 21)
+    ]
+    controls += [
+        {"id": f"{prefix}_{name}", "label": name, "type": "hat", "ud": f"{prefix}_{name}", "hold": BUTTON_HOLD, "positions": {"up": "tri-up", "down": "tri-down"}, "side": side, "slot": name}
+        for name in ("ADJ", "BRT")
+    ]
+    controls.append({"id": f"{prefix}_PWR", "label": "PWR", "type": "selector", "positions": PWR_POSITIONS, "side": side, "slot": "PWR"})
+    return controls
+
+
 VIEWS = [
-    {"name": "COCKPIT", "seats": [0], "layout": "map", "lamps": MASTER_LAMPS, "controls": [], "links": []},
+    {
+        "name": "COCKPIT", "seats": [0], "layout": "map", "lamps": MASTER_LAMPS, "controls": [],
+        "links": [
+            {"label": "MFCD L", "view": "MFCD", "side": "L", "seats": [0], "map": [3, 5, 2, 1]},
+            {"label": "MFCD R", "view": "MFCD", "side": "R", "seats": [0], "map": [3, 8, 2, 1]},
+        ],
+    },
     *brake_pages(),
     *iff_pages(),
     *emer_pages(),
@@ -1039,6 +1064,7 @@ VIEWS = [
     *canopy_pages(),
     *env_pages(),
     *lighting_pages(),
+    {"name": "MFCD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfcd_controls("L") + mfcd_controls("R")},
 ]
 
 CONTROL_NAMES = []

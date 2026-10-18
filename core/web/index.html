@@ -136,7 +136,7 @@ body.ro .panel { opacity: 0.6; }
 .handle.pending { border-color: #ffb300; box-shadow: 0 0 12px 3px rgba(255, 179, 0, 0.8); }
 .handle.none { display: none; }
 
-#controls.grid, #controls.mpd, #controls.ku { min-height: 0; overflow: hidden; }
+#controls.grid, #controls.mpd, #controls.mfcd, #controls.ku { min-height: 0; overflow: hidden; }
 #controls.grid {
   grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr));
   gap: 8px 10px; padding-top: 8px;
@@ -193,7 +193,7 @@ body.ro .panel { opacity: 0.6; }
 .arm::after { content: ""; position: absolute; left: 50%; top: 9%; width: 3px; height: 38%; margin-left: -1.5px; background: #17191b; border-radius: 2px; }
 
 #controls.ku { display: flex; align-items: center; justify-content: center; }
-#controls.mpd { display: flex; align-items: stretch; justify-content: flex-start; gap: 16px; padding-bottom: 12px; }
+#controls.mpd, #controls.mfcd { display: flex; align-items: stretch; justify-content: flex-start; gap: 16px; padding-bottom: 12px; }
 body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 
 .mpdmain { flex: none; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -205,6 +205,8 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .mpdsw { flex: none; width: 100%; max-width: 580px; }
 .mpdsw .pos { flex: 1; min-width: 0; min-height: 44px; height: 48px; font-size: 16px; }
 .mpdstage { position: relative; flex: 1; min-height: 0; width: 100%; }
+.mfcdsw { flex: none; flex-direction: column; width: 100%; max-width: 240px; }
+.mfcdsw .pos { flex: none; height: 64px; }
 .mbezel { position: absolute; }
 .mart { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .mart text { fill: #f2f2f2; font-size: 28px; text-anchor: middle; }
@@ -231,6 +233,11 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.65); color: #5be36f; font-size: calc(var(--bh) * 0.023);
 }
 .mkey.ast { font-size: calc(var(--bh) * 0.05); line-height: 1; padding-top: 0.2em; }
+.mkey.osb {
+  background: linear-gradient(#d4d7d9, #a3a8ac); border: 1px solid #000; border-radius: 12%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+.mkey.osb::after { content: ""; position: absolute; left: 24%; top: 24%; right: 24%; bottom: 24%; background: #3a3f44; border-radius: 10%; }
 .mknob { display: block; background: none; border: 0; }
 .mknob:active .dial { transform: scale(0.95); }
 .mknob .dial {
@@ -251,7 +258,8 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .mlabel.e-l { text-align: left; transform: translateY(-50%); }
 .mlabel.e-r { text-align: right; transform: translateY(-50%); }
 
-.mbezel.ted .mkey.fix { color: #f2f2f2; font-size: calc(var(--bh) * 0.03); }
+.mbezel.ted .mkey.fix, .mbezel.mfcd .mkey.fix { color: #f2f2f2; font-size: calc(var(--bh) * 0.03); }
+.mbezel.mfcd .mkey.fix { border: 0; }
 .mbezel.ted .mkey.ast { font-size: calc(var(--bh) * 0.06); }
 .mbezel.ted .mlabel { font-size: calc(var(--bh) * 0.022); }
 .rocker::before { display: none; }
@@ -725,6 +733,19 @@ const TED_PRINT = [
 ];
 const DISP_BOX = { L: MPD_BOX, R: MPD_BOX, T: TED_BOX };
 const DISP_GEO = { L: MPD_GEO, R: MPD_GEO, T: TED_GEO };
+const MFCD_BOX = { x: 0, y: 0, w: 940, h: 940 };
+const MFCD_SCREEN = { x: 170, y: 170, w: 600, h: 600 };
+const MFCD_SIDES = [['L', 'LEFT MFCD'], ['R', 'RIGHT MFCD']];
+const MFCD_GEO = { ADJ: [70, 120, 76, 200], BRT: [870, 820, 76, 200], PWR: [70, 870, 76, 76] };
+const MFCD_NUMBERS = [];
+for (let n = 1; n <= 20; n++) {
+  const edge = Math.floor((n - 1) / 5);
+  const i = (n - 1) % 5;
+  const [x, y] = [[270 + 100 * i, 70], [870, 270 + 100 * i], [670 - 100 * i, 870], [70, 670 - 100 * i]][edge];
+  MFCD_GEO[n] = [x, y, 76, 76];
+  MFCD_NUMBERS.push([n, ...[[x, y + 70], [x - 62, y], [x, y - 62], [x + 62, y]][edge]]);
+}
+const MFCD_PRINT = [['DAY', 140, 835], ['NT', 140, 870], ['OFF', 140, 905]];
 const KU_BOX = { x: 16, y: 13, w: 721, h: 599 };
 const KU_ROWS = [
   [176, ['A', 'B', 'C', 'D', 'E', 'F'], ['1', '2', '3']],
@@ -1375,7 +1396,8 @@ function buildStick(def) {
 
 function barTitle(def) {
   if (views[activeIndex].layout === 'panel') return def.label;
-  const side = def.side ? DISPLAYS.find(([s]) => s === def.side)[1] : 'KU';
+  const sides = views[activeIndex].layout === 'mfcd' ? MFCD_SIDES : DISPLAYS;
+  const side = def.side ? sides.find(([s]) => s === def.side)[1] : 'KU';
   return side + ' · ' + def.label;
 }
 
@@ -2194,16 +2216,18 @@ function buildPanelControl(def) {
 
 function buildControl(def, layout) {
   if (layout === 'panel') return buildPanelControl(def);
-  if (def.type === 'selector') return layout === 'mpd' ? buildMpdKnob(def) : buildSelector(def);
+  const bezel = layout === 'mpd' || layout === 'mfcd';
+  if (def.type === 'selector') return bezel ? buildMpdKnob(def) : buildSelector(def);
   if (def.type === 'button') {
     if (layout === 'mpd') return buildMpdButton(def);
+    if (layout === 'mfcd') return buildButton(def, 'mkey osb', '');
     return layout === 'ku' ? buildKuButton(def) : buildButton(def);
   }
   if (def.type === 'knob') return buildMpdKnob(def);
   if (def.type === 'stick') return buildStick(def);
   if (def.type === 'key' || def.type === 'macro') return buildKey(def);
   if (def.type === 'lever') return buildLever(def);
-  if (def.type === 'hat') return layout === 'mpd' ? buildRocker(def) : buildHat(def);
+  if (def.type === 'hat') return bezel ? buildRocker(def) : buildHat(def);
   if (def.type === 'controls') return buildTrim(def);
   if (def.type === 'bar') return buildBar(def);
   if (def.type === 'display') return layout === 'ku' ? buildScratch(def) : buildDisplay(def);
@@ -2263,6 +2287,26 @@ function mpdSvg() {
     + '<rect x="582" y="142" width="836" height="833" rx="14" fill="url(#mbevel)" stroke="#0e1012" stroke-width="3"/>'
     + '<rect x="' + sc.x + '" y="' + sc.y + '" width="' + sc.w + '" height="' + sc.h + '" rx="6" fill="#0b120d" stroke="#000" stroke-width="3"/>'
     + leaders.join('') + screws.join('') + text.join('')
+    + '</svg>';
+}
+
+function mfcdRocker(x, y, w, h, label, across) {
+  const part = (t, tx, ty) => '<text x="' + tx + '" y="' + ty + '" dy="0.35em">' + t + '</text>';
+  const [dx, dy] = across ? [44, 0] : [0, h / 2 - 18];
+  return '<rect x="' + (x - w / 2) + '" y="' + (y - h / 2) + '" width="' + w + '" height="' + h + '" rx="10" fill="#121314" stroke="#4b5258" stroke-width="2"/>'
+    + part('+', x + dx, y - dy) + part(label, x, y) + part('&minus;', x - dx, y + dy);
+}
+
+function mfcdSvg() {
+  const sc = MFCD_SCREEN;
+  const text = [...MFCD_NUMBERS, ...MFCD_PRINT].map(([t, x, y]) => '<text x="' + x + '" y="' + y + '" dy="0.35em">' + t + '</text>');
+  return '<svg class="mart" viewBox="' + [MFCD_BOX.x, MFCD_BOX.y, MFCD_BOX.w, MFCD_BOX.h].join(' ') + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<defs><linearGradient id="fbevel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4147"/><stop offset="1" stop-color="#15181a"/></linearGradient></defs>'
+    + '<rect x="2" y="2" width="936" height="936" rx="40" fill="#26292c" stroke="#3d4348" stroke-width="4"/>'
+    + '<rect x="' + (sc.x - 8) + '" y="' + (sc.y - 8) + '" width="' + (sc.w + 16) + '" height="' + (sc.h + 16) + '" rx="12" fill="url(#fbevel)" stroke="#0e1012" stroke-width="3"/>'
+    + '<rect x="' + sc.x + '" y="' + sc.y + '" width="' + sc.w + '" height="' + sc.h + '" rx="6" fill="#0b0d12" stroke="#000" stroke-width="3"/>'
+    + mfcdRocker(870, 120, 76, 200, 'DSP') + mfcdRocker(70, 770, 76, 100, 'CON') + mfcdRocker(770, 870, 116, 60, 'SYM', true)
+    + text.join('')
     + '</svg>';
 }
 
@@ -2364,6 +2408,7 @@ function shownMpdSide() {
 }
 
 function showMpdGroup() {
+  if (!mpdView.grp) return;
   mpdView.grp.style.display = mpdView.side === 'T' ? 'none' : '';
   mpdView.tkr.style.display = mpdView.side === 'T' ? '' : 'none';
 }
@@ -2374,7 +2419,7 @@ function showMpdSide(side) {
   mpdView.side = side;
   showMpdGroup();
   mpdView.stage.replaceChildren(mpdView.bezels[side]);
-  DISPLAYS.forEach(([s]) => mpdView.buttons[s].classList.toggle('cur', s === side));
+  Object.keys(mpdView.buttons).forEach((s) => mpdView.buttons[s].classList.toggle('cur', s === side));
   fit();
 }
 
@@ -2393,6 +2438,18 @@ function halfTouch(c, [cx, cy, w, h]) {
       ? { el, cx, cy: cy + sign * h / 4, w, h: h / 2 }
       : { el, cx: cx + sign * w / 4, cy, w: w / 2, h };
   });
+}
+
+function placeKeys(side, bezel, items, geoOf, bx) {
+  mpdView.touch[side] = [];
+  items.forEach((c) => {
+    const geo = geoOf[c.def.slot];
+    boxRect(c.el, bx, ...geo);
+    bezel.append(c.el);
+    if (c.halves) mpdView.touch[side].push(...halfTouch(c, geo));
+    else mpdView.touch[side].push({ el: c.el, cx: geo[0], cy: geo[1], w: geo[2], h: geo[3] });
+  });
+  mpdView.bezels[side] = bezel;
 }
 
 function placeMpd(box, cs) {
@@ -2424,15 +2481,7 @@ function placeMpd(box, cs) {
         bezel.append(mpdView.labels[side][pb]);
       }
     }
-    mpdView.touch[side] = [];
-    items.forEach((c) => {
-      const geo = DISP_GEO[side][c.def.slot];
-      boxRect(c.el, DISP_BOX[side], ...geo);
-      bezel.append(c.el);
-      if (c.halves) mpdView.touch[side].push(...halfTouch(c, geo));
-      else mpdView.touch[side].push({ el: c.el, cx: geo[0], cy: geo[1], w: geo[2], h: geo[3] });
-    });
-    mpdView.bezels[side] = bezel;
+    placeKeys(side, bezel, items, DISP_GEO[side], DISP_BOX[side]);
   });
   const bySlot = {};
   cs.forEach((c) => { if (!c.def.side) bySlot[c.def.slot] = c; });
@@ -2451,10 +2500,35 @@ function placeMpd(box, cs) {
   stage.append(mpdView.bezels[mpdView.side]);
 }
 
+function placeMfcd(box, cs) {
+  const main = make('div', 'mpdmain');
+  const cur = make('div', 'mpdcur');
+  const sw = make('div', 'seg mfcdsw');
+  const stage = make('div', 'mpdstage');
+  mpdView = { pref: loadMpdSide(), side: null, main, stage, bezels: {}, buttons: {}, touch: {} };
+  mpdView.side = shownMpdSide();
+  MFCD_SIDES.forEach(([side, name]) => {
+    const btn = make('button', 'pos', name);
+    btn.type = 'button';
+    btn.addEventListener('click', () => setMpdSide(side));
+    btn.classList.toggle('cur', side === mpdView.side);
+    sw.append(btn);
+    mpdView.buttons[side] = btn;
+    const bezel = make('div', 'mbezel mfcd');
+    bezel.insertAdjacentHTML('beforeend', mfcdSvg());
+    placeKeys(side, bezel, cs.filter((c) => c.def.side === side && MFCD_GEO[c.def.slot]), MFCD_GEO, MFCD_BOX);
+  });
+  cur.append(sw);
+  main.append(stage);
+  box.append(main, cur);
+  stage.append(mpdView.bezels[mpdView.side]);
+}
+
 function renderMpd() {
   if (!mpdView) return;
   const want = shownMpdSide();
   if (want !== mpdView.side) showMpdSide(want);
+  if (!mpdView.buttons.T) return;
   mpdView.buttons.T.style.display = current.seat === 1 ? '' : 'none';
   const m = current.mpdLabels;
   const live = !!m && typeof m.age === 'number' && m.age <= STALE_S;
@@ -2509,17 +2583,8 @@ function spread(touch, s) {
   });
 }
 
-function fitMpd() {
-  if (!mpdView) return;
+function fitBezel(bx) {
   const side = mpdView.side;
-  const bx = DISP_BOX[side];
-  const area = document.getElementById('controls');
-  const [areaW, areaH] = innerSize(area);
-  const gap = parseFloat(getComputedStyle(area).columnGap);
-  mpdView.main.style.width = Math.max(0, Math.min(mpdView.stage.clientHeight * bx.w / bx.h, areaW - CUR_MIN - gap)) + 'px';
-  const rowH = (side === 'T' ? mpdView.tkr : mpdView.grp).lastElementChild.offsetHeight;
-  const pad = Math.max(0, Math.floor(Math.min(mpdView.cur.clientWidth, areaH - 2 * GEAR_CLEAR - rowH - 8)));
-  mpdView.grp.style.width = mpdView.tkr.style.width = pad + 'px';
   const w = mpdView.stage.clientWidth;
   const h = mpdView.stage.clientHeight;
   const s = Math.min(w / bx.w, h / bx.h);
@@ -2533,6 +2598,28 @@ function fitMpd() {
   st.height = bh + 'px';
   st.setProperty('--bh', bh + 'px');
   spread(mpdView.touch[side], s);
+}
+
+function fitMpd() {
+  if (!mpdView) return;
+  const side = mpdView.side;
+  const bx = DISP_BOX[side];
+  const area = document.getElementById('controls');
+  const [areaW, areaH] = innerSize(area);
+  const gap = parseFloat(getComputedStyle(area).columnGap);
+  mpdView.main.style.width = Math.max(0, Math.min(mpdView.stage.clientHeight * bx.w / bx.h, areaW - CUR_MIN - gap)) + 'px';
+  const rowH = (side === 'T' ? mpdView.tkr : mpdView.grp).lastElementChild.offsetHeight;
+  const pad = Math.max(0, Math.floor(Math.min(mpdView.cur.clientWidth, areaH - 2 * GEAR_CLEAR - rowH - 8)));
+  mpdView.grp.style.width = mpdView.tkr.style.width = pad + 'px';
+  fitBezel(bx);
+}
+
+function fitMfcd() {
+  if (!mpdView) return;
+  const area = document.getElementById('controls');
+  const gap = parseFloat(getComputedStyle(area).columnGap);
+  mpdView.main.style.width = Math.max(0, Math.min(mpdView.stage.clientHeight * MFCD_BOX.w / MFCD_BOX.h, innerSize(area)[0] - CUR_MIN - gap)) + 'px';
+  fitBezel(MFCD_BOX);
 }
 
 function placeKu(box, cs) {
@@ -2789,11 +2876,12 @@ function placeGrid(box, cs) {
   });
 }
 
-const PLACERS = { mpd: placeMpd, ku: placeKu, panel: placePlate, map: placeMap };
+const PLACERS = { mpd: placeMpd, mfcd: placeMfcd, ku: placeKu, panel: placePlate, map: placeMap };
 
 function fit() {
   const name = document.getElementById('controls').className;
   if (name === 'mpd') fitMpd();
+  else if (name === 'mfcd') fitMfcd();
   else if (name === 'ku') fitKu();
   else if (name === 'plate') fitPlate();
 }
