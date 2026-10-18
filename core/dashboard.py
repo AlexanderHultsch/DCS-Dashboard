@@ -663,6 +663,26 @@ def load_aircraft(value: str):
         raise SystemExit(f"Unknown aircraft: {value}")
 
 
+def needed_keys() -> list[str]:
+    names = [f"power_{side}_{step}" for side in ("left", "right") for step in LEVER_KEYS.values()]
+    names.append("trim_reset")
+    for view in ac.VIEWS:
+        for control in view["controls"]:
+            if control["type"] == "key":
+                names.append(control["key"])
+            elif control["type"] == "macro":
+                names += [step[0] for step in control["steps"]]
+    return names
+
+
+def check_keys(key_map: dict) -> None:
+    for name in needed_keys():
+        try:
+            keys.parse(key_map[name])
+        except (KeyError, ValueError):
+            raise SystemExit(f"Invalid {name} key in [keys] of config/config.toml, see config/config.example.toml.")
+
+
 def main() -> None:
     global ac, cfg, settings, outputs, cmd_sock
     cfg = config.load()
@@ -673,30 +693,7 @@ def main() -> None:
     for problem in export.install_problems(cfg["dcs"]["saved_games"]):
         log.line("bridge", "export script", problem)
     cfg["keys"] = {**ac.KEYS, **cfg.get("keys", {})}
-    key_map = cfg["keys"]
-    try:
-        for side in ("left", "right"):
-            for step in LEVER_KEYS.values():
-                keys.parse(key_map[f"power_{side}_{step}"])
-    except (KeyError, ValueError):
-        raise SystemExit("Invalid power_* key in [keys] of config/config.toml, see config/config.example.toml.")
-    try:
-        keys.parse(key_map["trim_reset"])
-    except (KeyError, ValueError):
-        raise SystemExit("Invalid trim_reset key in [keys] of config/config.toml, see config/config.example.toml.")
-    for view in ac.VIEWS:
-        for control in view["controls"]:
-            if control["type"] == "key":
-                try:
-                    keys.parse(key_map[control["key"]])
-                except (KeyError, ValueError):
-                    raise SystemExit(f"Invalid {control['key']} key in [keys] of config/config.toml, see config/config.example.toml.")
-            if control["type"] == "macro":
-                for step in control["steps"]:
-                    try:
-                        keys.parse(key_map[step[0]])
-                    except (KeyError, ValueError):
-                        raise SystemExit(f"Invalid {step[0]} key in [keys] of config/config.toml, see config/config.example.toml.")
+    check_keys(cfg["keys"])
     names = read_names()
     outputs, missing = dcsbios.load_outputs(dcsbios.json_path(cfg["dcs"]["saved_games"], ac.DCSBIOS_MODULE), names)
     if missing:
