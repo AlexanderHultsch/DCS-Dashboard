@@ -62,7 +62,7 @@ The gear button at the bottom right opens the settings: logging on or off, keep 
 ```
 start_dashboard.bat   starts the dashboard
 core/                 the generic bridge: web server, DCS-BIOS, keys, config, log, panel layout kit,
-                      the HTML page (web/), the DCS export script (lua/), the layout checker (tools/)
+                      the HTML page (web/), the DCS export script (lua/), the layout checker (tools/, for developers only)
 aircraft/ah64d.py     everything specific to the AH-64D: views, controls, labels, default keybinds
 config/               config.example.toml (config.toml and settings.json are local and ignored)
 logs/                 rolling log, created at runtime (ignored)
