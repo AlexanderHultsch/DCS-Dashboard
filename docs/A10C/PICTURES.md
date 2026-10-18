@@ -34,3 +34,37 @@ Quality: `good` (every label and part readable), `partial` (some labels hidden, 
 | Armament HUD Control Panel (AHCP) | 129 | p129-002.jpg | 564 × 960 | partial | Lower position labels hidden behind levers (TRAIN, GUNARM, OFF, NIGHT, STBY) | no |
 | Heading Attitude Reference (HARS) Fast Erect Button | 133 | p133-002.jpg | 587 × 440 | good | none | no |
 | Gun and Nose Wheel Steering (NWS) Lights | 134 | p134-002.jpg | 588 × 170 | good | none; both lamps shown lit | no |
+
+## Center front dash
+
+| Panel | Manual page | Image | Size px | Quality | Hidden or unreadable | Screenshot needed |
+| --- | --- | --- | --- | --- | --- | --- |
+| APU "T Handle" Fire Extinguisher Discharge Select | 136 | p136-002.jpg | 588 × 166 | good | Handle lamp unlit; FIRE APU PULL legend readable | no |
+| Countermeasures Set Control (CMSC) | 136 | p136-006.jpg | 588 × 235 | good | Windows dark, no characters; all legends, knobs, buttons readable | no |
+| Attitude Director Indicator (ADI) | 137 | p137-002.jpg | 383 × 439 | good | Bank scale ticks unnumbered; knob unlabelled; all flags shown | no |
+| Horizontal Situation Indicator (HSI) | 139 | p139-002.jpg | 498 × 442 | good | Range drum cut mid-digit; all legends readable | no |
+| Navigation Mode Select Panel (NMSP) | 141 | p141-002.jpg | 585 × 232 | partial | ABLE label behind PTR lever; homing lamp legends dim | no |
+| Target Identification Set Laser (TISL) control panel | 135 | p135-002.jpg | 215 × 825 | poor | Only a low-res strip of whole dash; ENTER label under knob, fourth button blank | no |
+
+## Right dash
+
+| Panel | Manual page | Image | Size px | Quality | Hidden or unreadable | Screenshot needed |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fire Extinguisher Discharge | 144 | p144-002.jpg | 586 × 147 | good | none | no |
+| Right Multifunction Color Display (MFCD) | 144 | p144-006.jpg | 587 × 440 | good | OSB numbers dim; screen blank; DAY NT OFF and rockers legible | no |
+| Fuel Quantity and Hydraulic Indicator Panel | 146 | p146-002.jpg | 258 × 440 | partial | HYD dial numerals tiny; fuel gauge, selector, TEST IND legible | no |
+| RIGHT Engine "T Handle" Fire Extinguisher Discharge Select | 147 | p147-002.jpg | 587 × 120 | good | Handle lamp unlit; FIRE R ENG PULL legend readable | no |
+| Marker and Canopy Lights | 148 | p148-002.jpg | 587 × 110 | good | none; both lamps shown lit | no |
+| Vertical Velocity Indicator (VVI) | 148 | p148-006.jpg | 587 × 440 | good | Pointer covers part of the 0 label | no |
+| Altimeter | 149 | p149-002.jpg | 587 × 440 | partial | Counter digits partly masked by black patches; set knob unlabelled | no |
+| Engine Monitoring Instruments (EMI) | 150 | p150-002.jpg | 587 × 440 | partial | Fuel flow multiplier cut; some numerals under pointer hubs | no |
+
+## Above the dash
+
+| Panel | Manual page | Image | Size px | Quality | Hidden or unreadable | Screenshot needed |
+| --- | --- | --- | --- | --- | --- | --- |
+| Heads Up Display Area Above Dash | 152 | p152-002.jpg | 1100 × 825 | good | Overview; HUD glass empty; bottom UFC legends cut by T-handles | no |
+| Standby Compass | 153 | p153-002.jpg | 587 × 440 | good | Card shows only 3, N, 33; rest of card scrolls | no |
+| Air Refuel Status Lights | 154 | p154-002.jpg | 587 × 287 | good | none; all three legends shown lit | no |
+| Accelerometer (G-meter) | 154 | p154-006.jpg | 587 × 440 | good | none; PUSH TO SET button and ACCELERATION LIMITS legible | no |
+| Angle of Attack Indexer | 155 | p155-002.jpg | 586 × 260 | good | none; all three symbols shown lit | no |

@@ -34,6 +34,7 @@ From the manual and the DCS-BIOS mapping, to settle in DCS (phase 7):
 - 13 cold-start steps name an MFCD OSB or CDU line select key without its number (BIOS.md, Cold start coverage).
 - 3 DCS-BIOS controls are defined although the manual says no function (MFCD DSP, CON, SYM rockers; TEMS DATA): check in DCS.
 - Item numbers in text and figures differ on several panels (NMSP, fuel, KY-58, TACAN / ILS order); PANELS.md notes which one it follows.
+- TISL: the Pave Penny pod is removed in the A-10C II and TISL navigation is not available (p. 546); the TISL panel is a candidate to leave off the dashboard (its only manual picture is low-resolution anyway).
 - Many controls have no function in DCS (whole KY-58 panel, IFF EMER, intercom call, several fuel and SAS test items): inert or left off the dashboard.
 - The CDU keys work only with the AAP PAGE dial at OTHER; several UFC keys act on the HUD only.
 
