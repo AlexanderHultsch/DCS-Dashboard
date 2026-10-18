@@ -12,20 +12,33 @@ Working notes for adding the A-10C II to the dashboard. Our own notes only: the 
 
 | Source | Where | Notes |
 | --- | --- | --- |
-| Flight manual (EN, about 40 MB) | https://www.digitalcombatsimulator.com/upload/iblock/715/t05fb1h8itdhcvcf6fyi3h5944fvv4fx/DCS_A-10C_II_Flight_Manual_EN.pdf | Not yet read: the cloud environment needs `www.digitalcombatsimulator.com` in its allowed domains |
+| Flight manual (EN, 814 pages, 34 MB) | https://www.digitalcombatsimulator.com/upload/iblock/715/t05fb1h8itdhcvcf6fyi3h5944fvv4fx/DCS_A-10C_II_Flight_Manual_EN.pdf | Needs `www.digitalcombatsimulator.com` in the cloud environment's allowed domains. Printed page numbers equal PDF page numbers |
 | DCS-BIOS module | `Scripts/DCS-BIOS/lib/modules/aircraft_modules/A-10C.lua` (DCS-Skunkworks), control list `doc/json/A-10C.json` | One module `A-10C` for both `A-10C` and `A-10C_2`; 749 controls |
 | Default keybinds | DCS controls settings, exported as HTML | Needs the module installed |
 | Cockpit screenshots | One per panel, straight on | Needs the module installed; only for panels the manual shows poorly |
 
 DCS-BIOS panel groups with the most controls: CDU 63, Caution Lights Panel 48, Circuit Breaker Panel 38, UFC 31, Left and Right MFCD 26 each, IFF 22, Intercom Panel 20, Engine Instruments 20, HSI 19, ARC-210 18, NMSP 17, Light System Control Panel 17, Fuel System Control Panel 15, CMSP 15, UHF Radio 14, Environment Control Panel 13, CMSC 13.
 
+## Open points from the manual
+
+To settle with DCS-BIOS (phase 3) or in DCS (phase 7):
+
+- CMS switch on the stick: p. 106 (single flare / chaff, programs on long press) and pp. 493, 496 (left / right program, forward / aft start / stop) disagree.
+- Radio 1: p. 167 is titled ARC-186 but shows only the ARC-210 head, documented "later". DCS-BIOS has an ARC-210 group (18 controls).
+- MFCD: swap of the left and right content (p. 124 says coolie hat down short; the HOTAS table gives that to the HMCS); OSB numbering per side; which bottom OSB links which page.
+- Not stated in the manual: trim hat directions, anti-skid second position, boost pump and several environment switch "on" labels, ejection seat arm lever, TISL panel labels (low-resolution figure), CDU blank rocker directions, UFC INTEN directions.
+- Circuit breaker panel (38 DCS-BIOS controls) is not described in the manual.
+- Item numbers in text and figures differ on several panels (NMSP, fuel, KY-58, TACAN / ILS order); PANELS.md notes which one it follows.
+- Many controls have no function in DCS (whole KY-58 panel, IFF EMER, intercom call, several fuel and SAS test items): inert or left off the dashboard.
+- The CDU keys work only with the AAP PAGE dial at OTHER; several UFC keys act on the HUD only.
+
 ## Plan
 
 | Phase | What | Who | Output | Status |
 | --- | --- | --- | --- | --- |
 | 0 | Scope and layout | user, Claude | Decisions above | done |
-| 1 | Collect sources | user, Claude | Table above | manual blocked by network policy |
-| 2 | Read the manual: text extraction, chapter map, read only the cockpit, MFCD, CDU, UFC, HOTAS, start-up and weapons chapters | Claude | `PANELS.md`: one entry per panel with every control, its positions, lamps, displays and the manual page | open |
+| 1 | Collect sources | user, Claude | Table above | manual and DCS-BIOS done; keybinds and screenshots need the module |
+| 2 | Read the manual: pp. 105–209 (cockpit panels, HOTAS, CDU), 303–311 (UFC, MFCD overview), 482 and 491–503 (HMCS HOTAS, defensive systems), 504–544 (start-up) | Claude | [PANELS.md](PANELS.md): 75 panel sections; [STARTUP.md](STARTUP.md): cold start in 164 steps | done |
 | 3 | Match with DCS-BIOS | Claude | Per panel: DCS-BIOS identifier of each control; gaps (keybind or `list_indication` candidates) | open |
 | 4 | Reference pictures per planned panel page | Claude, then user (screenshots) | Pictures outside the repo; list of panels that need screenshots | open |
 | 5 | Compare with the engine | Claude | List of engine changes, each with a user decision: single seat (no CP/G), MFCD / CDU / UFC drawings, export script arguments, trim display | open |
