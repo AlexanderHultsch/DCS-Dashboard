@@ -92,7 +92,7 @@ def read_names(a) -> list[str]:
                 if "readback" in control:
                     names += expand_all(control["readback"], a)
             elif control["type"] == "hat":
-                if "ud" in control:
+                if "ud" in control and "steps" not in control:
                     names += expand_all(control["ud"], a)
                 if "lr" in control:
                     names += expand_all(control["lr"], a)
@@ -569,7 +569,7 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
             for cover in real_cover:
                 real_cover[cover] = time.monotonic() + COVER_CLOSE_DELAY
     name = expand(identifier, seat)
-    if control["type"] in ("display", "controls"):
+    if control["type"] in ("display", "controls", "bar"):
         return False, "display only", None
     if control["type"] == "lever":
         target = next((p for p in control["positions"] if p["label"] == value), None)
@@ -627,6 +627,12 @@ def check_and_send(identifier, value, body: dict) -> tuple[bool, str, bool | Non
         axes = {"up": ("ud", 2), "down": ("ud", 0), "left": ("lr", 0), "right": ("lr", 2)}
         if not isinstance(value, str) or value not in control["positions"]:
             return False, "position not available", None
+        if "steps" in control:
+            step = control["steps"]
+            with command_lock:
+                send(expand(control["ud"], seat), ("INC" if value == "up" else "DEC") if step == "fixed" else f"{'+' if value == 'up' else '-'}{step}")
+            log.line("dash", name, f"{value} sent")
+            return True, "", None
         axis, level = axes[value]
         target = expand(control[axis], seat)
         confirmed = press_and_release(target, level, 1, control.get("hold", 0.3))

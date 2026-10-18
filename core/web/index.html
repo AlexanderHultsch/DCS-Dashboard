@@ -101,6 +101,13 @@ body.ro .panel { opacity: 0.6; }
 }
 .hub { display: flex; align-items: center; justify-content: center; font-size: 22px; color: #777; }
 
+.bartrack {
+  position: relative; flex: 1; min-height: 40px; width: 36px; align-self: center; overflow: hidden;
+  background: #0b0c0d; border: 2px solid #3a3f44; border-radius: 4px;
+}
+.barfill { position: absolute; left: 0; right: 0; bottom: 0; background: #f2f2f2; }
+.barval { text-align: center; font-size: 15px; color: #ddd; }
+
 .readout {
   flex: 1; min-height: 56px; display: flex; align-items: center; justify-content: center;
   overflow: hidden; background: #0b0c0d; border: 1px solid #000; border-radius: 6px;
@@ -370,6 +377,9 @@ body.ro .pbox { opacity: 0.6; }
 .pgrip.pending { stroke: #ffb300; stroke-width: 4; }
 .pdisp { overflow: hidden; container-type: size; background: #121a16; }
 .pind { pointer-events: none; }
+.pbar { display: flex; flex-direction: column; gap: calc(var(--du) * 4); }
+.pbar .bartrack { min-height: 0; width: auto; align-self: stretch; }
+.pbar .barval { font-size: calc(var(--du) * 14); line-height: 1; color: #f2f2f2; }
 .ptext {
   transform-origin: 0 0; transform: scaleY(var(--sy)); font-size: calc(100cqw / var(--em)); line-height: calc(100cqh / var(--rows) / var(--sy));
   white-space: pre; text-transform: none; letter-spacing: 0; color: #50dc5c;
@@ -1073,12 +1083,33 @@ function buildHat(def) {
     Object.keys(c.buttons).forEach((dir) => {
       const [axis, level] = HAT_AXES[dir];
       const btn = c.buttons[dir];
-      btn.classList.toggle('cur', readValue(def[axis]) === level);
+      btn.classList.toggle('cur', !def.steps && readValue(def[axis]) === level);
       btn.classList.toggle('pending', c.pending === dir);
       btn.setAttribute('aria-disabled', String(!can(c) || c.busy));
     });
   };
   return c;
+}
+
+function barFace(def) {
+  const track = make('div', 'bartrack');
+  const fill = make('div', 'barfill');
+  const text = make('div', 'barval');
+  track.append(fill);
+  const update = () => {
+    const v = readValue(def.id);
+    const share = typeof v === 'number' ? Math.min(Math.max(v / def.max, 0), 1) : null;
+    fill.style.height = (share === null ? 0 : share * 100) + '%';
+    text.textContent = share === null ? '—' : Math.round(share * 100) + '%';
+  };
+  return { track, text, update };
+}
+
+function buildBar(def) {
+  const panel = make('div', 'panel');
+  const face = barFace(def);
+  panel.append(make('div', 'title', def.label), face.track, face.text);
+  return { def, el: panel, update: face.update };
 }
 
 function buildDisplay(def) {
@@ -2116,6 +2147,13 @@ function buildPlateDisplay(def) {
   return c;
 }
 
+function buildPlateBar(def) {
+  const el = make('div', 'pctl pbar');
+  const face = barFace(def);
+  el.append(face.track, face.text);
+  return { def, el, update: face.update, touchAt: () => [] };
+}
+
 function buildIndicator(def) {
   if (def.shape === 'lamp') {
     const lamp = make('div', 'pctl pind plit c-' + def.color, def.legend);
@@ -2139,6 +2177,7 @@ function buildIndicator(def) {
 
 function buildPanelControl(def) {
   if (def.type === 'display') return buildPlateDisplay(def);
+  if (def.type === 'bar') return buildPlateBar(def);
   if (def.type === 'hat') return buildPlateHat(def);
   if (def.type === 'button') return buildPlateButton(def);
   if (def.type === 'selector') {
@@ -2166,6 +2205,7 @@ function buildControl(def, layout) {
   if (def.type === 'lever') return buildLever(def);
   if (def.type === 'hat') return layout === 'mpd' ? buildRocker(def) : buildHat(def);
   if (def.type === 'controls') return buildTrim(def);
+  if (def.type === 'bar') return buildBar(def);
   if (def.type === 'display') return layout === 'ku' ? buildScratch(def) : buildDisplay(def);
   return null;
 }

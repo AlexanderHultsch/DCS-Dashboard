@@ -61,6 +61,8 @@ PARTS = {
     # plain legend lamps without a touch target: indicator lamp and caution panel cell
     "LAMP": {"w": 72, "h": 40},
     "LAMP_WIDE": {"w": 136, "h": 40},
+    # read-only vertical bar (track, fill from the bottom, percentage below the track), no touch action
+    "BAR": {"w": 40, "h": 200},
 }
 KNOBS = ("KNOB_L", "KNOB_M", "KNOB_S")
 LAMPS = ("LAMP", "LAMP_WIDE")
@@ -339,6 +341,11 @@ class Panel:
         part = self._part(name, kind, cx, cy, {})
         self.indicators.append({"shape": "lamp", "id": lamp["id"], "legend": lamp["legend"], "color": lamp["color"], "at": xywh(part["body"]), "kit": {"part": kind}})
         return part
+
+    def bar(self, name: str, cx: int, cy: int, control: dict) -> dict:
+        """Read-only vertical bar for a value from 0 to the control's max, with the percentage as text. The control is
+        {"id": DCS-BIOS output, "label": text, "type": "bar", "max": number}; the page draws it and takes no touch action."""
+        return self._part(name, "BAR", cx, cy, control)
 
     def knob(self, name: str, kind: str, cx: int, cy: int, control: dict | list, marks: tuple = ()) -> dict:
         """Knob. A dual-function knob takes a list of controls (the first is shown) and one selector mark text each;
