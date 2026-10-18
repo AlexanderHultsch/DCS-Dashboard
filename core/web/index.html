@@ -328,6 +328,8 @@ body.ro .pbox { opacity: 0.6; }
 .pbtn.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
 .pbtn.lit.c-green::after { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8), inset 0 0 0 1px #000; }
 .pbtn.lit.c-amber::after { background: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8), inset 0 0 0 1px #000; }
+.pbtn.lit.c-red::after { background: #e53935; box-shadow: 0 0 22px 5px rgba(229, 57, 53, 0.8), inset 0 0 0 1px #000; }
+.pbtn.lit.c-white::after { background: #f2f2f2; box-shadow: 0 0 22px 5px rgba(242, 242, 242, 0.6), inset 0 0 0 1px #000; }
 .plamp {
   position: absolute; left: var(--fi, 13%); right: var(--fi, 13%); z-index: 1; display: flex; align-items: center; justify-content: center;
   font-size: var(--lf, calc(var(--bh) * 0.04)); letter-spacing: 0.02em; color: #7d858c; pointer-events: none;
@@ -335,10 +337,18 @@ body.ro .pbox { opacity: 0.6; }
 .plamp.up { top: var(--fi, 13%); bottom: 50%; }
 .plamp.low { top: 50%; bottom: var(--fi, 13%); }
 .plamp.lit { color: #111; }
-.plamp.lit.c-green { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8); }
-.plamp.lit.c-amber { background: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8); }
+.plamp.lit.c-green, .plit.lit.c-green { background: #43a047; box-shadow: 0 0 22px 5px rgba(67, 160, 71, 0.8); }
+.plamp.lit.c-amber, .plit.lit.c-amber { background: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8); }
+.plamp.lit.c-red, .plit.lit.c-red { background: #e53935; box-shadow: 0 0 22px 5px rgba(229, 57, 53, 0.8); }
+.plamp.lit.c-white, .plit.lit.c-white { background: #f2f2f2; box-shadow: 0 0 22px 5px rgba(242, 242, 242, 0.6); }
 .plegend { position: relative; z-index: 1; font-size: var(--lf, calc(var(--bh) * 0.045)); letter-spacing: 0.02em; color: #7d858c; pointer-events: none; }
-.pbtn.lit.c-amber .plegend, .pbtn.lit.c-green .plegend { color: #111; }
+.pbtn.lit.c-amber .plegend, .pbtn.lit.c-green .plegend, .pbtn.lit.c-red .plegend, .pbtn.lit.c-white .plegend { color: #111; }
+.plit {
+  display: flex; align-items: center; justify-content: center; text-align: center; white-space: pre; line-height: 1.1;
+  background: linear-gradient(#32373b, #1d2023); border-radius: calc(var(--du) * 4); box-shadow: inset 0 0 0 1px #000, inset 0 2px 6px rgba(0, 0, 0, 0.7);
+  font-size: calc(var(--du) * 16); letter-spacing: 0.02em; color: #7d858c;
+}
+.plit.lit { color: #111; }
 .ppos { position: absolute; left: 0; width: 100%; margin: 0; padding: 0; background: none; border: 0; }
 .ppos:active { background: rgba(255, 255, 255, 0.12); }
 .ppos.pending { outline: 3px solid #ffb300; outline-offset: -3px; }
@@ -2094,6 +2104,10 @@ function buildPlateDisplay(def) {
 }
 
 function buildIndicator(def) {
+  if (def.shape === 'lamp') {
+    const lamp = make('div', 'pctl pind plit c-' + def.color, def.legend);
+    return { def, el: lamp, update: () => lamp.classList.toggle('lit', readValue(def.id) > 0), touchAt: () => [] };
+  }
   const [, , w, h] = def.at;
   const letter = def.shape === 'letter';
   const el = make('div', 'pctl pind');
@@ -2498,13 +2512,20 @@ function plateArt(a) {
   const [x, y, w, h] = a.at;
   const tag = (cls) => (cls ? ' class="' + cls + '"' + (a.for ? ' data-for="' + a.for + '"' : '') : '');
   const rect = (r, style, cls) => '<rect' + tag(cls) + ' x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + r + '" ' + style + '/>';
-  if (a.shape === 'plate') return rect(a.r, 'fill="#26292c" stroke="#3d4348" stroke-width="' + a.border + '"', 'k-plate');
+  if (a.shape === 'plate') {
+    const colours = a.look === 'a10c' ? 'fill="#3b4045" stroke="#50565c"' : 'fill="#26292c" stroke="#3d4348"';
+    return rect(a.r, colours + ' stroke-width="' + a.border + '"', 'k-plate');
+  }
   if (a.shape === 'ear') return rect(a.r, 'fill="#33373b" stroke="#474e54" stroke-width="' + a.border + '"', 'k-ear');
   if (a.shape === 'bracket') return rect(6, 'fill="#33373b" stroke="#474e54" stroke-width="2"');
   if (a.shape === 'outline') return rect(4, 'fill="none" stroke="#e8e8e8" stroke-width="' + a.stroke + '"', 'k-frame');
   if (a.shape === 'screw') {
     return '<g class="k-screw" data-size="' + a.size + '"><circle cx="' + x + '" cy="' + y + '" r="' + w + '" fill="#5b6269" stroke="#1a1c1e" stroke-width="2"/>'
       + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#1a1c1e" stroke-width="2.4" transform="rotate(' + a.rot + ' ' + x + ' ' + y + ')"/></g>';
+  }
+  if (a.shape === 'dzus') {
+    return '<g class="k-dzus"><circle cx="' + x + '" cy="' + y + '" r="' + w + '" fill="#7a8086" stroke="#2a2d30" stroke-width="2"/>'
+      + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#2a2d30" stroke-width="2.4" transform="rotate(' + a.rot + ' ' + x + ' ' + y + ')"/></g>';
   }
   if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : a.body ? 'k-body' : '');
   if (a.shape === 'glass') return rect(8, 'fill="#121a16" stroke="#3a3f44" stroke-width="3"', 'k-pad');

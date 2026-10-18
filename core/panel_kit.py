@@ -3,11 +3,11 @@
 Every size is in design units (du) and defined once, below. A page makes one Panel (plate width and height in
 du, even numbers), places parts by their centre on the 1 du grid and attaches labels to them; it never gives a
 size, except for a display (a glass screen with live text), whose size the content decides, and the travel of the
-power levers (within limits). The plate brings four identical corner ears with a SCREW_L in the centre of each. Further screws are
-placed only by naming an x line and a y line from the line table:
+power levers (within limits). The plate brings four identical corner ears with a SCREW_L in the centre of each; a plate of the
+look "a10c" has four DZUS fasteners instead. Further screws are placed only by naming an x line and a y line from the line table:
 
-    x lines: L R (plate edges), CX (middle), SL SR (corner screws), NAME.cx (every placed part)
-    y lines: T B (plate edges), CY (middle), ST SB (corner screws), NAME.cy (every placed part)
+    x lines: L R (plate edges), CX (middle), SL SR (corner screws or fasteners), NAME.cx (every placed part)
+    y lines: T B (plate edges), CY (middle), ST SB (corner screws or fasteners), NAME.cy (every placed part)
 
 Panel.build() checks the layout (LayoutError on a collision) and returns the page data in the format
 web/index.html draws: box [w, h], controls (the given control data plus "at", "kit" and, for a guarded part,
@@ -55,8 +55,13 @@ PARTS = {
     # selector dot of a dual-function knob; touch: square beside the knob (clear: its distance to the knob),
     # pitch: centre distance of two marks, gap: dot centre to the knob edge
     "MARK": {"w": 10, "h": 10, "touch": 56, "clear": 6, "pitch": 64, "gap": 14},
+    # plain legend lamps without a touch target: indicator lamp and caution panel cell
+    "LAMP": {"w": 72, "h": 40},
+    "LAMP_WIDE": {"w": 136, "h": 40},
 }
 KNOBS = ("KNOB_L", "KNOB_M", "KNOB_S")
+LAMPS = ("LAMP", "LAMP_WIDE")
+LOOKS = ("ah64d", "a10c")
 # DISPLAY has no size here: the page gives it; inset: glass border and padding between the glass and its text
 DISPLAY = {"inset": 6, "border": 3}
 # slot of a lever or the slider: pad around the grip, border, tick beside a lever mark; reach: how far the touch area of the
@@ -73,6 +78,8 @@ HAZARD_STRIP = {"w": 32, "inset": 8}
 PLATE = {"radius": 6, "border": 3}
 EAR = {"w": 52, "h": 52, "border": 2}
 SCREWS = {"L": 26, "M": 18, "S": 12}
+# fastener of the plate look "a10c": diameter, and the distance of its centre from both edges of its corner
+DZUS = {"d": 24, "inset": 22}
 SLOT_ANGLES = (15, 100, 65, 140)
 # label style: font size and estimated glyph width; the page draws the text at exactly that width
 STYLES = {"TITLE": (32, 19), "NAME": (24, 14), "POS": (20, 12), "SMALL": (16, 10)}
@@ -154,22 +161,29 @@ def text_size(text, style, rotate):
 
 
 class Panel:
-    def __init__(self, name: str, w: int, h: int):
+    def __init__(self, name: str, w: int, h: int, look: str = "ah64d"):
         if w % 2 or h % 2 or not (0 < w <= REF[0] and 0 < h <= REF[1]):
             raise LayoutError(f"{name}: plate {w} x {h} du must be even and at most {REF[0]} x {REF[1]}")
-        self.name, self.w, self.h = name, w, h
-        ex, ey = EAR["w"] // 2, EAR["h"] // 2
+        if look not in LOOKS:
+            raise LayoutError(f"{name}: look {look!r} is not one of {', '.join(LOOKS)}")
+        self.name, self.w, self.h, self.look = name, w, h, look
+        fasteners = look == "a10c"
+        ex, ey = (DZUS["inset"],) * 2 if fasteners else (EAR["w"] // 2, EAR["h"] // 2)
         self.xs = {"L": 0, "R": w, "CX": w // 2, "SL": ex, "SR": w - ex}
         self.ys = {"T": 0, "B": h, "CY": h // 2, "ST": ey, "SB": h - ey}
-        self.ears = [(x, y, x + EAR["w"], y + EAR["h"]) for y in (0, h - EAR["h"]) for x in (0, w - EAR["w"])]
+        self.ears = [] if fasteners else [(x, y, x + EAR["w"], y + EAR["h"]) for y in (0, h - EAR["h"]) for x in (0, w - EAR["w"])]
         self.parts = {}
         self.labels = []
         self.decor = []
         self.indicators = []
         self.screws = []
+        self.dzus = []
         for y in ("ST", "SB"):
             for x in ("SL", "SR"):
-                self._screw("L", x, y)
+                if fasteners:
+                    self.dzus.append({"cx": self.xs[x], "cy": self.ys[y], "rot": SLOT_ANGLES[len(self.dzus) % len(SLOT_ANGLES)]})
+                else:
+                    self._screw("L", x, y)
 
     def fail(self, message: str):
         raise LayoutError(f"{self.name}: {message}")
@@ -312,6 +326,15 @@ class Panel:
         if not within((x, y, x + w, y + h), self.parts[name]["body"]):
             self.fail(f"indicator {indicator['label']!r} is not inside {name}")
         self.indicators.append(indicator)
+
+    def lamp(self, name: str, cx: int, cy: int, lamp: dict, kind: str = "LAMP") -> dict:
+        """Plain legend lamp on a dark plate, no touch target and no command. The lamp is {"id": DCS-BIOS output, "legend": text
+        (at most two lines), "color": green, amber, red or white}; it lights while the output is above 0."""
+        if kind not in LAMPS:
+            self.fail(f"lamp {name}: {kind} is not one of {', '.join(LAMPS)}")
+        part = self._part(name, kind, cx, cy, {})
+        self.indicators.append({"shape": "lamp", "id": lamp["id"], "legend": lamp["legend"], "color": lamp["color"], "at": xywh(part["body"]), "kit": {"part": kind}})
+        return part
 
     def knob(self, name: str, kind: str, cx: int, cy: int, control: dict | list, marks: tuple = ()) -> dict:
         """Knob. A dual-function knob takes a list of controls (the first is shown) and one selector mark text each;
@@ -604,7 +627,7 @@ class Panel:
                 problems.append(f"{d['name']} closer than {EAR_CLEAR} du to an ear")
             problems += [f"{d['name']} overlaps part {p['name']}" for p in parts if overlaps(d["box"], p["outer"])]
             problems += [f"{d['name']} overlaps {o['name']}" for o in self.decor[i + 1:] if overlaps(d["box"], o["box"])]
-        for s in self.screws[4:]:
+        for s in (s for s in self.screws if s["size"] != "L"):
             what = f"screw {s['size']} at ({s['cx']}, {s['cy']})"
             if not within(s["box"], plate):
                 problems.append(f"{what} outside the plate")
@@ -617,9 +640,10 @@ class Panel:
 
     def build(self) -> dict:
         self.check()
-        art = [{"shape": "plate", "at": xywh(grow((0, 0, self.w, self.h), -PLATE["border"] / 2)), "r": PLATE["radius"], "border": PLATE["border"]}]
+        art = [{"shape": "plate", "at": xywh(grow((0, 0, self.w, self.h), -PLATE["border"] / 2)), "r": PLATE["radius"], "border": PLATE["border"], **({"look": self.look} if self.look != "ah64d" else {})}]
         art += [{"shape": "ear", "at": xywh(grow(e, -EAR["border"] / 2)), "r": PLATE["radius"], "border": EAR["border"]} for e in self.ears]
         art += [{"shape": "screw", "at": [num(s["cx"]), num(s["cy"]), num(SCREWS[s["size"]] / 2)], "size": s["size"], "rot": s["rot"]} for s in self.screws]
+        art += [{"shape": "dzus", "at": [num(f["cx"]), num(f["cy"]), DZUS["d"] // 2], "rot": f["rot"]} for f in self.dzus]
         controls = []
         for p in self.parts.values():
             art += p["art"]
@@ -658,16 +682,16 @@ def shifted(item, dx: int, dy: int, keys: tuple) -> dict:
 
 class PanelGroup:
     """A page of several physical panels: one Panel (plate with its own ears and screws) per panel at a page offset.
-    Plates next to each other are exactly GROUP_GAP du apart and share an edge line; the page is at most REF."""
+    Plates next to each other are exactly GROUP_GAP du apart and share an edge line; the page is at most REF. All plates have the group's look."""
 
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, name: str, look: str = "ah64d"):
+        self.name, self.look = name, look
         self.plates = []
 
     def panel(self, name: str, w: int, h: int, x: int, y: int) -> Panel:
         if not (isinstance(x, int) and isinstance(y, int)):
             raise LayoutError(f"{self.name}: plate {name} must sit on the 1 du grid, got ({x}, {y})")
-        panel = Panel(f"{self.name} / {name}", w, h)
+        panel = Panel(f"{self.name} / {name}", w, h, self.look)
         self.plates.append((panel, x, y))
         return panel
 

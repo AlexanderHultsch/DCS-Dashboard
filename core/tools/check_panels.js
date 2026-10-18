@@ -17,6 +17,7 @@ await (async () => {
   const COVER_MARGIN = 12;
   const TOUCH_MIN = 56;
   const TOUCH_OVERLAP = 6;
+  const DZUS_INSET = 22;
   const TOL = 0.5;
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const round = (v) => Math.round(v * 10) / 10;
@@ -52,6 +53,10 @@ await (async () => {
       const box = du(g.querySelector('circle').getBoundingClientRect());
       return { size: g.dataset.size, box, x: (box.x0 + box.x1) / 2, y: (box.y0 + box.y1) / 2 };
     });
+    const dzus = [...pbox.querySelectorAll('.k-dzus')].map((g) => {
+      const box = du(g.querySelector('circle').getBoundingClientRect());
+      return { box, x: (box.x0 + box.x1) / 2, y: (box.y0 + box.y1) / 2 };
+    });
     const labels = [...pbox.querySelectorAll('text.k-label')].map((el) => {
       const r = du(el.getBoundingClientRect());
       const size = parseFloat(el.getAttribute('font-size'));
@@ -75,7 +80,7 @@ await (async () => {
       return { id, kind: el.dataset.kit, body, frames, pads, cover, near, outer: [near, ...pads].reduce(join), size: px(body), frameSize: frames.map(px), coverSize: cover ? px(cover) : null };
     });
     const plates = [...pbox.querySelectorAll('.k-plate')].map(drawn);
-    return { S, bw, bh, rw, rh, plates: plates.length ? plates : [{ x0: 0, y0: 0, x1: bw, y1: bh }], ears: [...pbox.querySelectorAll('.k-ear')].map(drawn), screws, labels, parts };
+    return { S, bw, bh, rw, rh, plates: plates.length ? plates : [{ x0: 0, y0: 0, x1: bw, y1: bh }], ears: [...pbox.querySelectorAll('.k-ear')].map(drawn), screws, dzus, labels, parts };
   }
 
   function touchAreas() {
@@ -132,14 +137,22 @@ await (async () => {
       const tag = d.plates.length > 1 ? 'plate ' + (k + 1) + ' ' + show(pl) + ': ' : '';
       const ears = d.ears.filter((e) => onPlate(e, pl));
       const corner = d.screws.filter((s) => s.size === 'L' && onPlate(s.box, pl));
-      if (ears.length !== 4 || corner.length !== 4) out.push(tag + ears.length + ' ears and ' + corner.length + ' corner screws, 4 each expected');
-      ears.forEach((e) => {
-        const cx = (e.x0 + e.x1) / 2;
-        const cy = (e.y0 + e.y1) / 2;
-        const hit = corner.filter((s) => s.x > e.x0 && s.x < e.x1 && s.y > e.y0 && s.y < e.y1);
-        if (hit.length !== 1 || Math.abs(hit[0].x - cx) > TOL || Math.abs(hit[0].y - cy) > TOL) out.push(tag + 'corner screw not in the centre of the ear ' + show(e));
-      });
-      if (distinct(corner.map((s) => s.x)).length !== 2 || distinct(corner.map((s) => s.y)).length !== 2) out.push(tag + 'corner screws not on two shared x and two shared y lines');
+      const fasteners = d.dzus.filter((f) => onPlate(f.box, pl));
+      if (fasteners.length) {
+        if (fasteners.length !== 4 || ears.length || corner.length) out.push(tag + fasteners.length + ' fasteners, ' + ears.length + ' ears and ' + corner.length + ' corner screws, 4, 0 and 0 expected');
+        [[pl.x0 + DZUS_INSET, pl.y0 + DZUS_INSET], [pl.x1 - DZUS_INSET, pl.y0 + DZUS_INSET], [pl.x0 + DZUS_INSET, pl.y1 - DZUS_INSET], [pl.x1 - DZUS_INSET, pl.y1 - DZUS_INSET]].forEach(([x, y]) => {
+          if (!fasteners.some((f) => Math.abs(f.x - x) <= TOL && Math.abs(f.y - y) <= TOL)) out.push(tag + 'no fastener centred ' + DZUS_INSET + ' du from the two edges at ' + round(x) + ', ' + round(y));
+        });
+      } else {
+        if (ears.length !== 4 || corner.length !== 4) out.push(tag + ears.length + ' ears and ' + corner.length + ' corner screws, 4 each expected');
+        ears.forEach((e) => {
+          const cx = (e.x0 + e.x1) / 2;
+          const cy = (e.y0 + e.y1) / 2;
+          const hit = corner.filter((s) => s.x > e.x0 && s.x < e.x1 && s.y > e.y0 && s.y < e.y1);
+          if (hit.length !== 1 || Math.abs(hit[0].x - cx) > TOL || Math.abs(hit[0].y - cy) > TOL) out.push(tag + 'corner screw not in the centre of the ear ' + show(e));
+        });
+        if (distinct(corner.map((s) => s.x)).length !== 2 || distinct(corner.map((s) => s.y)).length !== 2) out.push(tag + 'corner screws not on two shared x and two shared y lines');
+      }
       d.plates.slice(k + 1).forEach((other) => {
         const dx = Math.max(other.x0 - pl.x1, pl.x0 - other.x1);
         const dy = Math.max(other.y0 - pl.y1, pl.y0 - other.y1);

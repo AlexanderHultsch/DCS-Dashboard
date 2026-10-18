@@ -81,7 +81,10 @@ def read_names(a) -> list[str]:
             if "button" in lamp:
                 names += expand_all(lamp["button"], a)
         for lamp in view.get("indicators", []):
-            names += expand_all(lamp["bright"], a) + expand_all(lamp["dim"], a)
+            if "id" in lamp:
+                names += expand_all(lamp["id"], a)
+            else:
+                names += expand_all(lamp["bright"], a) + expand_all(lamp["dim"], a)
         for control in view["controls"]:
             if control["type"] == "lever":
                 names += expand_all(control["readback"], a)
