@@ -824,3 +824,116 @@ Sections and control names follow PANELS.md. Columns:
 | 4. STEER PT dial | AAP_STEERPT | read + command | STEERPT FLTPLAN - MARK - MISSION |
 | 3. PAGE dial | AAP_PAGE | read + command | PAGE OTHER - POSITION - STEER - WAYPT |
 | 5. STEER switch | AAP_STEER | read + command | Toggle Steerpoint; spring-loaded |
+
+## Keypads and displays
+
+
+### Control Display Unit (CDU) (p. 205)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Display window | CDU_LINE0 … CDU_LINE9 | read only | Export hook parses the CDU indication into 10 strings of 24 characters |
+| Scratchpad | CDU_LINE9 | read only | Line 10 string; scratchpad text sits at its left |
+| 2. Line select keys, left (LSK) | CDU_LSK_3L, CDU_LSK_5L, CDU_LSK_7L, CDU_LSK_9L | read + command | Only rows 3, 5, 7, 9 exist; 3L, 5L, 7L, 9L |
+| 2. Line select keys, right (LSK) | CDU_LSK_3R, CDU_LSK_5R, CDU_LSK_7R, CDU_LSK_9R | read + command | Only rows 3, 5, 7, 9 exist; 3R, 5R, 7R, 9R |
+| LSK marker symbols | CDU_LINE0 … CDU_LINE9 | read only | likely; arrows are remapped characters in the line text |
+| 13.1. SYS key | CDU_SYS | read + command | Push button SYS |
+| 13.2. NAV key | CDU_NAV | read + command | Push button NAV |
+| 13.3. WP key | CDU_WP | read + command | Push button WP |
+| 13.4. OSET key | CDU_OSET | read + command | Push button OSET |
+| 13.5. FPM key | CDU_FPM | read + command | Push button FPM |
+| 13.6. PREV key | CDU_PREV | read + command | Push button PREV |
+| 4. Alphanumeric keys | CDU_0 … CDU_9, CDU_A … CDU_Z, CDU_POINT, CDU_SLASH | read + command | Digits, letters, decimal point and slash; push buttons |
+| 3. DIM/BRT rocker | CDU_BRT | read + command | CDU Display Brightness Adjustment; states 0 to 2: down, center, up |
+| 5. ± rocker | CDU_DATA | read + command | +/- Rocker; states 0 to 2: down, center, up |
+| 12. Page rocker (P/G) | CDU_PG | read + command | PG Rocker; states 0 to 2: down, center, up |
+| 9. Blank rocker | CDU_SCROLL | read + command | Scroll Waypoint Names (Blank Rocker); states 0 to 2 |
+| 6. FA key (Fault Acknowledge) | CDU_FA | read + command | Push button FA |
+| 7. CLR key | CDU_CLR | read + command | Push button CLR |
+| 10. BCK key | CDU_BCK | read + command | Push button BCK |
+| 8. SPC key | CDU_SPC | read + command | Push button SPC |
+| 11. MK key | CDU_MK | read + command | Push button MK |
+| Two unlabelled square keys | CDU_NA1, CDU_NA2 | read + command | likely; described as No Function 1 and 2 |
+
+### Up Front Controller (UFC) (p. 303)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Mark (MK) button | UFC_MK | read + command | Push button MK |
+| 2. Clear (CLR) button | UFC_CLR | read + command | Push button CLR |
+| 3. Time Hack (HACK) button | UFC_HACK | read + command | Push button HACK |
+| 4. Space (SPC) button | UFC_SPC | read + command | Push button SPC |
+| 5. Altitude Alert (ALT ALRT) button | UFC_ALT_ALRT | read + command | Push button ALT ALRT |
+| 6. Enter (ENT) button | UFC_ENT | read + command | Push button ENT |
+| 7. Letter (LTR) mode button | UFC_LTR | read + command | Push button LTR |
+| 8. Function (FUNC) mode button | UFC_FUNC | read + command | Push button FUNC |
+| Key 1 | UFC_1 | read + command | Push button 1 |
+| Key 2 | UFC_2 | read + command | Push button 2 |
+| Key 3 | UFC_3 | read + command | Push button 3 |
+| Key 4 | UFC_4 | read + command | Push button 4 |
+| Key 5 | UFC_5 | read + command | Push button 5 |
+| Key 6 | UFC_6 | read + command | Push button 6 |
+| Key 7 | UFC_7 | read + command | Push button 7 |
+| Key 8 | UFC_8 | read + command | Push button 8 |
+| Key 9 | UFC_9 | read + command | Push button 9 |
+| Key 0 | UFC_10 | read + command | likely; DCS-BIOS names the 0 key UFC_10 |
+| 9. DATA rocker (PG) | UFC_DATA | read + command | DATA Up/Down; states 0 to 2: down, center, up |
+| 10. SEL rocker | UFC_SEL | read + command | SEL Up/Down; states 0 to 2: down, center, up |
+| 11. STEER rocker | UFC_STEER | read + command | STEER Up/Down; states 0 to 2: down, center, up |
+| 12. INTEN rocker | UFC_INTEN | read + command | INTEN Incr/Decr; states 0 to 2, direction not documented |
+| 13. DEPR rocker | UFC_DEPR | read + command | DEPR Up/Down; states 0 to 2: down, center, up |
+| 14. MASTER CAUTION | MASTER_CAUTION, UFC_MASTER_CAUTION | read + command | Lamp is MASTER_CAUTION (read only); UFC_MASTER_CAUTION resets |
+| FWD button | — | — | function not stated; maybe an A-10C II button below |
+| MID button | — | — | function not stated; maybe an A-10C II button below |
+| AFT button | — | — | function not stated; maybe an A-10C II button below |
+| Three unlabelled buttons | — | — | function not stated; maybe an A-10C II button below |
+| (DCS-BIOS only) COM1 button | UFC_COM1 | read + command | Control VHF UHF Radio (A-10C II) |
+| (DCS-BIOS only) COM SEC button | UFC_COM_SEC | read + command | COM SEC (A-10C II) |
+| (DCS-BIOS only) IFF button | UFC_IFF | read + command | IFF (A-10C II) |
+| (DCS-BIOS only) COM2 button | UFC_COM2 | read + command | Toggle ARC-210 RT2 Status (A-10C II) |
+| (DCS-BIOS only) ECCM button | UFC_ECCM | read + command | ECCM (A-10C II) |
+| (DCS-BIOS only) IDM button | UFC_IDM | read + command | IDM (A-10C II) |
+
+### MFCD pages overview (p. 309)
+
+- MFCD page content (DTS, DP, STAT, DSMS, TAD, TGP, MAV, MSG, CDU repeater): no DCS-BIOS output (gap: export).
+- Page selection works through the OSBs: LMFD_01 … LMFD_20 and RMFD_01 … RMFD_20, see the MFCD sections.
+- The CDU screen text is exported on its own as CDU_LINE0 … CDU_LINE9, see the CDU section.
+
+## Defensive systems
+
+
+### Countermeasure Signal Processor (CMSP) Panel (p. 491)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 3. Display, upper line | CMSP1 | read only | CMSP Display Line 1; text of 19 characters, 4 segments |
+| 3. Display, lower line | CMSP2 | read only | CMSP Display Line 2; text of 19 characters, 4 segments |
+| 4. SET button, segment 1 (left) | CMSP_ARW1 | read + command | SET Button 1 |
+| 4. SET button, segment 2 | CMSP_ARW2 | read + command | SET Button 2 |
+| 4. SET button, segment 3 | CMSP_ARW3 | read + command | SET Button 3 |
+| 4. SET button, segment 4 (right) | CMSP_ARW4 | read + command | SET Button 4 |
+| 5. NXT switch | CMSP_UPDN | read + command | Cycle Program or Value Up/Down; states 0 to 2: down, center, up |
+| 6. RTN button | CMSP_RTN | read + command | RTN |
+| 7. JTSN switch | CMSP_JTSN | read + command | JTSN / OFF |
+| 8. BRT knob | CMSP_BRT | read + command | Brightness |
+| 2. System switch, MWS | CMSP_MWS | read + command | OFF - ON - (MENU); reverse order of PANELS |
+| 2. System switch, JMR | CMSP_JMR | read + command | OFF - ON - (MENU); reverse order of PANELS |
+| 2. System switch, RWR | CMSP_RWR | read + command | OFF - ON - (MENU); reverse order of PANELS |
+| 2. System switch, DISP | CMSP_DISP | read + command | OFF - ON - (MENU); reverse order of PANELS |
+| 1. Mode select dial | CMSP_MODE | read + command | CMSP Mode Select; five states 0 to 4, order not documented |
+
+### CMSC operation (p. 497)
+
+- Every CMSC control, window and lamp is mapped in the CMSC section of the Center front dash; this section adds no control.
+- Window text is read from CMSC_TXT_JMR, CMSC_TXT_MWS and CMSC_TXT_CHAFF_FLARE; program choice and start with the stick CMS switch is a keybind.
+
+### ALR-69(V) Radar Warning Receiver (RWR) (p. 500)
+
+- Scope picture, symbols and the INT button: no DCS-BIOS output (gap: export).
+- Related controls: RWR_BRT (scope brightness), CMSP_RWR (power and test), CMSC_RWR_VOL, CMSC_PRI, CMSC_SEP, CMSC_UNK, CMSC_LAUNCH.
+
+### HMCS HOTAS Controls (p. 482)
+
+- DMS and TMS functions with the HMCS: keybind; DCS-BIOS has no control for them (see Control Stick and Throttles).
+- HMCS power is A102_HMCS_PW, see the HMCS Control Panel on the right console.
