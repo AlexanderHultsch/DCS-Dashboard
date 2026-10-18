@@ -381,3 +381,273 @@ Sections and control names follow PANELS.md. Columns:
 | Low-speed symbol | AOA_INDEXER_HIGH | read only | likely; named by AoA, high AoA is low speed |
 | On-speed symbol | AOA_INDEXER_NORMAL | read only | AOA Indexer Normal (green) |
 | High-speed symbol | AOA_INDEXER_LOW | read only | likely; named by AoA, low AoA is high speed |
+
+## Left console
+
+### Fuel System Control Panel (p. 158)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Main boost pump switch, left | FSCP_BOOST_MAIN_L | read + command | Boost Pumps Main Fuselage Left |
+| 1. Main boost pump switch, right | FSCP_BOOST_MAIN_R | read + command | Boost Pumps Main Fuselage Right |
+| 2. Wing boost pump switch, left | FSCP_BOOST_WING_L | read + command | Boost Pumps Left Wing |
+| 2. Wing boost pump switch, right | FSCP_BOOST_WING_R | read + command | Boost Pumps Right Wing |
+| 3. EXT TKS switch, WING | FSCP_EXT_TANKS_WING | read + command | External Wing Tanks Boost Pumps |
+| 3. EXT TKS switch, FUS | FSCP_EXT_TANKS_FUS | read + command | External Fuselage Tanks Boost Pumps |
+| 4. Crossfeed switch | FSCP_CROSSFEED | read + command | Crossfeed |
+| 5. Tank gate switch (TK GATE) | FSCP_TK_GATE | read + command | Tank Gate |
+| 7. Air refuel control lever (RCVR) | FSCP_RCVR_LEVER | read + command | Aerial Refueling Slipway Control Lever |
+| 8. Fill disable button, wing left | FSCP_FD_WING_L | read + command | Fill Disable Wing Left; push button |
+| 8. Fill disable button, wing right | FSCP_FD_WING_R | read + command | Fill Disable Wing Right; push button |
+| 8. Fill disable button, main left | FSCP_FD_MAIN_L | read + command | Fill Disable Main Left; push button |
+| 8. Fill disable button, main right | FSCP_FD_MAIN_R | read + command | Fill Disable Main Right; push button |
+| 9. Receiver light dial (RCVR LT) | ALCP_RCVR_LTS | read + command | Refueling Lighting Dial; DCS-BIOS groups it with auxiliary lighting |
+| 10. Line check button | FSCP_LINE_CHECK | read + command | Defined in DCS-BIOS although PANELS says no function |
+| 11. Signal amplifier switch (SIG AMPL) | FSCP_AMPL | read + command | Defined in DCS-BIOS although PANELS says no function |
+
+### Throttles Panel (p. 160)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. APU switch | ENGINE_APU_START | read + command | APU START |
+| 2. Left throttle lever | ENG_THROTTLE_L | read only | Lever position only; no input |
+| 2. Right throttle lever | ENG_THROTTLE_R | read only | Lever position only; no input |
+| 3. Engine fuel flow switch, left | ENGINE_FUEL_FLOW_L | read + command | Fuel Flow L |
+| 3. Engine fuel flow switch, right | ENGINE_FUEL_FLOW_R | read + command | Fuel Flow R |
+| 4. Engine operate switch, left | ENGINE_OPER_L | read + command | ENG OPER L; spring-loaded, states 0 to 2 |
+| 4. Engine operate switch, right | ENGINE_OPER_R | read + command | ENG OPER R; spring-loaded, states 0 to 2 |
+| 5. Landing gear horn silence button (LDG WARN SILENCE) | GEAR_HORN_SILENCE | read + command | also in gear panel section |
+| Throttle friction lever | ENGINE_THROTTLE_FRICTION | read + command | Friction Control |
+
+### Flap lever, left of the throttles (p. 156)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| Flap lever | FLAPS_SWITCH | read + command | Flaps Setting DN - MVR - UP; reverse order of PANELS |
+
+### LASTE Control Panel (p. 163)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. EAC switch | LASTE_EAC | read + command | EAC On/Off; electrically held switch |
+| 2. Radar altimeter switch (RDR ALTM) | LASTE_RDR_ALTM | read + command | Radar Altimeter |
+| 3. Autopilot select switch | LASTE_AP_MODE | read + command | AP MODE, 3 positions |
+| 4. Autopilot engage/disengage button | LASTE_AP_TOGGLE | read + command | Autopilot Engage/Disengage |
+
+### AN/ARC-186(V) Radio Control Panel (p. 167)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| TOD SND button | ARC210_TOD_SEND | read + command | Time of Day Send |
+| TOD RCV button | ARC210_TOD_REC | read + command | Time of Day Receive |
+| GPS button | ARC210_GPS | read + command | GPS |
+| RT SELECT button | ARC210_TRANS_REC_SEL | read + command | Select Receiver - Transmitter |
+| Line select button 1 (top) | ARC210_FSK_UP | read + command | likely; DCS-BIOS calls it Upper FSK |
+| Line select button 2 | ARC210_FSK_MID | read + command | likely; DCS-BIOS calls it Middle FSK |
+| Line select button 3 | ARC210_FSK_LOW | read + command | likely; DCS-BIOS calls it Lower FSK |
+| Brightness up button | ARC210_BRIGHT_INC | read + command | Brightness Increase |
+| Brightness down button | ARC210_BRIGHT_DEC | read + command | Brightness Decrease |
+| Screen | ARC210_FREQUENCY, ARC210_FREQ_MHZ, ARC210_FREQ_KHZ | read only | Main frequency as text; other screen fields listed below |
+| SQL knob | ARC210_SQUELCH | read + command | likely; Squelch ON/OFF as push button, not knob |
+| MENU / TIME button | ARC210_MENU | read + command | Menu Pages |
+| XMT/RCV / SEND button | ARC210_TRANS_REC_FUNC | read + command | Transmit / Receive Function Toggle |
+| AM/FM button | ARC210_AMP_FREQ_MODUL | read + command | Amplitude / Frequency Modulation Select |
+| OFFSET / RCV button | ARC210_OFF_FREQ | read + command | Offset Frequency |
+| ENTER button | ARC210_ENTER | read + command | Enter |
+| Unlabelled knob 1 (leftmost) | ARC210_100MHZ_SEL | read + command | likely; 100MHz Selector, left to right order assumed |
+| Unlabelled knob 2 | ARC210_10MHZ_SEL | read + command | likely; 10MHz Selector, left to right order assumed |
+| Unlabelled knob 3 | ARC210_1MHZ_SEL | read + command | likely; 1MHz Selector, left to right order assumed |
+| Unlabelled knob 4 | ARC210_100KHZ_SEL | read + command | likely; 100KHz Selector, left to right order assumed |
+| Unlabelled knob 5 (rightmost) | ARC210_25KHZ_SEL | read + command | likely; 25KHz Selector, states 00, 25, 50, 75 |
+| Left mode dial | ARC210_MASTER | read + command | likely; Master Switch, 7 positions as in PANELS |
+| CHANNEL knob | ARC210_CHN_KNB | read + command | Channel Selector Knob, variable step |
+| Right mode dial | ARC210_SEC_SW | read + command | likely; Secondary Switch, 7 positions as in PANELS |
+| (DCS-BIOS only) EXIT/SEND | ARC210_EXIT_SEND | read only | Screen text of 9 characters |
+| (DCS-BIOS only) Transmit/Receive (XMIT/RECV) | ARC210_XMIT_RECV | read only | Screen text of 4 characters |
+| (DCS-BIOS only) COMSEC submode (PT/CT/CT-TD) | ARC210_COMSEC_SUBMODE | read only | Screen text of 5 characters |
+| (DCS-BIOS only) Active ECCM Channel | ARC210_ACTIVE_ECCM_CHANNEL | read only | Screen text of 2 characters |
+| (DCS-BIOS only) SG Time | ARC210_SG_TIME | read only | Screen text of 5 characters |
+| (DCS-BIOS only) Previous label | ARC210_PREV | read only | Screen text of 4 characters |
+| (DCS-BIOS only) COMSEC menu mode (LOS/DAMA) | ARC210_COMSEC_MENU_MODE | read only | Screen text of 30 characters |
+| (DCS-BIOS only) COMSEC mode | ARC210_COMSEC_MODE | read only | Screen text of 11 characters |
+| (DCS-BIOS only) More | ARC210_MORE | read only | Screen text of 4 characters |
+| (DCS-BIOS only) Load Time | ARC210_LOAD_TIME | read only | Screen text of 9 characters |
+| (DCS-BIOS only) KY Submode | ARC210_KY_SUBMODE | read only | Screen text of 1 character |
+| (DCS-BIOS only) EXIT/RECV | ARC210_EXIT_RECV | read only | Screen text of 9 characters |
+| (DCS-BIOS only) Previous manual frequency | ARC210_PREV_MANUAL_FREQ | read only | Screen text of 7 characters |
+| (DCS-BIOS only) Main frequency separator (.) | ARC210_FREQ_DOT_MARK | read only | Screen text of 1 character |
+| (DCS-BIOS only) Modulation (AM/FM) | ARC210_MODULATION | read only | Screen text of 2 characters |
+| (DCS-BIOS only) Selected RT | ARC210_SELECTED_RT | read only | Screen text of 3 characters |
+| (DCS-BIOS only) EXIT/LOAD | ARC210_EXIT_LOAD | read only | Screen text of 9 characters |
+| (DCS-BIOS only) Active Channel | ARC210_ACTIVE_CHANNEL | read only | Screen text of 2 characters |
+| (DCS-BIOS only) Active Channel (WOD Page) | ARC210_VERIFY_WOD_ACTIVE_CHANNEL | read only | Screen text of 2 characters |
+| (DCS-BIOS only) Active Channel (TR_PRSET Page) | ARC210_TR_PRSET_ACTIVE_CHANNEL | read only | Screen text of 2 characters |
+| (DCS-BIOS only) ARC-210 Present | ARC210_PRESENT | read only | 1 when the ARC-210 is installed |
+
+### AN/ARC-164 UHF Radio Control Panel (p. 168)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Preset channel selector | UHF_PRESET_SEL | read + command | UHF Preset Channel Selector, 20 steps |
+| 2. Preset channel indicator window | UHF_PRESET | read only | UHF Preset Display |
+| 3. Frequency status indicator window | UHF_FREQUENCY | read only | UHF Frequency Display |
+| 4. 100 MHz selector | UHF_100MHZ_SEL | read + command | States 0 to 2: 2, 3, A |
+| 5. 10 MHz selector | UHF_10MHZ_SEL | read + command | UHF 10MHz Selector |
+| 6. 1 MHz selector | UHF_1MHZ_SEL | read + command | UHF 1MHz Selector |
+| 7. 0.1 MHz selector | UHF_POINT1MHZ_SEL | read + command | UHF 0.1MHz Selector |
+| 8. 0.025 MHz selector | UHF_POINT25_SEL | read + command | likely; described as 0.25MHz, steps 00, 25, 50, 75 |
+| 9. Frequency mode dial | UHF_MODE | read + command | MNL / PRESET / GRD |
+| 10. Function dial | UHF_FUNCTION | read + command | OFF / MAIN / BOTH / ADF |
+| 11. Volume knob (VOL) | UHF_VOL | read + command | UHF Volume Control |
+| 12. T-tone control (T TONE) | UHF_T_TONE | read + command | Defined in DCS-BIOS although PANELS says no function |
+| 13. Squelch control | UHF_SQUELCH | read + command | Squelch Switch |
+| 14. LOAD button under the preset cover | UHF_LOAD, UHF_COVER | read + command | Button plus its cover |
+| TEST DISPLAY button | UHF_TEST | read + command | Display Test Button |
+| STATUS button | UHF_STATUS | read + command | Status Button |
+
+### AN/ARC-186(V) VHF FM Radio 2 Control Panel (p. 171)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Preset channel selector wheel | VHFFM_PRESET | read + command | Preset Channel Selector; step up or down only |
+| 2. Preset channel indicator window | VHFFM_PRESET | read + command | likely; same control as the wheel, output also gives label |
+| 3. Frequency selector knob 1 (leftmost) | VHFFM_FREQ1 | read + command | Frequency Selector 1; step up or down only |
+| 3. Frequency selector knob 2 | VHFFM_FREQ2 | read + command | Frequency Selector 2; step up or down only |
+| 3. Frequency selector knob 3 | VHFFM_FREQ3 | read + command | Frequency Selector 3; step up or down only |
+| 3. Frequency selector knob 4 | VHFFM_FREQ4 | read + command | Frequency Selector 4; states 00, 25, 50, 75 |
+| Frequency windows | VHF_FM_FREQUENCY_S | read only | VHF FM Frequency (String), 7 characters |
+| 4. Load button | VHFFM_LOAD | read + command | Load Button |
+| 5. Volume knob (VOL) | VHFFM_VOL | read + command | VHF FM Volume Control |
+| 6. Frequency mode dial | VHFFM_MODE | read + command | OFF / TR / DF |
+| 7. Frequency selection dial | VHFFM_FREQEMER | read + command | FM / AM / MAN / PRE |
+| 8. Squelch switch | VHFFM_SQUELCH | read + command | Squelch, 3 positions |
+| (DCS-BIOS only) Frequency Selector 1 Rotation | VHFFM_FREQ1_ROT | read only | Knob turn position as output |
+| (DCS-BIOS only) Frequency Selector 2 Rotation | VHFFM_FREQ2_ROT | read only | Knob turn position as output |
+| (DCS-BIOS only) Frequency Selector 3 Rotation | VHFFM_FREQ3_ROT | read only | Knob turn position as output |
+| (DCS-BIOS only) Frequency Selector 4 Rotation | VHFFM_FREQ4_ROT | read only | Knob turn position as output |
+
+### KY-58 Secure Voice Control Panel (p. 173)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Power switch | KY58_PWR | read + command | Power Switch; PANELS says panel has no function |
+| 2. Mode dial | KY58_MODE | read + command | Mode Switch, 3 positions; PANELS says panel has no function |
+| 3. Radio select dial | KY58_PLAIN | read + command | C/RAD Switch, 3 positions; PANELS says panel has no function |
+| 7. Encryption code preset dial | KY58_1TO5 | read + command | likely; DCS-BIOS calls it Full Switch, 6 positions |
+| 8. Delay switch | KY58_DELAY | read + command | Delay Switch; PANELS says panel has no function |
+| 9. Zeroize switch | KY58_ZEROIZE, KY58_ZEROIZE_COVER | read + command | Switch plus its cover; PANELS says panel has no function |
+
+### Emergency Brake System (p. 174)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| EMER BRAKE handle | EMER_BRAKE | read + command | Emergency Brake |
+| Unnamed toggle above the handle | SEAT_ADJUST | read + command | likely; title cut off in figure, DCS-BIOS Seat Adjust, spring-loaded |
+
+### Auxiliary Lighting Control Panel (p. 175)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Refuel status and indexer lights dial | ALCP_RSIL | read + command | Refuel Status Indexer Lights |
+| 2. NVIS lights switch (NVIS LTS) | ALCP_NVIS_LTS | read + command | Defined in DCS-BIOS although PANELS says no function |
+| 3. Signal lights lamp test button | LAMP_TEST_BTN | read + command | Signal Lights Test |
+| 4. Weapon station dimmer dial (WPN STA STATUS LTS) | ALCP_WPNSTA | read + command | Weapon Station Lights (No Function) |
+| 5. HARS/SAS override switch | ALCP_HARSSAS | read + command | HARS-SAS Override/Norm |
+| 6. Fire detect bleed air leak test button | ALCP_FDBA_TEST | read + command | Fire Detect Bleed Air Test |
+
+### Stability Augmentation System (SAS) Panel (p. 176)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Yaw trim control knob | SASP_YAW_TRIM | read + command | Yaw Trim |
+| 2. Takeoff trim button (T/O TRIM) | SASP_TO_TRIM | read + command | T/O Trim Button |
+| Takeoff trim light | TAKE_OFF_TRIM | read only | TAKEOFF TRIM Indicator Light (green) |
+| 3. Pitch SAS engage switch, left | SASP_PITCH_SAS_L | read + command | Electrically held switch OFF - ENGAGE |
+| 3. Pitch SAS engage switch, right | SASP_PITCH_SAS_R | read + command | Electrically held switch OFF - ENGAGE |
+| 4. Yaw SAS engage switch, left | SASP_YAW_SAS_L | read + command | Electrically held switch OFF - ENGAGE |
+| 4. Yaw SAS engage switch, right | SASP_YAW_SAS_R | read + command | Electrically held switch OFF - ENGAGE |
+| 5. Monitor test switch | SASP_MONITOR_TEST | read + command | Defined in DCS-BIOS although PANELS says no function |
+
+### Identify Friend or Foe (IFF) Panel (p. 178)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Master mode dial | IFF_MASTER | read + command | OFF - STBY - LOW - NORM - EMER |
+| 2. M-1 switch | IFF_TEST_M1 | read + command | Test M-1, states 0 to 2 |
+| 3. M-2 switch | IFF_TEST_M2 | read + command | Test M-2, states 0 to 2 |
+| 4. M-3/A switch | IFF_TEST_M3 | read + command | Test M-3, states 0 to 2 |
+| 5. M-C switch | IFF_TEST_M4 | read + command | likely; fourth rocker, DCS-BIOS calls it Test M-4 |
+| 6. Radiation test monitor switch (RAD TEST) | IFF_RADTEST | read + command | Defined in DCS-BIOS although PANELS says no function |
+| 7. Identification of position switch (IDENT) | IFF_MIC_IDENT | read + command | Defined in DCS-BIOS although PANELS says no function |
+| 8. Mode 1 code wheel, left | IFF_MODE1_WHEEL1 | read + command | Mode-1 Wheel 1 |
+| 8. Mode 1 code wheel, right | IFF_MODE1_WHEEL2 | read + command | Mode-1 Wheel 2 |
+| 9. Mode 3/A code wheel 1 (leftmost) | IFF_MODE3A_WHEEL1 | read + command | Mode-3A Wheel 1 |
+| 9. Mode 3/A code wheel 2 | IFF_MODE3A_WHEEL2 | read + command | Mode-3A Wheel 2 |
+| 9. Mode 3/A code wheel 3 | IFF_MODE3A_WHEEL3 | read + command | Mode-3A Wheel 3 |
+| 9. Mode 3/A code wheel 4 | IFF_MODE3A_WHEEL4 | read + command | Mode-3A Wheel 4 |
+| 10. Mode 4 switch | IFF_ON_OUT | read + command | likely; DCS-BIOS calls it IFF On/Out |
+| 11. Audio light switch | IFF_OUT_AUDIO_LIGHT | read + command | LIGHT - OFF - AUDIO; reverse order of PANELS |
+| 12. Code dial | IFF_CODE | read + command | Defined in DCS-BIOS although PANELS says no function |
+| 13. Reply light | IFF_REPLY, IFF_REPLY_TEST, IFF_REPLY_DIM | read + command | Green lamp, push-to-test and DIM ring |
+| 14. Test light | IFF_TEST, IFF_TEST_TEST, IFF_TEST_DIM | read + command | Green lamp, push-to-test and DIM ring |
+
+### Emergency Flight Control Panel (p. 180)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Pitch/roll trim switch | EFCP_TRIM_OVERRIDE | read + command | EMER - NORM; reverse order of PANELS |
+| 1. Emergency pitch and roll switch | EFCP_EMER_TRIM | read + command | Hat states 0 to 4: center, NOSE DN, RWD, NOSE UP, LWD |
+| 2. Speed brake emergency retract switch (SPD BK EMER RETR) | EFCP_SPDBK_EMER_RETR | read + command | Speed Brake Emergency Retract |
+| 3. Flap emergency retract switch (FLAP EMER RETR) | EFCP_FLAPS_EMER_RETR | read + command | Flaps Emergency Retract |
+| 4. Aileron emergency disengage switch | EFCP_AILERON_EMER_DISENGAGE | read + command | LEFT - OFF - RIGHT |
+| 5. Elevator emergency disengage switch | EFCP_ELEVATOR_EMER_DISENGAGE | read + command | LEFT - OFF - RIGHT |
+| 6. MRFCS switch (FLT CONT) | EFCP_MRFCS | read + command | MAN REVERSION - NORM; reverse order of PANELS |
+| L-AIL lamp | L_AILERON_EMER_DISENGAGE | read only | Left Aileron EMER DISENG Indicator (yellow) |
+| R-AIL lamp | R_AILERON_EMER_DISENGAGE | read only | Right Aileron EMER DISENG Indicator (yellow) |
+| L-ELEV lamp | L_ELEVATOR_EMER_DISENGAGE | read only | Left Elevator EMER DISENG Indicator (yellow) |
+| R-ELEV lamp | R_ELEVATOR_EMER_DISENGAGE | read only | Right Elevator EMER DISENG Indicator (yellow) |
+
+### Intercom Control Panel (p. 182)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Volume control knob (VOL) | INT_VOL | read + command | Intercom Volume |
+| 2. HM switch | INT_HM | read + command | HM Switch; toggle in DCS-BIOS |
+| 3. INT switch | INT_INT_UNMUTE, INT_INT_VOL | read + command | Un-Mute is in or out; Volume is the turn |
+| 4. AIM switch | INT_AIM_UNMUTE, INT_AIM_VOL | read + command | Un-Mute is in or out; Volume is the turn |
+| 5. FM switch | INT_FM_UNMUTE, INT_FM_VOL | read + command | Un-Mute is in or out; Volume is the turn |
+| 6. VHF switch | INT_VHF_UNMUTE, INT_VHF_VOL | read + command | Un-Mute is in or out; Volume is the turn |
+| 7. ILS switch | INT_ILS_UNMUTE, INT_ILS_VOL | read + command | Un-Mute is in or out; Volume is the turn |
+| 8. UHF switch | INT_UHF_UNMUTE, INT_UHF_VOL | read + command | Un-Mute is in or out; Volume is the turn |
+| 9. TCN switch | INT_TCN_UNMUTE, INT_TCN_VOL | read + command | Un-Mute is in or out; Volume is the turn |
+| 10. Rotary selector dial | INT_MODE | read + command | INT / FM / VHF / HF / Blank |
+| 11. IFF switch | INT_IFF_UNMUTE, INT_IFF_VOL | read + command | Un-Mute is in or out; Volume is the turn |
+| 12. Call switch | INT_CALL | read + command | Defined in DCS-BIOS although PANELS says no function |
+
+### Stall Warning Control Panel (p. 183)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| STALL volume dial | STALL_VOL | read + command | Stall Volume |
+| PEAK PRFM volume dial | STALL_PEAK_VOL | read + command | Peak Volume |
+
+### AN/ARC-186(V) VHF AM radio (DCS-BIOS only)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| (DCS-BIOS only) Preset Channel Selector | VHFAM_PRESET | read + command | Preset Channel Selector; step up or down only |
+| (DCS-BIOS only) Mode | VHFAM_MODE | read + command | OFF / TR / DF |
+| (DCS-BIOS only) Frequency Selection Dial | VHFAM_FREQEMER | read + command | FM / AM / MAN / PRE |
+| (DCS-BIOS only) Volume Control | VHFAM_VOL | read + command | VHF AM Volume Control |
+| (DCS-BIOS only) Load Button | VHFAM_LOAD | read + command | Load Button |
+| (DCS-BIOS only) Squelch | VHFAM_SQUELCH | read + command | Squelch, 3 positions |
+| (DCS-BIOS only) Frequency Selector 1 | VHFAM_FREQ1 | read + command | Frequency Selector 1; step up or down only |
+| (DCS-BIOS only) Frequency Selector 2 | VHFAM_FREQ2 | read + command | Frequency Selector 2; step up or down only |
+| (DCS-BIOS only) Frequency Selector 3 | VHFAM_FREQ3 | read + command | Frequency Selector 3; step up or down only |
+| (DCS-BIOS only) Frequency Selector 4 | VHFAM_FREQ4 | read + command | Frequency Selector 4; states 00, 25, 50, 75 |
+| (DCS-BIOS only) Frequency Selector 1 Rotation | VHFAM_FREQ1_ROT | read only | Knob turn position as output |
+| (DCS-BIOS only) Frequency Selector 2 Rotation | VHFAM_FREQ2_ROT | read only | Knob turn position as output |
+| (DCS-BIOS only) Frequency Selector 3 Rotation | VHFAM_FREQ3_ROT | read only | Knob turn position as output |
+| (DCS-BIOS only) Frequency Selector 4 Rotation | VHFAM_FREQ4_ROT | read only | Knob turn position as output |
+| (DCS-BIOS only) Frequency (String) | VHF_AM_FREQUENCY_S | read only | VHF AM Frequency (String), 7 characters |
+| (DCS-BIOS only) VHF AM Present | VHFAM_PRESENT | read only | 1 when the VHF AM radio is installed, ARC-210 absent |
