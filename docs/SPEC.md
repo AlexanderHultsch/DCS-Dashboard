@@ -36,7 +36,7 @@ Public repo rules:
 ## 2. Repository layout and architecture
 
 ```
-start_dashboard.bat        starts `python core\dashboard.py`, keeps the window open on an error
+start_dashboard.bat        starts `core\dashboard.py` with `python` (or `py -3`), keeps the window open on an error
 README.md                  install and getting started
 core/                      generic infrastructure
   dashboard.py             entry point: DCS-BIOS reader, web server, command handling
