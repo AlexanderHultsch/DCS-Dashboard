@@ -651,3 +651,176 @@ Sections and control names follow PANELS.md. Columns:
 | (DCS-BIOS only) Frequency Selector 4 Rotation | VHFAM_FREQ4_ROT | read only | Knob turn position as output |
 | (DCS-BIOS only) Frequency (String) | VHF_AM_FREQUENCY_S | read only | VHF AM Frequency (String), 7 characters |
 | (DCS-BIOS only) VHF AM Present | VHFAM_PRESENT | read only | 1 when the VHF AM radio is installed, ARC-210 absent |
+
+## Right console
+
+### Cockpit Canopy Switch and Canopy Ejection Handle (p. 186)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Canopy switch (CANOPY) | CANOPY_OPEN | read + command | Canopy Open Switch; states 0 to 2: down, stop, up |
+| 2. Boarding ladder button | LADDER_EXTEND, LADDER_EXTEND_COVER | read + command | Button plus its cover |
+| 3. Canopy jettison handle | CANOPY_JTSN | read + command | Canopy Jettison |
+| (DCS-BIOS only) Canopy Jettison Unlock | CANOPY_JTSN_UNLOCK | read + command | Canopy Jettison Unlock |
+| (DCS-BIOS only) Canopy Position | CANOPY_POS | read only | Canopy position as output |
+
+### Electrical Power Panel (p. 187)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 3. APU GEN switch (APU GEN PWR) | EPP_APU_GEN_PWR | read + command | APU GEN PWR |
+| 2. Inverter switch (INVERTER STBY) | EPP_INVERTER | read + command | Inverter TEST - OFF - STBY; spring-loaded, reverse order of PANELS |
+| 5. EMER FLOOD switch | EPP_EMER_FLOOD | read + command | Emergency Flood Light |
+| 4. AC GEN switch, left | EPP_AC_GEN_PWR_L | read + command | AC GEN PWR Left |
+| 4. AC GEN switch, right | EPP_AC_GEN_PWR_R | read + command | AC GEN PWR Right |
+| 1. Battery switch (BATTERY PWR) | EPP_BATTERY_PWR | read + command | Battery Power |
+
+### Environment System Panel (p. 189)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 4. Oxygen flow indicator | OXY_FLOW, OXY_FLOW_G | read only | Flow Indicator on/off (white); OXY_FLOW_G gives it as gauge |
+| 5. Oxygen supply pressure gauge | OXY_PRESS | read only | Oxygen Pressure Indicator |
+| 3. Oxygen emergency lever | OXY_EMERGENCY | read + command | Oxygen Flow Emergency / Normal / Test; spring-loaded |
+| 2. Oxygen dilution lever | OXY_DILUTER | read + command | Oxygen Normal/100% |
+| 1. Oxygen supply lever | OXY_SUPPLY | read + command | Oxygen Supply On/Off |
+| 6. Oxygen quantity gauge | OXY_VOLUME | read only | Oxygen Volume (0 to 5 liters) |
+| 7. Oxygen indicator test button (OXY IND TEST) | ENVCP_OXY_TEST | read + command | Oxygen Indicator Test |
+| 4. Windshield defog/deice switch | ENVCP_WINDSHIELD_DEFOG | read + command | Windshield Defog/Deice |
+| 8. Canopy defog dial | ENVCP_CANOPY_DEFOG | read + command | Canopy Defog |
+| 6. Windshield rain remove and wash switch | ENVCP_WRRW | read + command | Windshield Rain Removal/Wash, 3 positions; PANELS says no function |
+| 5. Pitot heater switch | ENVCP_PITOT_HEAT | read + command | Pitot Heat |
+| 7. Bleed air switch | ENVCP_BLEED_AIR | read + command | Bleed Air |
+| 14. Cabin air pressure gauge | CABIN_PRESS_ALT | read only | Cabin Pressure Altitude |
+| 9. TEMP/PRESS switch | ENVCP_TEMP_PRESS | read + command | Temperature/Pressure Control, 3 positions |
+| 11. Main air supply switch | ENVCP_AIR_SUPPLY | read + command | Main Air Supply |
+| 10. Flow level dial | ENVCP_FLOW_LEVEL | read + command | Flow Level |
+| 13. Cabin air conditioner switch (CABIN AIR COND) | ENVCP_AC_OPER | read + command | Air Conditioner MAN / AUTO / COLD / HOT; PANELS lists three |
+| 12. Temperature level dial | ENVCP_TEMP_LEVEL | read + command | Defined in DCS-BIOS although PANELS says no function |
+
+### Lighting Control Panel (p. 191)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. POSITION switch | LCP_POSITION | read + command | Positions FLASH / OFF / STEADY |
+| 3. FORMATION dial | LCP_FORMATION | read + command | Formation Lights |
+| 2. ANTI-COLLISION switch | LCP_ANTICOLLISION | read + command | Electrically held switch |
+| 5. ENG INST dial | LCP_ENG_INST | read + command | Engine Instrument Lights |
+| 4. NOSE ILLUM switch | LCP_NOSE_ILLUM | read + command | Nose Illumination |
+| 7. AUX INST dial | LCP_AUX_INST | read + command | Aux Instrument Lights |
+| 8. SIGNAL LTS switch | LCP_SIGNAL_LIGHTS | read + command | Signal Lights |
+| 6. FLT INST dial | LCP_FLIGHT_INST | read + command | Flight Instrument Lights |
+| 9. ACCEL & COMP switch | LCP_ACCEL_COMP | read + command | Accelerometer and Compass Lights |
+| 10. FLOOD dial | LCP_FLOOD | read + command | Flood Lights |
+| 11. CONSOLE dial | LCP_CONSOLE | read + command | Console Lights |
+| (DCS-BIOS only) Console Light Brightness | INT_CONSOLE_L_BRIGHT | read only | Brightness as output |
+| (DCS-BIOS only) Engine Instrument Light Brightness | INT_ENG_INST_L_BRIGHT | read only | Brightness as output |
+| (DCS-BIOS only) Flight Instruments Light Brightness | INT_FLT_INST_L_BRIGHT | read only | Brightness as output |
+| (DCS-BIOS only) Auxiliary Instruments Light Brightness | INT_AUX_INST_L_BRIGHT | read only | Brightness as output |
+| (DCS-BIOS only) Flood Light Brightness | INT_FLOOD_L_BRIGHT | read only | Brightness as output |
+| (DCS-BIOS only) Caution Lights Brightness | INT_CAUTION_L_BRIGHT | read only | Brightness as output |
+
+### Caution Light Panel (p. 195)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| ENG START CYCLE | CL_A1 | read only | ENG START CYCLE Light (green) |
+| L-HYD PRESS | CL_A2 | read only | L-HYD PRESS Light (green) |
+| R-HYD PRESS | CL_A3 | read only | R-HYD PRESS Light (green) |
+| GUN UNSAFE | CL_A4 | read only | GUN UNSAFE Light (green) |
+| ANTI-SKID | CL_B1 | read only | ANTI-SKID Light (green); PANELS says no function |
+| L-HYD RES | CL_B2 | read only | L-HYD RES Light (green) |
+| R-HYD RES | CL_B3 | read only | R-HYD RES Light (green) |
+| OXY LOW | CL_B4 | read only | OXY LOW Light (green) |
+| ELEV DISENG | CL_C1 | read only | ELEV DISENG Light (green) |
+| Blank lamp (dash legend) | CL_C2 | read only | likely; matched by position, DCS-BIOS calls it VOID1 |
+| SEAT NOT ARMED | CL_C3 | read only | SEAT NOT ARMED Light (green); PANELS says no function |
+| BLEED AIR LEAK | CL_C4 | read only | BLEED AIR LEAK Light (green) |
+| AIL DISENG | CL_D1 | read only | AIL DISENG Light (green) |
+| L-AIL TAB | CL_D2 | read only | L-AIL TAB Light (green) |
+| R-AIL TAB | CL_D3 | read only | R-AIL TAB Light (green) |
+| SERVICE AIR HOT | CL_D4 | read only | SERVICE AIR HOT Light (green); PANELS says no function |
+| PITCH SAS | CL_E1 | read only | PITCH SAS Light (green) |
+| L-ENG HOT | CL_E2 | read only | L-ENG HOT Light (green) |
+| R-ENG HOT | CL_E3 | read only | R-ENG HOT Light (green) |
+| WINDSHIELD HOT | CL_E4 | read only | WINDSHIELD HOT Light (green); PANELS says no function |
+| YAW SAS | CL_F1 | read only | YAW SAS Light (green) |
+| L-ENG OIL PRESS | CL_F2 | read only | L-ENG OIL PRESS Light (green) |
+| R-ENG OIL PRESS | CL_F3 | read only | R-ENG OIL PRESS Light (green) |
+| CICU | CL_F4 | read only | CICU Light (green) |
+| GCAS | CL_G1 | read only | GCAS Light (green) |
+| L-MAIN PUMP | CL_G2 | read only | L-MAIN PUMP Light (green) |
+| R-MAIN PUMP | CL_G3 | read only | R-MAIN PUMP Light (green) |
+| Blank lamp (dash legend) | CL_G4 | read only | likely; matched by position, DCS-BIOS calls it VOID2 |
+| LASTE | CL_H1 | read only | LASTE Light (green) |
+| L-WING PUMP | CL_H2 | read only | L-WING PUMP Light (green) |
+| R-WING PUMP | CL_H3 | read only | R-WING PUMP Light (green) |
+| HARS | CL_H4 | read only | HARS Light (green) |
+| IFF MODE-4 | CL_I1 | read only | IFF MODE-4 Light (green); PANELS says no function |
+| L-MAIN FUEL LOW | CL_I2 | read only | L-MAIN FUEL LOW Light (green) |
+| R-MAIN FUEL LOW | CL_I3 | read only | R-MAIN FUEL LOW Light (green) |
+| L-R TKS UNEQUAL | CL_I4 | read only | L-R TKS UNEQUAL Light (green) |
+| EAC | CL_J1 | read only | EAC Light (green) |
+| L-FUEL PRESS | CL_J2 | read only | L-FUEL PRESS Light (green) |
+| R-FUEL PRESS | CL_J3 | read only | R-FUEL PRESS Light (green) |
+| NAV | CL_J4 | read only | NAV Light (green) |
+| STALL SYS | CL_K1 | read only | STALL SYS Light (green) |
+| L-CONV | CL_K2 | read only | L-CONV Light (green) |
+| R-CONV | CL_K3 | read only | R-CONV Light (green) |
+| CADC | CL_K4 | read only | CADC Light (green) |
+| APU GEN | CL_L1 | read only | APU GEN Light (green) |
+| L-GEN | CL_L2 | read only | L-GEN Light (green) |
+| R-GEN | CL_L3 | read only | R-GEN Light (green) |
+| INST INV | CL_L4 | read only | INST INV Light (green) |
+| INU AIR HOT | — | — | not exported |
+
+### TACAN Operation and Control Panel (p. 198)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 3. Channel display window | TACAN_CHANNEL | read only | TACAN Channel, text of 4 characters |
+| 5. Volume knob (VOL) | TACAN_VOL | read + command | TACAN Signal Volume |
+| 2. Channel selector, left | TACAN_10 | read + command | Left Channel Selector; step up or down only |
+| 2. Channel selector, middle | TACAN_1, TACAN_XY | read + command | likely; DCS-BIOS calls it Right selector; X/Y is TACAN_XY |
+| 4. Test button | TACAN_TEST_BTN | read + command | TACAN Test Button |
+| Test lamp | TACAN_TEST | read only | TACAN Test Indicator Light; DCS-BIOS says green |
+| 1. Mode dial | TACAN_MODE | read + command | TACAN Mode Dial, 5 positions |
+
+### ILS Control Panel and ILS Operation (p. 199)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. Power control knob, outer part | ILS_PWR | read + command | ILS Power |
+| 1. Power control knob, base | ILS_MHZ | read + command | ILS Frequency MHz, states 108 to 111 |
+| 3. ILS setting window | ILS_FREQUENCY_S | read only | ILS Frequency (String), 6 characters |
+| 2. Volume knob, outer part (VOL) | ILS_VOL | read + command | ILS Volume |
+| 2. Volume knob, base | ILS_KHZ | read + command | ILS Frequency KHz, 10 states from 10 to 95 |
+
+### Heading and Attitude Reference Systems (HARS) Control Panel (p. 200)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. SYN-IND annunciator | HARS_SYNC | read only | HARS Sync |
+| 2. Mode switch | HARS_SLAVE_DG | read + command | HARS SLAVE-DG Mode |
+| 3. LAT correction dial | HARS_LATITUDE | read + command | HARS Latitude Dial |
+| 6. Sync control (PUSH TO SYNC, HDG) | HARS_PTS, HARS_HDG | read + command | Push is HARS_PTS; turn is HARS_HDG |
+| 5. Magnetic variation switch (MAG VAR) | HARS_MAGVAR | read + command | HARS MAG VAR, 3 positions |
+| 4. Hemisphere selector switch | HARS_NS | read + command | HARS N/S toggle switch |
+
+### Helmet Mounted Cueing System (HMCS) Control Panel (p. 201)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| HMCS power switch | A102_HMCS_PW | read + command | Scorpion HMCS Power BAT/OFF/ON; reverse order of PANELS |
+| HVI UNSAFE legend | — | — | not exported |
+| REPLACE BATTERY legend | — | — | not exported |
+
+### Auxiliary Avionics Panel (AAP) (p. 203)
+
+| Control | DCS-BIOS identifier | Access | Note |
+| --- | --- | --- | --- |
+| 1. CDU power switch | AAP_CDUPWR | read + command | CDU Power |
+| 2. EGI power switch | AAP_EGIPWR | read + command | EGI Power |
+| 4. STEER PT dial | AAP_STEERPT | read + command | STEERPT FLTPLAN - MARK - MISSION |
+| 3. PAGE dial | AAP_PAGE | read + command | PAGE OTHER - POSITION - STEER - WAYPT |
+| 5. STEER switch | AAP_STEER | read + command | Toggle Steerpoint; spring-loaded |
