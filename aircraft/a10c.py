@@ -463,6 +463,156 @@ def vhf_pages() -> list[dict]:
     return [kit_page("VHF FM", [7, 3, 1, 2], p.build())]
 
 
+ARC_SCREEN = (
+    "FREQUENCY", "MODULATION", "PREV_MANUAL_FREQ", "SELECTED_RT", "XMIT_RECV", "ACTIVE_CHANNEL", "ACTIVE_ECCM_CHANNEL", "COMSEC_MODE", "COMSEC_SUBMODE",
+    "COMSEC_MENU_MODE", "KY_SUBMODE", "SG_TIME", "LOAD_TIME", "PREV", "MORE", "EXIT_SEND", "EXIT_RECV", "EXIT_LOAD",
+)
+
+
+def arc_button(p: Panel, name: str, label: str, x: int, y: int):
+    p.round(name, x, y, {"id": f"ARC210_{name}", "label": label, "type": "button", "shape": "round", "hold": BUTTON_HOLD})
+
+
+def arc_dial(p: Panel, name: str, label: str, x: int, y: int, words: tuple):
+    p.rotary(name, x, y, {
+        "id": f"ARC210_{name}", "label": label, "type": "selector", "style": "rotary",
+        "positions": [{"value": n, "label": word, "angle": angle} for n, (word, angle) in enumerate(zip(words, (-135, -90, -45, 0, 45, 90, 135)))],
+    }, labels="fan")
+
+
+def radio_pages() -> list[dict]:
+    p = Panel("RADIO 1", 640, 1040, "a10c", scroll=True)
+    for name, label, x in (("TOD_SEND", "TOD SND", 100), ("TOD_REC", "TOD RCV", 240), ("GPS", "GPS", 380), ("TRANS_REC_SEL", "RT SELECT", 520)):
+        p.push(name, x, 84, {"id": f"ARC210_{name}", "label": label, "type": "button", "hold": BUTTON_HOLD})
+        p.label(label, "POS", name, "below")
+    p.mark("EMER\nTOD", "POS", 170, 84, "printed between TOD SND and TOD RCV")
+    p.display("SCREEN", 260, 334, 300, 340, {"id": "ARC210_SCREEN", "label": "ARC-210", "type": "display", "cols": 20, "ids": [f"ARC210_{field}" for field in ARC_SCREEN]})
+    for name, label, y in (("FSK_UP", "LINE 1", 224), ("FSK_MID", "LINE 2", 334), ("FSK_LOW", "LINE 3", 444)):
+        p.push_small(name, 64, y, {"id": f"ARC210_{name}", "label": label, "type": "button", "style": "flat", "hold": BUTTON_HOLD}, ARROW_RIGHT)
+    p.push_small("BRIGHT_INC", 64, 560, {"id": "ARC210_BRIGHT_INC", "label": "BRIGHTNESS UP", "type": "button", "style": "flat", "hold": BUTTON_HOLD}, ARROW_UP)
+    p.push_small("BRIGHT_DEC", 64, 624, {"id": "ARC210_BRIGHT_DEC", "label": "BRIGHTNESS DOWN", "type": "button", "style": "flat", "hold": BUTTON_HOLD}, ARROW_DOWN)
+    arc_button(p, "SQUELCH", "SQL", 526, 200)
+    p.label("SQL", "NAME", "SQUELCH", "left")
+    arc_button(p, "MENU", "MENU / TIME", 470, 320)
+    p.label("MENU", "POS", "MENU", "above")
+    p.label("TIME", "POS", "MENU", "below")
+    arc_button(p, "AMP_FREQ_MODUL", "AM/FM", 566, 320)
+    p.label("AM/FM", "POS", "AMP_FREQ_MODUL", "above")
+    arc_button(p, "TRANS_REC_FUNC", "XMT/RCV / SEND", 470, 450)
+    p.label("XMT/RCV", "POS", "TRANS_REC_FUNC", "above")
+    p.label("SEND", "POS", "TRANS_REC_FUNC", "below")
+    arc_button(p, "OFF_FREQ", "OFFSET / RCV", 566, 450)
+    p.label("OFFSET", "POS", "OFF_FREQ", "above")
+    p.label("RCV", "POS", "OFF_FREQ", "below")
+    arc_button(p, "ENTER", "ENTER", 566, 570)
+    p.label("ENTER", "POS", "ENTER", "left")
+    for bios, label, x in (("100MHZ_SEL", "100", 130), ("10MHZ_SEL", "10", 230), ("1MHZ_SEL", "1", 330), ("100KHZ_SEL", ".1", 430), ("25KHZ_SEL", ".025", 530)):
+        p.rocker(bios, x, 700, step_rocker(f"ARC210_{bios}", label))
+    arc_dial(p, "MASTER", "LEFT MODE", 150, 880, ("OFF", "TR\u00a0G", "TR", "ADF", "CHG PRST", "TEST", "ZERO (PULL)"))
+    p.rocker("CHN_KNB", 310, 880, {**step_rocker("ARC210_CHN_KNB", "CHAN"), "steps": KNOB_STEP})
+    arc_dial(p, "SEC_SW", "RIGHT MODE", 470, 880, ("ECCM MASTER", "ECCM", "PRST", "MAN", "MAR", "243", "121 (PULL)"))
+    return [kit_page("RADIO 1", [5, 3, 1, 2], p.build())]
+
+
+def fire_pages() -> list[dict]:
+    p = Panel("FIRE / JETT", 640, 540, "a10c")
+    for title, name, bios, lamp, x in (
+        ("FIRE L ENG", "LENG", "FIRE_LENG_PULL", "L_ENG_FIRE", 100),
+        ("FIRE APU", "APU", "FIRE_APU_PULL", "APU_FIRE", 290),
+        ("FIRE R ENG", "RENG", "FIRE_RENG_PULL", "R_ENG_FIRE", 480),
+    ):
+        p.toggle(name, x, 152, {
+            "id": bios, "label": title, "type": "selector", "guard": True,
+            "positions": [{"value": 1, "label": "PULL"}, {"value": 0, "label": "IN"}],
+        }, "above_below")
+        p.label(title, "POS", name, "above")
+        p.lamp(f"{name}_FIRE", x + 84, 152, {"id": lamp, "legend": "FIRE", "color": "red"})
+    p.rule("RULE_LENG_APU", 225, 36, 250)
+    p.rule("RULE_APU_RENG", 415, 36, 250)
+    p.plunger("JETT", 160, 400, {"id": "EXT_STORES_JETTISON", "label": "EXT STORES JETT", "type": "button", "shape": "round", "style": "plunger", "guard": True, "hold": BUTTON_HOLD})
+    p.label("EXT STORES\nJETT", "POS", "JETT", "above")
+    p.toggle("DISCH", 480, 400, {
+        "id": "FIRE_EXT_DISCH", "label": "FIRE EXTING DISCH", "type": "selector", "orient": "h", "guard": True,
+        "positions": [{"value": 0, "label": "L"}, {"value": 1, "label": "OFF"}, {"value": 2, "label": "R"}],
+    }, "left_right")
+    p.label("FIRE\nEXTING\nDISCH", "POS", "DISCH", "above")
+    p.rule("RULE_JETT_DISCH", 320, 290, 504)
+    return [kit_page("FIRE / JETT", [2, 5, 1, 4], p.build())]
+
+
+def cmsc_arrow(name: str, label: str) -> dict:
+    return {"id": f"CMSC_{name}", "label": label, "type": "button", "style": "flat", "hold": BUTTON_HOLD}
+
+
+def cmsc_pages() -> list[dict]:
+    p = Panel("CMSC", 640, 484, "a10c")
+    p.push_small("JMR_BTN", 64, 110, cmsc_arrow("JMR", "JMR"), ARROW_RIGHT)
+    p.push_small("MWS_BTN", 64, 230, cmsc_arrow("MWS", "MWS"), ARROW_RIGHT)
+    p.display("JMR", 222, 110, 220, 60, readout("CMSC_TXT_JMR", "JMR", 8))
+    p.label("JMR", "NAME", "JMR", "above")
+    p.display("MWS", 222, 230, 220, 60, readout("CMSC_TXT_MWS", "MWS", 8))
+    p.label("MWS", "NAME", "MWS", "above")
+    p.display("CHAFF_FLARE", 486, 110, 220, 60, readout("CMSC_TXT_CHAFF_FLARE", "CHAFF / FLARE", 8))
+    p.mark("CHAFF", "NAME", 432, 62, "title of the left half of the window")
+    p.mark("FLARE", "NAME", 540, 62, "title of the right half of the window")
+    p.lamp("PRIO", 412, 186, {"id": "CMSC_PRIO", "legend": "", "color": "green"})
+    p.lamp("UNKN", 560, 186, {"id": "CMSC_UNKN", "legend": "", "color": "green"})
+    p.bracket("RWR", "RWR", 384, 536, 236)
+    p.push("PRI", 412, 320, {"id": "CMSC_PRI", "label": "RWR PRI", "type": "button", "legend": "PRI", "hold": BUTTON_HOLD})
+    p.push("SEP", 508, 320, {"id": "CMSC_SEP", "label": "RWR SEP", "type": "button", "legend": "SEP", "hold": BUTTON_HOLD})
+    for name, label, bios, x in (("BRT", "BRT", "CMSC_BRT", 120), ("AUD", "AUD", "CMSC_RWR_VOL", 240)):
+        p.knob(name, "KNOB_S", x, 420, {"id": bios, "label": label, "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+        p.label(label, "NAME", name, "above")
+    p.lamp("ML", 360, 420, {"id": "CMSC_LAUNCH", "legend": "ML", "color": "red"})
+    return [kit_page("CMSC", [3, 6, 1, 2], p.build())]
+
+
+def gear_plate(g: PanelGroup):
+    p = g.panel("LANDING GEAR", 436, 600, 0, 0)
+    p.toggle("SKID", 100, 156, {
+        "id": "ANTI_SKID_SWITCH", "label": "ANTI-SKID", "type": "selector",
+        "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}],
+    })
+    p.label("ANTI-\nSKID", "NAME", "SKID", "above")
+    p.label("OFF", "POS", "SKID", "below")
+    p.toggle("LAND", 336, 156, {
+        "id": "LANDING_LIGHTS", "label": "LIGHTS LAND", "type": "selector",
+        "positions": [{"value": 2, "label": "LAND"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "TAXI"}],
+    }, "above_side_below")
+    p.label("LIGHTS\nLAND", "NAME", "LAND", "above")
+    for side, x in (("L", 80), ("N", 160), ("R", 240)):
+        p.lamp(f"{side}_SAFE", x, 262, {"id": f"GEAR_{side}_SAFE", "legend": f"{side} SAFE", "color": "green"})
+    p.bar("FLAPS", 90, 450, {"id": "FLAP_POS", "label": "FLAPS DEGREES", "type": "bar", "max": 65535})
+    p.label("FLAPS\nDEGREES", "POS", "FLAPS", "above")
+    p.push("SILENCE", 215, 400, {"id": "GEAR_HORN_SILENCE", "label": "LDG WARN SILENCE", "type": "button", "hold": BUTTON_HOLD})
+    p.label("LDG WARN\nSILENCE", "NAME", "SILENCE", "above")
+    p.lamp("HANDLE", 215, 500, {"id": "HANDLE_GEAR_WARNING", "legend": "LGD GEAR DOWN", "color": "red"}, "LAMP_WIDE")
+    p.round("DOWNLOCK", 336, 316, {"id": "DOWNLOCK_OVERRIDE", "label": "DOWNLOCK OVERRIDE", "type": "button", "shape": "round", "hold": BUTTON_HOLD})
+    p.hazard("DOWNLOCK", "DOWNLOCK\nOVERRIDE", "POS", "above")
+    p.toggle("GEAR", 336, 490, {
+        "id": "GEAR_LEVER", "label": "LANDING GEAR", "type": "selector",
+        "positions": [{"value": 1, "label": "UP"}, {"value": 0, "label": "DOWN"}],
+    }, "above_below")
+
+
+def aux_gear_plate(g: PanelGroup):
+    p = g.panel("AUX GEAR", 188, 600, 452, 0)
+    p.toggle("AUX", 94, 200, {
+        "id": "AUX_GEAR", "label": "AUX GEAR", "type": "selector",
+        "positions": [{"value": 1, "label": "PULLED"}, {"value": 0, "label": "IN"}],
+    }, "above_below")
+    p.label("AUX\nGEAR", "NAME", "AUX", "above")
+    p.push("LOCK", 94, 400, {"id": "AUX_GEAR_LOCK", "label": "AUX GEAR LOCK", "type": "button", "hold": BUTTON_HOLD})
+    p.label("LOCK", "NAME", "LOCK", "above")
+
+
+def gear_pages() -> list[dict]:
+    g = PanelGroup("LANDING GEAR", "a10c")
+    gear_plate(g)
+    aux_gear_plate(g)
+    return [kit_page("LANDING GEAR", [5, 5, 2, 1], g.build())]
+
+
 VIEWS = [
     {"name": "COCKPIT", "seats": [0], "layout": "map", "lamps": MASTER_LAMPS, "controls": [], "links": []},
     *brake_pages(),
@@ -472,8 +622,12 @@ VIEWS = [
     *fuel_pages(),
     *throttle_pages(),
     *laste_pages(),
+    *radio_pages(),
     *uhf_pages(),
     *vhf_pages(),
+    *fire_pages(),
+    *cmsc_pages(),
+    *gear_pages(),
 ]
 
 CONTROL_NAMES = []
