@@ -7,9 +7,16 @@ A tablet dashboard for the **AH-64D Apache** in DCS World. A small Python bridge
 - **MPD, KU**: both MPD bezels with live button labels, the TEDAC (CP/G), the cursor pad and the keyboard unit.
 - **GEORGE**: direct buttons for the AI crew member (search, targets, engagement, request control).
 
-The dashboard follows the seat you are in; a long hold on the seat badge shows the pages of the other seat, view only, for debugging. Everything is plain Python (standard library only) and one HTML file. Full description: [docs/SPEC.md](docs/SPEC.md).
+The dashboard follows the seat you are in; a long hold on the seat badge shows the pages of the other seat, view only, for debugging. Everything is plain Python (standard library only) and one HTML file. Full description: the engine in [docs/SPEC.md](docs/SPEC.md), the AH-64D in [docs/AH64D/SPEC.md](docs/AH64D/SPEC.md).
 
 **Status:** the cold start from the tablet works in DCS. The panel pages, FLIGHT, FIGHT, MPD and KU are tested against a simulated DCS-BIOS and are waiting for a full test run in DCS. Open points: [docs/FIXES.md](docs/FIXES.md).
+
+## Aircraft
+
+- **AH-64D Apache** (pilot and CP/G seat): supported. Specification: [docs/AH64D/SPEC.md](docs/AH64D/SPEC.md).
+- **A-10C II Tank Killer**: planned, not built yet. Research and plan: [docs/A10C/RESEARCH.md](docs/A10C/RESEARCH.md).
+
+The engine that all aircraft share is described in [docs/SPEC.md](docs/SPEC.md).
 
 ## Requirements
 
@@ -66,7 +73,8 @@ core/                 the generic bridge: web server, DCS-BIOS, keys, config, lo
 aircraft/ah64d.py     everything specific to the AH-64D: views, controls, labels, default keybinds
 config/               config.example.toml (config.toml and settings.json are local and ignored)
 logs/                 rolling log, created at runtime (ignored)
-docs/                 SPEC.md (the spec), FIXES.md (open points and fixes in progress)
+docs/                 SPEC.md (the engine spec), FIXES.md (open points and fixes in progress),
+                      AH64D/ (AH-64D spec), A10C/ (A-10C II research and plan)
 ```
 
 Other aircraft may follow later: the bridge and the page engine are aircraft-independent, an aircraft is one file in `aircraft/` plus its drawings. See [docs/SPEC.md](docs/SPEC.md).

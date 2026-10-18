@@ -12,8 +12,8 @@ Already generic and unchanged: DCS-BIOS decoding and commands (`core/dcsbios.py`
 | E2 | Seats optional | `SEAT_POSITION` is required: the bridge stops at start for the A-10C; the page knows only PILOT / CP/G | Seats defined by the aircraft file; one seat = no badge switch, no debug seat | medium |
 | E3 | Trim display optional | Trim tracking reads `{seat}_CYCLIC_TRIM_UD`; the A-10C trim hat is not in DCS-BIOS (the reader thread would stop) | Trim display only for aircraft that define it; not for the A-10C | small |
 | E4 | Power levers optional | 8 `power_*` keys and the lever model are required for every aircraft; A-10C throttles are read only in DCS-BIOS | Levers only for aircraft that define them; A-10C throttle shown as a gauge in version 1 | small |
-| E5 | Display pages (MFCD, CDU, UFC) | MPD, TEDAC and KU are hand-drawn AH-64D layouts in the page | Build MFCD, CDU and UFC as panel-kit pages, no new page layouts | small in the engine, work in the aircraft file |
-| E6 | Panel kit additions | No plain legend lamp outside a dial (caution panel), lit colours only green and amber, plate budget 640 × 600 du | Add a LAMP part and red / white / blue lit styles; keep the plate look the same for every aircraft | small |
+| E5 | Display pages (MFCD, CDU, UFC) | MPD, TEDAC and KU are hand-drawn AH-64D layouts in the page | **Decided:** hand-drawn MFCD, CDU and UFC layouts, like MPD and KU | small in the engine, work in the aircraft file |
+| E6 | Panel kit additions | No plain legend lamp outside a dial (caution panel), lit colours only green and amber, plate budget 640 × 600 du | Add a LAMP part and red / white / blue lit styles. **Decided:** A-10C-specific look | small |
 | E7 | Export script per aircraft | Cockpit arguments and MPD indication numbers are hard-coded for the AH-64D; the script does not know the aircraft | Tables per aircraft name in the script; A-10C version 1 needs none | small |
 | E8 | Keys | Key table lacks numpad, Tab, Esc, punctuation; trim reset key required for every aircraft | Add keys when the A-10C keybinds need them; required keys per aircraft | small |
 | E9 | Per-aircraft memory and docs | Remembered tab / MPD side not scoped by aircraft; README and SPEC say "AH-64D only" | Scope by aircraft; docs updated at the end | small |
@@ -28,7 +28,7 @@ DCS-BIOS always sends the aircraft name as `_ACFT_NAME` (24 characters at addres
 
 - Option A – manual: keep the setting; the user sets `aircraft = "A-10C"` before flying the A-10C. No code beyond E2–E4.
 - Option B – automatic: every aircraft file lists its DCS names (`DCS_NAMES = ["A-10C_2"]`); the bridge loads all aircraft files at start, reads `_ACFT_NAME` and switches the active aircraft when it changes; the page reloads `/layout` when the bridge reports a new aircraft. The setting stays as an override.
-- Recommendation: B. It fits "same layout for every aircraft" and a mission change without restarting. Cost: the bridge must hold one control list per aircraft (both DCS-BIOS JSON files) and the page must reload its layout.
+- Recommendation: B. It fits "same layout for every aircraft" and a mission change without restarting. Cost: the bridge must hold one control list per aircraft (both DCS-BIOS JSON files) and the page must reload its layout. **Decided:** automatic, plus a manual switch in the settings page for debugging; the `[dcs] aircraft` setting stays as an override (default `auto`), as recommended.
 
 ### E2 Seats optional
 
@@ -54,14 +54,14 @@ Today: the MPD, TEDAC and KU are hand-drawn AH-64D pages in `core/web/index.html
 
 - Option A – new hand-drawn layouts `mfcd`, `cdu`, `ufc` in the page, like `mpd` and `ku`.
 - Option B – build them with the panel kit as panel pages: a CDU plate with a 10-line `display` (`CDU_LINE0` … `CDU_LINE9`, the kit's multi-line display already exists) and its keys; a UFC plate with its keypad; an MFCD plate with the 20 OSBs, rockers and DAY / NT / OFF around an empty screen (no live OSB labels in version 1: DCS-BIOS has no MFCD text).
-- Recommendation: B. No new page code; the same look as every other panel; live MFCD labels can follow later through the export script (E7). Open: the CDU has about 60 keys plus the display; it may not fit the 640 × 600 du plate budget at the 56 px touch minimum, so it may need two pages (display with line keys; keyboard) or a larger budget for keypad pages.
+- Recommendation: B. No new page code; the same look as every other panel; live MFCD labels can follow later through the export script (E7). Open: the CDU has about 60 keys plus the display; it may not fit the 640 × 600 du plate budget at the 56 px touch minimum, so it may need two pages (display with line keys; keyboard) or a larger budget for keypad pages. **Decided: option A** (hand-drawn layouts), see Decisions.
 - Tab name: the display tab is named by the aircraft file (MPD for the AH-64D, MFCD or CDU for the A-10C), the same tab position for every aircraft.
 
 ### E6 Panel kit additions
 
 - Caution light panel (48 legend lamps) and other indicator lamps need a plain LAMP part (legend lamp, no button); today free lamps exist only inside a dial.
 - Lit colours exist only for green and amber on plates; the A-10C needs red, and probably white and blue (to confirm with the pictures in PICTURES.md).
-- Plate look: every plate has four corner ears and screws in the AH-64D style. Recommendation: keep one look for every aircraft (simpler, consistent); the A-10C panels look slightly different in reality.
+- Plate look: every plate has four corner ears and screws in the AH-64D style. Recommendation: keep one look for every aircraft (simpler, consistent); the A-10C panels look slightly different in reality. **Decided: A-10C-specific look**, see Decisions.
 - Plate budget 640 × 600 du: most A-10C panels fit; the CDU is the exception (see E5).
 
 ### E7 Export script per aircraft

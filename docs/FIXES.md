@@ -1,6 +1,6 @@
 # Fixes and open points
 
-Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md).
+Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md) (engine) or [AH64D/SPEC.md](AH64D/SPEC.md) (AH-64D).
 
 ## Open points
 
