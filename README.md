@@ -35,7 +35,7 @@ In the paths below, `<Saved Games>` is your DCS Saved Games folder, usually `%US
    dofile(lfs.writedir() .. [[Scripts\DCS-Dashboard-Export.lua]])
    ```
 
-   After an update of the repo, copy the script again and restart the mission.
+   After an update of the repo, copy the script again and restart the mission. At start the dashboard warns if the copy is missing, outdated or not loaded by `Export.lua`.
 5. **Config (optional).** The defaults fit a standard install and the DCS folder is found automatically. To change something (another DCS folder, ports, rebound keys), copy `config\config.example.toml` to `config\config.toml` and keep only the lines you change. That file stays on your machine and is never committed.
 6. **Run.** Start DCS in windowed or borderless mode, then double-click `start_dashboard.bat` (or run `python core\dashboard.py`). It prints the address to open, for example `http://<PC address>:8080`. If Windows asks to allow Python on the network, allow it for private networks.
 7. **Tablet.** Open that address in the tablet's browser. On an iPad: Share → Add to Home Screen; the page then runs full screen with its own icon. Load an AH-64D mission.

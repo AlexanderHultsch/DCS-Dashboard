@@ -670,6 +670,8 @@ def main() -> None:
     log.setup(cfg["log"])
     settings = load_settings()
     log.set_file_logging(settings["logging"])
+    for problem in export.install_problems(cfg["dcs"]["saved_games"]):
+        log.line("bridge", "export script", problem)
     cfg["keys"] = {**ac.KEYS, **cfg.get("keys", {})}
     key_map = cfg["keys"]
     try:
