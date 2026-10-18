@@ -869,3 +869,94 @@ Where: Inboard column, below the CDU, above the ILS panel (item 8 on p. 185; fig
 | 4. STEER PT dial | rotary | FLT PLAN; MARK; MISSION (clockwise from left) | none | Picks the waypoint set the STEER switch cycles |
 | 3. PAGE dial | rotary | OTHER; POSITION; STEER; WAYPT (clockwise from left) | CDU pages POSINFO, STRINFO, WP INFO | Only OTHER allows CDU key entry; the rest are read only |
 | 5. STEER switch | toggle | up; centre (default); down | none | Cycles steerpoints forward and back; text is on p. 205 |
+
+## Keypads and displays
+
+### Control Display Unit (CDU) (p. 205)
+
+Where: Right console, inboard column, above the AAP and below the caution light panel (item 7 on p. 185; figures on pp. 205 and 206). Display on top, 4 line select keys on each side, function keys and DIM/BRT below it, then the keypad and the rockers.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Display window | display | 10 lines of 24 characters | line 1: page title, flight plan, steerpoint, DTSAS and EGI FOM; line 2: annunciations; lines 3 to 9: page data | Also shown on the MFCD CDU repeater page |
+| Scratchpad | display | line 10, left side, up to 15 characters (L10) | typed text; error text after an invalid entry | HUD scratchpad takes 24 characters |
+| 2. Line select keys, left (LSK) | button | 4 keys left of the display; fields named L plus line 1 to 10; L3, L5, L7, L9 by figure | marker symbol beside the key on screen | Row numbers read from figure on p. 206 |
+| 2. Line select keys, right (LSK) | button | 4 keys right of the display; named R plus line 1 to 10; R3, R5, R7, R9 by figure | marker symbol beside the key on screen | Row numbers read from figure on p. 206 |
+| LSK marker symbols | display | branch arrow left or right; ± ; rotary (up-down arrow); [ ] data entry; system action (circled dot) | shown next to an active LSK | Branch opens a page; rotary cycles values |
+| 13.1. SYS key | button | press | none | System page; AAP PAGE dial must be at OTHER |
+| 13.2. NAV key | button | press | none | Navigation page; AAP PAGE dial must be at OTHER |
+| 13.3. WP key | button | press | none | Waypoint Menu page; AAP PAGE dial must be at OTHER |
+| 13.4. OSET key | button | press | none | Offset page; AAP PAGE dial must be at OTHER |
+| 13.5. FPM key | button | press | none | Flight Plan Menu page; AAP PAGE dial must be at OTHER |
+| 13.6. PREV key | button | press | none | Back to the previous page |
+| 4. Alphanumeric keys | button | digits 0 to 9; letters A to Z; decimal point; slash | typed character in the scratchpad | E, N, S, W are circled in the figure |
+| 3. DIM/BRT rocker | rocker | DIM; BRT | none | Display brightness; right of PREV |
+| 5. ± rocker | rocker | + / - | none | Steps the value beside a ± LSK; lower right |
+| 12. Page rocker (P/G) | rocker | up arrow (P); down arrow (G) | none | Steps sub-pages such as 1 of 2; lower left |
+| 9. Blank rocker | rocker | two unlabelled halves; direction mapping not stated | none | Steps waypoint IDs into the scratchpad; p. 305 calls it LEFT/RIGHT |
+| 6. FA key (Fault Acknowledge) | button | press | clears fault and status messages | Also clears HUD NOT RDY, EGI NOT RDY, MARK |
+| 7. CLR key | button | press | clears the whole scratchpad | Also clears an error message |
+| 10. BCK key | button | press; hold repeats | none | Deletes the character left of the cursor |
+| 8. SPC key | button | press | none | Inserts a space in the scratchpad |
+| 11. MK key | button | press | MARK (A-Z) message on line 2 | Creates an overhead markpoint or update |
+| Two unlabelled square keys | button | press | none | In figure only, left of BCK; function not stated |
+
+Standard line items (p. 208):
+- Line 1: flashing asterisk during DTS upload or download.
+- Line 1: page title.
+- Line 1: active flight plan, blank unless AAP STEER PT is at FLT PLN.
+- Line 1: current steerpoint number, left justified.
+- Line 1: DTSAS figure of merit (FOM).
+- Line 1: EGI navigation mode and its FOM.
+- Line 2: mostly blank, annunciations only. Names (pp. 208 and 209): STANDBY, EGI NOT RDY, DTC UPLOAD COMPLETE, HUD NOT RDY, INS NAV RDY, MARK (A-Z), CADC FAIL, DTS FAIL, EGI FAIL, GPS FAIL, HARS FAIL, INS FAIL, INS FLT INST FAIL, CADC NOT RDY, DOWNLOAD COMPLETE, DOWNLOAD FAILED, IFFCC NOT READY, DTSAS OFF MAP, GPS KEY ERASED, GPS NEEDS KEYS, WARM START.
+- Line 10: scratchpad (p. 209).
+
+### Up Front Controller (UFC) (p. 303)
+
+Where: Under the HUD (item 4 on p. 152; figure on p. 303). Keypad block on the left, STEER rocker at the far left, DATA, SEL and DEPR rockers on the right. Legends in white under each key give the function used in FUNC mode.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Mark (MK) button | button | press | none | Repeats the CDU MK key; FUNC legend UPDT, not functional |
+| 2. Clear (CLR) button | button | press: delete one character; hold over 0.5 s: clear all | HUD and CDU scratchpads | FUNC legend MALF, not functional |
+| 3. Time Hack (HACK) button | button | press: hack mode; press again: real time | hack time-to-target in a box, lower right of the HUD | Adjust with DATA, accept with ENT; FUNC legend POS |
+| 4. Space (SPC) button | button | press | none | One space in HUD and CDU scratchpads; FUNC legend WAYPT |
+| 5. Altitude Alert (ALT ALRT) button | button | press: AGL value; then MSL value; then MSL ceiling value; fourth press exits | selected value on the HUD | Adjust with DATA or scratchpad plus ENT |
+| 6. Enter (ENT) button | button | press | none | Accepts menu action, elevation, hack time, Maverick boresight |
+| 7. Letter (LTR) mode button | button | press: letter mode; press twice: locked on; third press: off | L on the HUD scratchpad, underlined L when locked | Round button; digit keys cycle letters like a phone |
+| 8. Function (FUNC) mode button | button | press, then a key: one function; press twice: locked on; third press: off | F on the HUD scratchpad, underlined F when locked | Round button; numeric mode is the power-up default |
+| Key 1 | button | digit 1; letters ABC; FUNC: SYS | digit in HUD and CDU scratchpads | FUNC repeats the CDU SYS key |
+| Key 2 | button | digit 2; letters DEF; FUNC: NAV | digit in HUD and CDU scratchpads | FUNC repeats the CDU NAV key |
+| Key 3 | button | digit 3; letters GHI; FUNC: WP | digit in HUD and CDU scratchpads | FUNC repeats the CDU WP key |
+| Key 4 | button | digit 4; letters JKL; FUNC: OSET | digit in HUD and CDU scratchpads | FUNC repeats the CDU OSET key |
+| Key 5 | button | digit 5; letters MNO; FUNC: FPM | digit in HUD and CDU scratchpads | FUNC repeats the CDU FPM key |
+| Key 6 | button | digit 6; letters PQR; FUNC: PREV | digit in HUD and CDU scratchpads | FUNC repeats the CDU PREV key |
+| Key 7 | button | digit 7; letters STU; FUNC: FPLAN | digit in HUD and CDU scratchpads | FUNC repeats AAP left dial at FLT PLAN |
+| Key 8 | button | digit 8; letters VWX; FUNC: MARK | digit in HUD and CDU scratchpads | FUNC repeats AAP left dial at MARK |
+| Key 9 | button | digit 9; letters YZ; FUNC: MSN | digit in HUD and CDU scratchpads | FUNC repeats AAP left dial at MISSION |
+| Key 0 | button | digit 0; no letters; FUNC: STEER | digit in HUD and CDU scratchpads | FUNC repeats AAP right dial at STEER |
+| 9. DATA rocker (PG) | rocker | up; down; PG arrows beside it | none | Changes data in HUD menus and modes; FUNC: CDU page rocker |
+| 10. SEL rocker | rocker | + above; - below | none | Menus, weapon profile, gun reticle, A-A threat by mode |
+| 11. STEER rocker | rocker | + above; - below; legend STEER beside it | none | Repeats the AAP STEER switch; FUNC: CDU left/right rocker |
+| 12. INTEN rocker | rocker | left arrow; right arrow; direction mapping not stated | none | HUD brightness; horizontal, lower right |
+| 13. DEPR rocker | rocker | up arrow; down arrow; +10 to -300 mils from ZSL | none | One milliradian per momentary press; right edge |
+| 14. MASTER CAUTION | button | press | light, legend MASTER CAUTION in two lines | Lit by a new caution lamp; press makes it steady, light off |
+| FWD button | button | press | none | In figure only, right of the light; function not stated |
+| MID button | button | press | none | In figure only; function not stated |
+| AFT button | button | press | none | In figure only; function not stated |
+| Three unlabelled buttons | button | press | none | In figure only, row under FWD, MID, AFT; function not stated |
+
+The UFC repeats most CDU and AAP functions: its FUNC mode reaches the six CDU page keys, the three left AAP dial settings, the three right AAP dial settings and the STEER switch, and its keys type into the same scratchpad as the CDU (p. 307).
+
+### MFCD pages overview (p. 309)
+
+Where: Both MFCDs; bezel controls are in the sections on pp. 121 and 144. This section lists pages only.
+
+- Primary pages (p. 309): DTS (load navigation and weapon data), DP (choose the bottom-row page links), STAT (subsystem status), DSMS (stores), TAD (moving map, targeting, datalink), TGP (Litening pod), MAV (Maverick), MSG (text messages on the SA datalink), CDU repeater (CDU screen on an MFCD).
+- Start-up: with the AHCP CICU switch ON and both MFCDs on, both show the DTS page first (p. 310).
+- DTS page: LOAD PAGE, LOAD TAD, LOAD DSMS, LOAD TGP and LOAD ALL (recommended at each mission start); after a load starts, the other load OSBs vanish for 15 s (pp. 310 and 311).
+- Page selection: the bottom OSB row holds direct page links; the text assigns OSB 12 to 15 to links (p. 311).
+- Figures on pp. 310 and 311 show links TGP, TAD, DSMS and LOAD (the DTS page) on the four leftmost bottom buttons; the page on screen is drawn in inverse video; the fifth, rightmost bottom button has no legend.
+- Changing links: hold a bottom OSB for more than 1 s to open the DP page (p. 311).
+- DP page figure: left side lists TAD, TGP, DSMS, MSG, CDU; right side lists STAT, LOAD, MAV, CLR; how a choice is assigned to a slot is not stated.
+- Top OSB row: its use for page selection is not stated on pp. 309 to 311.
