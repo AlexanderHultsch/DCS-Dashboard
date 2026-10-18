@@ -937,3 +937,213 @@ Sections and control names follow PANELS.md. Columns:
 
 - DMS and TMS functions with the HMCS: keybind; DCS-BIOS has no control for them (see Control Stick and Throttles).
 - HMCS power is A102_HMCS_PW, see the HMCS Control Panel on the right console.
+
+## DCS-BIOS controls not in PANELS.md
+
+These controls exist in DCS-BIOS but no panel of PANELS.md describes them (the manual does not cover them, or they belong to the external model). Columns as above, with the DCS-BIOS identifier first; the description is the DCS-BIOS one.
+
+### Antenna Panel (DCS-BIOS only)
+
+| DCS-BIOS identifier | Access | Description | Note |
+| --- | --- | --- | --- |
+| ANT_IFF | read + command | IFF Antenna Switch |  |
+| ANT_UHF | read + command | UHF Antenna Switch |  |
+| ANT_EGIHQTOD | read + command | EGI HQ TOD Switch |  |
+
+### Circuit Breaker Panel (DCS-BIOS only)
+
+| DCS-BIOS identifier | Access | Description | Note |
+| --- | --- | --- | --- |
+| CBP_AILERON_DISC_L | read + command | AILERON DISC L Circuit Breaker |  |
+| CBP_AILERON_DISC_R | read + command | AILERON DISC R Circuit Breaker |  |
+| CBP_SPS_RUDDER_AUTH_LIM | read + command | SPS RUDDER AUTH LIM Circuit Breaker |  |
+| CBP_ELEVATOR_DISC_L | read + command | ELEVATOR DISC L Circuit Breaker |  |
+| CBP_ELEVATOR_DISC_R | read + command | ELEVATOR DISC R Circuit Breaker |  |
+| CBP_AILERON_TAB_L | read + command | AILERON TAB L Circuit Breaker |  |
+| CBP_AILERON_TAB_R | read + command | AILERON TAB R Circuit Breaker |  |
+| CBP_EMER_FLAP | read + command | EMER FLAP Circuit Breaker |  |
+| CBP_EMER_TRIM | read + command | EMER TRIM Circuit Breaker |  |
+| CBP_GEAR | read + command | GEAR Circuit Breaker |  |
+| CBP_ENG_START_L | read + command | ENG START L Circuit Breaker |  |
+| CBP_ENG_START_R | read + command | ENG START R Circuit Breaker |  |
+| CBP_APU_CONT | read + command | APU CONT Circuit Breaker |  |
+| CBP_ENG_IGNITOR_1 | read + command | ENG IGNITOR 1 Circuit Breaker |  |
+| CBP_ENG_IGNITOR_2 | read + command | ENG IGNITOR 2 Circuit Breaker |  |
+| CBP_FUEL_SHUTOFF_L | read + command | FUEL SHUTOFF L Circuit Breaker |  |
+| CBP_FUEL_SHUTOFF_R | read + command | FUEL SHUTOFF R Circuit Breaker |  |
+| CBP_DC_FUEL_PUMP | read + command | DC FUEL PUMP Circuit Breaker |  |
+| CBP_BLEED_AIR_CONT_L | read + command | BLEED AIR CONT L Circuit Breaker |  |
+| CBP_BLEED_AIR_CONT_R | read + command | BLEED AIR CONT R Circuit Breaker |  |
+| CBP_EXT_STORES_JETT_1 | read + command | EXT STORES JETT 1 Circuit Breaker |  |
+| CBP_EXT_STORES_JETT_2 | read + command | EXT STORES JETT 2 Circuit Breaker |  |
+| CBP_STBY_ATT_IND | read + command | STBY ATT IND Circuit Breaker |  |
+| CBP_MASTER_CAUTION | read + command | MASTER CAUTION Circuit Breaker |  |
+| CBP_PITOT_HEAT_AC | read + command | PITOT HEAT AC Circuit Breaker |  |
+| CBP_IFF | read + command | IFF Circuit Breaker |  |
+| CBP_UHF | read + command | UHF Circuit Breaker |  |
+| CBP_INTERCOM | read + command | INTERCOM Circuit Breaker |  |
+| CBP_GEN_CONT_L | read + command | GEN CONT L Circuit Breaker |  |
+| CBP_GEN_CONT_R | read + command | GEN CONT R Circuit Breaker |  |
+| CBP_CONVERTER_L | read + command | CONVERTER L Circuit Breaker |  |
+| CBP_AUX_ESS_BUS_0A | read + command | AUX ESS BUS 0A Circuit Breaker |  |
+| CBP_AUX_ESS_BUS_0B | read + command | AUX ESS BUS 0B Circuit Breaker |  |
+| CBP_AUX_ESS_BUS_0C | read + command | AUX ESS BUS 0C Circuit Breaker |  |
+| CBP_BAT_BUS_TRANS | read + command | BAT BUS TRANS Circuit Breaker |  |
+| CBP_INVERTER_PWR | read + command | INVERTER PWR Circuit Breaker |  |
+| CBP_INVERTER_CONT | read + command | INVERTER CONT Circuit Breaker |  |
+| CBP_AUX_ESS_BUS_TIE | read + command | AUX ESS BUS TIE Circuit Breaker |  |
+
+### DVADR (DCS-BIOS only)
+
+| DCS-BIOS identifier | Access | Description | Note |
+| --- | --- | --- | --- |
+| DVADR_FUNCTION | read + command | Function Control Toggle Switch |  |
+| DVADR_VIDEO | read + command | Video Selector Toggle Switch |  |
+| DVADR_EOT | read only | DVADR End of Tape Indicator Light (yellow) |  |
+| DVADR_REC_REMOTE | read only | DVADR Record (On) Remote Panel Indicator Light (green) |  |
+| DVADR_EOT_REMOTE | read only | DVADR End of Tape Remote Panel Indicator Light |  |
+| DVADR_REC | read only | DVADR Record (On) Indicator Light (green) |  |
+
+### External Aircraft Model (DCS-BIOS only)
+
+| DCS-BIOS identifier | Access | Description | Note |
+| --- | --- | --- | --- |
+| EXT_SPEED_BRAKE_RIGHT | read only | Right Speed Brake |  |
+| EXT_SPEED_BRAKE_LEFT | read only | Left Speed Brake |  |
+| EXT_FORMATION_LIGHTS | read only | Formation Lights (light green) |  |
+| EXT_POSITION_LIGHT_LEFT | read only | Left Position Light (red) |  |
+| EXT_POSITION_LIGHT_RIGHT | read only | Right Position Light (green) |  |
+| EXT_STROBE_TAIL | read only | Tail Strobe Light (white) |  |
+| EXT_STROBE_LEFT | read only | Left Strobe Light (white) |  |
+| EXT_STROBE_RIGHT | read only | Right Strobe Light (white) |  |
+| EXT_WOW_NOSE | read only | Weight ON Wheels Nose Gear |  |
+| EXT_WOW_RIGHT | read only | Weight ON Wheels Right Gear |  |
+| EXT_WOW_LEFT | read only | Weight ON Wheels Left Gear |  |
+| EXT_BOTTOM_LIGHT | read only | Middle Bottom Light (white) |  |
+| EXT_TOP_LIGHT | read only | Top Light (white) |  |
+| EXT_TAIL_LIGHT | read only | Tail Light (white) |  |
+| EXT_L_RUDDER_LIGHT | read only | Left Rudder Light (white) |  |
+| EXT_R_RUDDER_LIGHT | read only | Right Rudder Light (white) |  |
+
+### Misc (DCS-BIOS only)
+
+| DCS-BIOS identifier | Access | Description | Note |
+| --- | --- | --- | --- |
+| GND_SAFE_OVERRIDE_COVER | read + command | Ground Safety Override Switch Cover |  |
+| GND_SAFE_OVERRIDE | read + command | Ground Safety Override |  |
+| AUX_GEAR | read + command | Auxiliary Landing Gear Handle |  |
+| AUX_GEAR_LOCK | read + command | Auxiliary Landing Gear Handle Lock Button |  |
+| SEAT_ARM | read + command | Seat Arm Handle (0 = ARM, 1 = DISARM) |  |
+| SUIT_TEST | read + command | Anti-G Suit Valve Test Button |  |
+| CANOPY_DISENGAGE | read + command | Canopy actuator disengage lever |  |
+| MIRROR_TOGGLE | read + command | Toggle Mirrors |  |
+| STICK_HIDE | read + command | Hide Stick toggle |  |
+
+## Summary
+
+Rows counted over all tables above the "DCS-BIOS controls not in PANELS.md" section; rows whose Control starts with "(DCS-BIOS only)" are counted in their own column.
+
+| Access | PANELS.md rows | DCS-BIOS-only rows |
+| --- | --- | --- |
+| read + command | 323 | 19 |
+| read only | 154 | 45 |
+| — | 33 | 0 |
+| Total | 510 | 64 |
+
+The "DCS-BIOS controls not in PANELS.md" section adds 72 rows (52 read + command, 20 read only), so 136 DCS-BIOS-only rows in all.
+
+### Gaps
+
+Every row without a DCS-BIOS identifier in the sections above, grouped by its gap (33 rows).
+
+#### keybind (16)
+
+- Control Stick: 1. Master Mode Control Button (MMCB)
+- Control Stick: 2. Data Management Switch (DMS)
+- Control Stick: 3. Target Management Switch (TMS)
+- Control Stick: 4. Nosewheel Steering (NWS) Button
+- Control Stick: 5. Countermeasures Switch (CMS)
+- Control Stick: 6. Weapon Release Button
+- Control Stick: 7. Trim Switch
+- Control Stick: 8. Trigger
+- Throttles: 1. Mic Switch
+- Throttles: 2. Speed Brake
+- Throttles: 3. Boat Switch
+- Throttles: 4. China Hat
+- Throttles: 5. Pinky Switch
+- Throttles: 6. Left Throttle Button
+- Throttles: 7. Slew Control
+- Throttles: 8. Coolie Hat
+
+#### export (4)
+
+- Radar Warning Receiver (RWR) Display: Azimuth indicator
+- Left Multifunction Color Display (MFCD): Screen
+- Right Multifunction Color Display (MFCD): Screen
+- Heads Up Display Area Above Dash: 3. Heads-Up Display (HUD)
+
+#### not exported (3)
+
+- Caution Light Panel: INU AIR HOT
+- Helmet Mounted Cueing System (HMCS) Control Panel: HVI UNSAFE legend
+- Helmet Mounted Cueing System (HMCS) Control Panel: REPLACE BATTERY legend
+
+#### no function in DCS (5)
+
+- Attitude Director Indicator (ADI): 3. Bank scale
+- Attitude Director Indicator (ADI): 5. Pitch trim index
+- Attitude Director Indicator (ADI): 10. Glide slope deviation scale
+- Horizontal Situation Indicator (HSI): 3. Aircraft symbol
+- Horizontal Situation Indicator (HSI): 4. Lubber line
+
+#### other (5)
+
+- Heads Up Display Area Above Dash: 4. Up-Front Controller (UFC) — "mapped in the UFC section"
+- Up Front Controller (UFC): FWD button — "function not stated; maybe an A-10C II button below"
+- Up Front Controller (UFC): MID button — "function not stated; maybe an A-10C II button below"
+- Up Front Controller (UFC): AFT button — "function not stated; maybe an A-10C II button below"
+- Up Front Controller (UFC): Three unlabelled buttons — "function not stated; maybe an A-10C II button below"
+
+### Cold start coverage
+
+Every row of [STARTUP.md](STARTUP.md) looked up by Panel and Control in the sections above (a Control cell naming several controls counts as one row; the CDU is the Control Display Unit (CDU) section; Lighting Control Panel "(whole panel)" is checked against its 11 numbered controls). Rows marked "(not in PANELS.md)" are matched against the section "DCS-BIOS controls not in PANELS.md" and the radio panel.
+
+164 rows: 132 use only controls with an identifier and `read + command` (129 by name, 3 by `likely` match for a control not in PANELS.md); 8 use a `read only` control (checks: fine); 13 name an MFCD OSB or CDU line select key without its number, so only the identifier family is known; 11 have no identifier.
+
+The `read only` rows are #15, #16, #43, #75, #77, #102, #104, #105. Of these, #15, #16, #102 and #105 move a throttle lever (lever position only, no input) and #77 sets the clock (the buttons are CLOCK_SET and CLOCK_CTRL on the Digital Clock); the others are lamp, gauge or readout checks.
+
+#### Rows matched to a control not in PANELS.md
+
+- STARTUP #4: Ejection Seat Arm / Ejection seat arm lever (not in PANELS.md) — SEAT_ARM, Seat Arm Handle (`likely`, `read + command`; 0 = ARM, 1 = DISARM)
+- STARTUP #44: Front dash / Auxiliary landing gear extension handle (not in PANELS.md) — AUX_GEAR, Auxiliary Landing Gear Handle (`likely`, `read + command`; AUX_GEAR_LOCK is its lock button)
+- STARTUP #88: AN/ARC-186(V) Radio Control Panel / Radio 1 frequency controls (not in PANELS.md) — ARC210_100MHZ_SEL, ARC210_10MHZ_SEL, ARC210_1MHZ_SEL, ARC210_100KHZ_SEL, ARC210_25KHZ_SEL, the five unlabelled knobs of the AN/ARC-186(V) Radio Control Panel (`likely`, `read + command`; which knob is which is not stated)
+
+#### Rows with an OSB or line select key but no number (13)
+
+- STARTUP #127: MFCD / OSB LOAD ALL (number not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #131: CDU / Line select key beside FPBUILD (side and line not stated) — `read + command`; which key is not stated (CDU_LSK_3L, CDU_LSK_5L, CDU_LSK_7L, CDU_LSK_9L / CDU_LSK_3R, CDU_LSK_5R, CDU_LSK_7R, CDU_LSK_9R)
+- STARTUP #132: MFCD / OSB TAD (number not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #133: MFCD / OSB NET (number not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #134: MFCD / OSB at Ownship ID (number not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #135: MFCD / OSB at Group ID (number not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #137: MFCD / OSB TGP (number not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #139: MFCD / OSB STAT (number not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #140: MFCD / STAT page 2 scroll OSBs (numbers not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #141: MFCD / OSB SLEW rate (number not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #142: MFCD / OSB DSMS (number not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #143: MFCD / Profile data fields (OSBs not stated) — `read + command`; which key is not stated (LMFD_01 … LMFD_20 / RMFD_01 … RMFD_20)
+- STARTUP #151: CDU / Alignment page GROUND/NAV line select key (line not stated) — `read + command`; which key is not stated (CDU_LSK_3L, CDU_LSK_5L, CDU_LSK_7L, CDU_LSK_9L / CDU_LSK_3R, CDU_LSK_5R, CDU_LSK_7R, CDU_LSK_9R)
+
+#### Rows without an identifier (11)
+
+- STARTUP #14: Throttles / 5. Pinky Switch — keybind
+- STARTUP #18: Throttles / 2. Speed Brake — keybind
+- STARTUP #103: Control Stick / Stick movement (not in PANELS.md) — not in PANELS.md; no DCS-BIOS control for stick movement (STICK_HIDE only hides the stick model)
+- STARTUP #108: Throttles / 2. Speed Brake — keybind
+- STARTUP #110: Throttles / 2. Speed Brake — keybind
+- STARTUP #111: Control Stick / Stick movement (not in PANELS.md) — not in PANELS.md; no DCS-BIOS control for stick movement (STICK_HIDE only hides the stick model)
+- STARTUP #112: Throttles / 2. Speed Brake — keybind
+- STARTUP #115: Control Stick / 7. Trim Switch — keybind
+- STARTUP #122: Heads Up Display Area Above Dash / 3. Heads-Up Display (HUD) — export
+- STARTUP #136: MFCD / TAD datalink symbol (hook control not stated) — export; hook control not stated, and the MFCD screen has no DCS-BIOS output
+- STARTUP #162: Control Stick / Paddle switch (not in PANELS.md) — not in PANELS.md; no DCS-BIOS control found for the paddle switch
