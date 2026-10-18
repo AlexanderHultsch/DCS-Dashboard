@@ -435,7 +435,7 @@ Left off on purpose in version 1, one line each.
 **Panels and groups**
 
 - **KY-58 secure voice panel** (6 controls): no function in DCS.
-- **TISL control panel** (9 controls) and the TISL button of the NMSP: the Pave Penny pod is removed in the A-10C II and TISL navigation is not available (manual p. 546); the only picture is low resolution.
+- **TISL control panel** (9 controls) and the TISL button of the NMSP (`NMSP_TISL_BTN`, `NMSP_TISL_LED`): the Pave Penny pod is removed in the A-10C II and TISL navigation is not available (manual p. 546); the only picture is low resolution.
 - **Circuit breaker panel** (38 controls, DCS-BIOS only): rarely used.
 - **DVADR** (6 controls, DCS-BIOS only): no manual description, no function known.
 - **Antenna panel** (3 switches, DCS-BIOS only): no manual description.
