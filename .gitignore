@@ -6,6 +6,11 @@ config/settings.json
 logs/
 *.log
 
+# Test kit npm files (npm install playwright in core/tools/test)
+core/tools/test/node_modules/
+core/tools/test/package.json
+core/tools/test/package-lock.json
+
 # Python
 __pycache__/
 *.pyc

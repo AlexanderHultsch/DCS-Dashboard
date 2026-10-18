@@ -5,8 +5,10 @@
   python3 sim.py --reset                        clear the remembered 64 KB memory (logs/test/sim_state.bin)
 
 The control list is read from the DCS-BIOS JSON folder: <saved_games>/Scripts/DCS-BIOS/doc/json, with saved_games
-from the dashboard config, or DIR when --json is given. Text for string outputs, numbers for integer outputs.
+from the dashboard config, or DIR when --json is given. Only MetadataStart.json, CommonData.json and the DCSBIOS_MODULE
+file of every aircraft file in aircraft/ are read. Text for string outputs, numbers for integer outputs.
 """
+import importlib
 import json
 import socket
 import struct
@@ -31,9 +33,17 @@ def json_dir(args: list[str]) -> Path:
     return Path(config.load()["dcs"]["saved_games"]) / "Scripts" / "DCS-BIOS" / "doc" / "json"
 
 
+def json_files(directory: Path) -> list[Path]:
+    sys.path.insert(0, str(REPO / "aircraft"))
+    modules = [importlib.import_module(path.stem).DCSBIOS_MODULE for path in sorted((REPO / "aircraft").glob("*.py"))]
+    return [directory / f"{name}.json" for name in ["MetadataStart", "CommonData", *modules]]
+
+
 def load_all_outputs(directory: Path) -> dict:
     outputs = {}
-    for path in sorted(directory.glob("*.json")):
+    for path in json_files(directory):
+        if not path.exists():
+            continue
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
         for category in data.values():
