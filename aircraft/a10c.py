@@ -784,6 +784,236 @@ def aap_pages() -> list[dict]:
     return [kit_page("AAP / ILS", [5, 9, 1, 2], g.build())]
 
 
+def tacan_pages() -> list[dict]:
+    p = Panel("TACAN", 640, 500, "a10c")
+    p.display("CHAN", 190, 112, 176, 64, readout("TACAN_CHANNEL", "CHANNEL", 4))
+    p.label("CHANNEL", "NAME", "CHAN", "above")
+    p.knob("VOL", "KNOB_S", 520, 112, {"id": "TACAN_VOL", "label": "VOL", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label("VOL", "NAME", "VOL", "above")
+    p.rocker("TENS", 96, 270, step_rocker("TACAN_10", "10"))
+    p.push("TEST", 196, 270, {"id": "TACAN_TEST_BTN", "label": "TEST", "type": "button", "hold": BUTTON_HOLD})
+    p.label("TEST", "NAME", "TEST", "above")
+    p.lamp("TEST_LAMP", 196, 350, {"id": "TACAN_TEST", "legend": "", "color": "red"})
+    p.rocker("UNITS", 296, 270, step_rocker("TACAN_1", "1"))
+    p.toggle("XY", 392, 270, {
+        "id": "TACAN_XY", "label": "X/Y", "type": "selector",
+        "positions": [{"value": 1, "label": "Y"}, {"value": 0, "label": "X"}],
+    }, "above_below")
+    p.rotary("MODE", 500, 400, {
+        "id": "TACAN_MODE", "label": "MODE", "type": "selector", "style": "rotary",
+        "positions": [
+            {"value": 0, "label": "OFF", "angle": -80}, {"value": 1, "label": "REC", "angle": -40}, {"value": 2, "label": "T/R", "angle": 0},
+            {"value": 3, "label": "A/A REC", "angle": 40}, {"value": 4, "label": "A/A T/R", "angle": 80},
+        ],
+    }, labels="fan")
+    return [kit_page("TACAN", [6, 9, 1, 2], p.build())]
+
+
+def hars_pages() -> list[dict]:
+    g = PanelGroup("HARS / HMCS", "a10c")
+    h = g.panel("HMCS", 640, 176, 0, 0)
+    h.toggle("PWR", 320, 98, {
+        "id": "A102_HMCS_PW", "label": "HMCS POWER", "type": "selector",
+        "positions": [{"value": 2, "label": "ON"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "BAT"}],
+    }, "right_triple")
+    h.label("HMCS", "NAME", "PWR", "above")
+    p = g.panel("HARS", 640, 380, 0, 192)
+    p.toggle("MODE", 110, 108, {
+        "id": "HARS_SLAVE_DG", "label": "SLAVE / DG", "type": "selector",
+        "positions": [{"value": 1, "label": "SLAVE"}, {"value": 0, "label": "DG"}],
+    }, "above_below")
+    p.knob("LAT", "KNOB_M", 280, 108, {"id": "HARS_LATITUDE", "label": "LAT", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label("LAT", "NAME", "LAT", "above")
+    p.knob_labels("LAT", "lower_sides", "0", "90")
+    p.toggle("NS", 430, 108, {
+        "id": "HARS_NS", "label": "N / S", "type": "selector",
+        "positions": [{"value": 1, "label": "N"}, {"value": 0, "label": "S"}],
+    }, "above_below")
+    p.round("PTS", 110, 256, {"id": "HARS_PTS", "label": "PUSH TO SYNC", "type": "button", "shape": "round", "hold": BUTTON_HOLD})
+    p.label("PUSH TO\nSYNC", "NAME", "PTS", "below")
+    p.knob("HDG", "KNOB_M", 280, 256, {"id": "HARS_HDG", "label": "HDG", "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label("HDG", "NAME", "HDG", "above")
+    p.knob_labels("HDG", "lower_sides", "-", "+")
+    p.toggle("MAGVAR", 430, 256, {
+        "id": "HARS_MAGVAR", "label": "MAG VAR", "type": "selector",
+        "positions": [{"value": 2, "label": "+15"}, {"value": 1, "label": "0"}, {"value": 0, "label": "-15"}],
+    }, "right_triple")
+    p.label("MAG\nVAR", "NAME", "MAGVAR", "above")
+    p.bar("SYNC", 550, 190, {"id": "HARS_SYNC", "label": "SYN-IND", "type": "bar", "max": 65535})
+    p.label("SYN-IND", "NAME", "SYNC", "above")
+    return [kit_page("HARS / HMCS", [7, 9, 1, 2], g.build())]
+
+
+def canopy_plate(g: PanelGroup):
+    p = g.panel("CANOPY", 640, 444, 0, 0)
+    p.toggle("CANOPY", 130, 160, {
+        "id": "CANOPY_OPEN", "label": "CANOPY", "type": "selector", "rest": 1, "hold": 0.5,
+        "positions": [{"value": 2, "label": "OPEN", "momentary": True}, {"value": 1, "label": "HOLD"}, {"value": 0, "label": "CLOSE", "momentary": True}],
+    }, "right_triple")
+    p.label("CANOPY", "NAME", "CANOPY", "above", 0, -40)
+    p.push("LADDER", 290, 160, {"id": "LADDER_EXTEND", "label": "EXTEND BOARDING LADDER", "type": "button", "guard": True, "cover": "LADDER_EXTEND_COVER", "hold": BUTTON_HOLD})
+    p.label("EXTEND\nBOARDING\nLADDER", "POS", "LADDER", "below")
+    p.toggle("JTSN", 400, 160, {
+        "id": "CANOPY_JTSN", "label": "CANOPY JETTISON", "type": "selector", "guard": True,
+        "positions": [{"value": 1, "label": "PULL"}, {"value": 0, "label": "IN"}],
+    }, "above_below")
+    p.label("CANOPY\nJTSN", "NAME", "JTSN", "above")
+    p.toggle("UNLOCK", 490, 160, {
+        "id": "CANOPY_JTSN_UNLOCK", "label": "JTSN UNLOCK", "type": "selector",
+        "positions": [{"value": 1, "label": "UNLOCK"}, {"value": 0, "label": "LOCK"}],
+    }, "above_below")
+    p.label("JTSN\nUNLOCK", "NAME", "UNLOCK", "above")
+    p.bar("POS", 560, 160, {"id": "CANOPY_POS", "label": "CANOPY POSITION", "type": "bar", "max": 65535})
+    p.label("CANOPY\nPOS", "POS", "POS", "below")
+    p.toggle("DISENGAGE", 110, 350, {
+        "id": "CANOPY_DISENGAGE", "label": "ACTUATOR DISENGAGE", "type": "selector",
+        "positions": [{"value": 1, "label": "DISENGAGE"}, {"value": 0, "label": "ENGAGE"}],
+    }, "above_below")
+    p.label("ACTUATOR", "NAME", "DISENGAGE", "above")
+    p.lamp("UNLOCKED", 380, 350, {"id": "CANOPY_UNLOCKED", "legend": "CANOPY\nUNLOCKED", "color": "red"}, "LAMP_WIDE")
+
+
+def elec_plate(g: PanelGroup):
+    p = g.panel("ELECTRICAL POWER", 640, 384, 0, 460)
+    p.toggle("APU", 130, 124, {
+        "id": "EPP_APU_GEN_PWR", "label": "APU GEN PWR", "type": "selector",
+        "positions": [{"value": 1, "label": "PWR"}, {"value": 0, "label": "OFF/RESET"}],
+    })
+    p.label("APU GEN\nPWR", "NAME", "APU", "above")
+    p.label("OFF/RESET", "POS", "APU", "below")
+    p.toggle("INV", 320, 124, {
+        "id": "EPP_INVERTER", "label": "INVERTER", "type": "selector", "rest": 1, "hold": 0.5,
+        "positions": [{"value": 2, "label": "STBY"}, {"value": 1, "label": "OFF"}, {"value": 0, "label": "TEST", "momentary": True}],
+    })
+    p.label("INVERTER\nSTBY", "NAME", "INV", "above")
+    p.label("OFF", "POS", "INV", "right")
+    p.label("TEST", "POS", "INV", "below")
+    p.toggle("FLOOD", 510, 124, {
+        "id": "EPP_EMER_FLOOD", "label": "EMER FLOOD", "type": "selector",
+        "positions": [{"value": 1, "label": "EMER FLOOD"}, {"value": 0, "label": "OFF"}],
+    })
+    p.label("EMER\nFLOOD", "NAME", "FLOOD", "above")
+    p.label("OFF", "POS", "FLOOD", "below")
+    for side, bios, x in (("L", "EPP_AC_GEN_PWR_L", 130), ("R", "EPP_AC_GEN_PWR_R", 320)):
+        p.toggle(f"AC_{side}", x, 290, {
+            "id": bios, "label": f"AC GEN PWR {side}", "type": "selector",
+            "positions": [{"value": 1, "label": "PWR"}, {"value": 0, "label": "OFF/RESET"}],
+        })
+        p.label(side, "POS", f"AC_{side}", "left" if side == "L" else "right")
+        p.label("OFF/RESET", "POS", f"AC_{side}", "below")
+    p.mark("AC GEN PWR", "POS", 225, 290, "title between the two AC GEN switches")
+    p.toggle("BAT", 510, 290, {
+        "id": "EPP_BATTERY_PWR", "label": "BATTERY PWR", "type": "selector",
+        "positions": [{"value": 1, "label": "PWR"}, {"value": 0, "label": "OFF"}],
+    })
+    p.label("BATTERY\nPWR", "NAME", "BAT", "above")
+    p.label("OFF", "POS", "BAT", "below")
+
+
+def canopy_pages() -> list[dict]:
+    g = PanelGroup("CANOPY / ELEC", "a10c", scroll=True)
+    canopy_plate(g)
+    elec_plate(g)
+    return [kit_page("CANOPY / ELEC", [1, 11, 2, 2], g.build())]
+
+
+def env_toggle(p: Panel, name: str, label: str, bios: str, x: int, y: int, title: str):
+    p.toggle(name, x, y, {"id": bios, "label": label, "type": "selector", "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}]})
+    p.label(title, "NAME", name, "above")
+    p.label("OFF", "POS", name, "below")
+
+
+def env_knob(p: Panel, name: str, label: str, bios: str, x: int, y: int, marks: tuple):
+    p.knob(name, "KNOB_M", x, y, {"id": bios, "label": label, "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label(label, "NAME", name, "above")
+    p.knob_labels(name, "lower_sides", *marks)
+
+
+def env_pages() -> list[dict]:
+    p = Panel("ENVIRONMENT", 640, 1280, "a10c", scroll=True)
+    p.lamp("FLOW", 110, 190, {"id": "OXY_FLOW", "legend": "FLOW", "color": "white"})
+    p.bar("PRESS", 330, 190, {"id": "OXY_PRESS", "label": "OXYGEN SUPPLY PRESSURE", "type": "bar", "max": 65535})
+    p.label("OXYGEN\nSUPPLY\nPRESSURE", "POS", "PRESS", "below")
+    p.bar("QTY", 520, 190, {"id": "OXY_VOLUME", "label": "LIQUID OXYGEN LITERS", "type": "bar", "max": 65535})
+    p.label("LIQUID OXYGEN\nLITERS", "POS", "QTY", "below")
+    p.toggle("EMER", 80, 470, {
+        "id": "OXY_EMERGENCY", "label": "OXYGEN EMERGENCY", "type": "selector", "rest": 1, "hold": 0.5,
+        "positions": [
+            {"value": 0, "label": "EMERGENCY", "momentary": True, "disabled": True}, {"value": 1, "label": "NORMAL"},
+            {"value": 2, "label": "TEST MARK", "momentary": True, "disabled": True},
+        ],
+    }, "right_triple")
+    p.toggle("DILUTER", 310, 470, {
+        "id": "OXY_DILUTER", "label": "OXYGEN DILUTION", "type": "selector",
+        "positions": [{"value": 1, "label": "100% OXYGEN"}, {"value": 0, "label": "NORMAL OXYGEN"}],
+    }, "above_below")
+    p.toggle("SUPPLY", 450, 470, {
+        "id": "OXY_SUPPLY", "label": "OXYGEN SUPPLY", "type": "selector",
+        "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}],
+    }, "above_below")
+    p.label("SUPPLY", "NAME", "SUPPLY", "above")
+    p.push("OXY_TEST", 548, 470, {"id": "ENVCP_OXY_TEST", "label": "OXY IND TEST", "type": "button", "hold": BUTTON_HOLD})
+    p.label("OXY IND\nTEST", "NAME", "OXY_TEST", "above")
+    env_toggle(p, "DEFOG", "WINDSHIELD DEFOG/DEICE", "ENVCP_WINDSHIELD_DEFOG", 150, 640, "WINDSHIELD\nDEFOG/DEICE")
+    env_knob(p, "CANOPY_DEFOG", "CANOPY DEFOG", "ENVCP_CANOPY_DEFOG", 420, 640, ("OFF", "MAX"))
+    env_toggle(p, "PITOT", "PITOT HEAT", "ENVCP_PITOT_HEAT", 150, 800, "PITOT\nHEAT")
+    env_toggle(p, "BLEED", "BLEED AIR", "ENVCP_BLEED_AIR", 510, 800, "BLEED\nAIR")
+    p.bar("CABIN", 330, 880, {"id": "CABIN_PRESS_ALT", "label": "CABIN PRESS ALT", "type": "bar", "max": 65535})
+    p.label("CABIN\nPRESS ALT\nx 1000", "POS", "CABIN", "below")
+    p.toggle("TEMP_PRESS", 150, 960, {
+        "id": "ENVCP_TEMP_PRESS", "label": "TEMP/PRESS", "type": "selector",
+        "positions": [{"value": 2, "label": "NORM"}, {"value": 1, "label": "DUMP"}, {"value": 0, "label": "RAM"}],
+    }, "above_side_below")
+    p.label("TEMP/PRESS", "NAME", "TEMP_PRESS", "above")
+    env_toggle(p, "AIR_SUPPLY", "MAIN AIR SUPPLY", "ENVCP_AIR_SUPPLY", 510, 960, "MAIN AIR\nSUPPLY")
+    env_knob(p, "FLOW_LEVEL", "FLOW LEVEL", "ENVCP_FLOW_LEVEL", 150, 1160, ("LO", "HI"))
+    p.rotary("AC", 470, 1160, {
+        "id": "ENVCP_AC_OPER", "label": "CABIN AIR COND", "type": "selector", "style": "rotary",
+        "positions": [
+            {"value": 2, "label": "COLD", "angle": -90}, {"value": 1, "label": "OPER AUTO", "angle": 0},
+            {"value": 3, "label": "HOT", "angle": 90}, {"value": 0, "label": "MAN", "angle": 180},
+        ],
+    })
+    p.label("CABIN AIR\nCOND", "NAME", "AC", "above")
+    return [kit_page("ENVIRONMENT", [3, 11, 3, 2], p.build())]
+
+
+def lcp_knob(p: Panel, name: str, label: str, bios: str, x: int, y: int, preset: str = "lower_sides", marks: tuple = ("OFF", "BRT")):
+    p.knob(name, "KNOB_M", x, y, {"id": bios, "label": label, "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]})
+    p.label(label, "NAME", name, "above")
+    p.knob_labels(name, preset, *marks)
+
+
+def lcp_toggle(p: Panel, name: str, label: str, bios: str, x: int, y: int, title: str):
+    p.toggle(name, x, y, {"id": bios, "label": label, "type": "selector", "positions": [{"value": 1, "label": "ON"}, {"value": 0, "label": "OFF"}]})
+    p.label(title, "NAME", name, "above")
+    p.label("OFF", "POS", name, "below")
+
+
+def lighting_pages() -> list[dict]:
+    p = Panel("LIGHTING", 640, 592, "a10c")
+    p.toggle("POSITION", 100, 124, {
+        "id": "LCP_POSITION", "label": "POSITION", "type": "selector",
+        "positions": [{"value": 0, "label": "FLASH"}, {"value": 1, "label": "OFF"}, {"value": 2, "label": "STEADY"}],
+    }, "above_side_below")
+    p.label("POSITION", "NAME", "POSITION", "above")
+    lcp_knob(p, "FORMATION", "FORMATION", "LCP_FORMATION", 320, 124)
+    lcp_toggle(p, "ANTICOLL", "ANTI-COLLISION", "LCP_ANTICOLLISION", 540, 124, "ANTI-\nCOLLISION")
+    lcp_knob(p, "ENG_INST", "ENG INST", "LCP_ENG_INST", 120, 256)
+    lcp_toggle(p, "NOSE", "NOSE ILLUM", "LCP_NOSE_ILLUM", 320, 256, "NOSE ILLUM")
+    lcp_knob(p, "AUX_INST", "AUX INST", "LCP_AUX_INST", 520, 256)
+    p.toggle("SIGNAL", 120, 388, {
+        "id": "LCP_SIGNAL_LIGHTS", "label": "SIGNAL LTS", "type": "selector",
+        "positions": [{"value": 1, "label": "BRT"}, {"value": 0, "label": "DIM"}],
+    }, "above_below")
+    p.label("SIGNAL LTS", "NAME", "SIGNAL", "above")
+    lcp_knob(p, "FLT_INST", "FLT INST", "LCP_FLIGHT_INST", 320, 388)
+    lcp_toggle(p, "ACCEL", "ACCEL & COMP", "LCP_ACCEL_COMP", 530, 388, "ACCEL &\nCOMP")
+    lcp_knob(p, "FLOOD", "FLOOD", "LCP_FLOOD", 170, 520, "signal", ("OFF", "BRT", "TSTORM"))
+    lcp_knob(p, "CONSOLE", "CONSOLE", "LCP_CONSOLE", 470, 520)
+    return [kit_page("LIGHTING", [6, 11, 2, 2], p.build())]
+
+
 VIEWS = [
     {"name": "COCKPIT", "seats": [0], "layout": "map", "lamps": MASTER_LAMPS, "controls": [], "links": []},
     *brake_pages(),
@@ -804,6 +1034,11 @@ VIEWS = [
     *cmsp_pages(),
     *caution_pages(),
     *aap_pages(),
+    *tacan_pages(),
+    *hars_pages(),
+    *canopy_pages(),
+    *env_pages(),
+    *lighting_pages(),
 ]
 
 CONTROL_NAMES = []
