@@ -183,3 +183,246 @@ Where: Top of the left front dash, above the RWR display at eye level.
 | --- | --- | --- | --- | --- |
 | GUN READY light | lamp | lit; unlit | green legend GUN READY | Lit when gun is armed and ready |
 | STEERING ENGAGED light | lamp | lit; unlit | green legend STEERING ENGAGED | Lit when nosewheel steering is on |
+
+## Center front dash
+
+### APU "T Handle" Fire Extinguisher Discharge Select (p. 136)
+
+Where: Below the HUD, centre of the dash, above the CMSC (item 1 in the figure on p. 135).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| APU T-handle | handle | not pulled; pulled | fire lamp in the handle | Pull selects APU as extinguisher target |
+| APU fire lamp | lamp | lit; unlit | lit on APU fire; legend FIRE APU PULL | Discharge switch is on the right dash (p. 144) |
+
+### Countermeasures Set Control (CMSC) (p. 136)
+
+Where: Centre of the front dash, below the APU T-handle, above the ADI (item 2 on p. 135); physical panel only, operation comes later.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| Upper arrow button | button | press; label is an arrow, name not stated | none | Left edge, beside the JMR window |
+| Lower arrow button | button | press; label is an arrow, name not stated | none | Left edge, beside the MWS window |
+| JMR window | display | strip of about 4 cells | green segment characters | Legend JMR; manual text says ECM status, mapping not stated |
+| MWS window | display | strip of about 4 cells | green segment characters | Legend MWS; missile warning status |
+| CHAFF / FLARE window | display | one strip under both legends, about 4 cells | green segment characters | Legends CHAFF and FLARE; split of cells not stated |
+| Left RWR-area lamp | lamp | lit; unlit | small square, no legend | Under CHAFF; meaning not stated |
+| Right RWR-area lamp | lamp | lit; unlit | small square, no legend | Under FLARE; meaning not stated |
+| RWR PRI button | button | press | none | Under legend RWR; function later |
+| RWR SEP button | button | press | none | Under legend RWR; function later |
+| RWR UNK button | button | press | none | Under legend RWR; function later |
+| BRT knob | knob | turn; stops not stated | none | Lower left; label BRT |
+| AUD knob | knob | turn; stops not stated | none | Lower left, right of BRT; label AUD |
+| ML lamp | lamp | lit; unlit | small square, legend ML | Next to AUD knob; meaning not stated |
+
+### Attitude Director Indicator (ADI) (p. 137)
+
+Where: Centre of the front dash, below the CMSC, above the HSI (item 3 on p. 135).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Attitude sphere | gauge | pitch and roll; light upper half, dark lower half; dashed horizon line | pitch angle marks | Pitch mark spacing not stated |
+| 2. Miniature aircraft | display | winged W-shaped marker at centre | none | Shows pitch and roll against the sphere |
+| 3. Bank scale | gauge | ticks at 10, 20, 30, 60, 90 degrees | none | Around the lower half of the casing |
+| 3. Bank pointer | gauge | white triangle moves along the bank scale | none | Rides with the sphere |
+| 4. Slip ball | gauge | ball in liquid tube; centred = no slip | none | Under the sphere |
+| 4. Turn indicator | gauge | yaw rate; scale not stated | none | Just below the slip ball |
+| 5. Pitch trim knob | knob | turn to offset the aircraft symbol from the horizon | none | Lower right of the gauge |
+| 5. Pitch trim index | display | small triangle at zero pitch setting | none | Next to the knob |
+| 6. Course warning flag | gauge | shown; hidden | red flag at top | Shown in ILS or TACAN mode without signal |
+| 7. Bank steering bar | gauge | vertical bar, left or right of centre | none | Centred means on desired bearing; also TISL, FM homing |
+| 8. Pitch steering bar | gauge | horizontal bar, above or below centre | none | Glide slope, FM station signal strength, TISL target |
+| 9. Glide slope warning flag | gauge | shown; hidden | red flag at left | Shown when no glide slope signal |
+| 10. Glide slope deviation scale | gauge | centre line with 2 dots above and 2 below | none | Left side |
+| 10. Glide slope indicator | gauge | white chevron moves up and down the scale | none | Text: chevron below centre means too high |
+| 11. Attitude warning flag (OFF) | gauge | shown; hidden | OFF flag, lower left | Shown without power and while HARS fast erect is held |
+
+### Horizontal Situation Indicator (HSI) (p. 139)
+
+Where: Centre of the front dash, below the ADI, above the NMSP (item 4 on p. 135).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Power OFF flag | gauge | shown; hidden | red OFF flag, right side | Shown without power |
+| 2. Compass card | gauge | rotating, 360 degrees | none | Top of card is magnetic heading |
+| 3. Aircraft symbol | display | fixed symbol at centre | none | Reference for all HSI readings |
+| 4. Lubber line | display | fixed line from symbol to top | none | Marks current heading on the card |
+| 5. Range indicator | display | 3-digit drum, nautical miles | striped white and orange flag over digits when unpowered | Slant range to steerpoint or TACAN; upper left, legend MILES |
+| 6. Bearing pointer 2 | gauge | arrow head to current steerpoint; tail opposite | none | Tail is the reciprocal bearing |
+| 7. Bearing pointer 1 | gauge | long thin arrow; head to TACAN or UHF ADF bearing | none | ADF wins over TACAN; fallback text unclear |
+| 8. Heading set knob | knob | turn; stops not stated | none | Lower left; moves the heading marker |
+| 9. Heading marker | gauge | two thick marks on the outside of the card | none | Turns with the card once set |
+| 10. Bearing validity flag | gauge | shown; hidden | none | Shown when far off course |
+| 11. Course set knob | knob | turn; stops not stated | none | Lower right; sets course window and arrows |
+| 12. Course selector window | display | course in degrees | numeric window, upper right, legend COURSE | Digit count not stated |
+| 13. Course arrow | gauge | two lines on the card: course and reciprocal | none | Set with the course knob |
+| 14. Course deviation indicator (CDI) | gauge | line through centre; offset left or right | none | Through the symbol means on course |
+| 15. To-From indicator | gauge | two triangles along the course line | none | Shows to or from the station or steerpoint |
+
+### Navigation Mode Select Panel (NMSP) (p. 140)
+
+Where: Centre of the front dash, directly below the HSI (item 5 on p. 135); numbers below follow the figure on p. 141.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. HARS button | button | press | green triangle when active | HARS drives HSI, ADI, HUD; default at cold start |
+| 10. PTR switch | toggle | ABLE; STOW (ABLE label on the left in the figure) | none | STOW hides steering bars and course flag, unless TISL or FM homing |
+| 2. EGI button | button | press | green triangle when active | CDU-driven data; needed for velocity vector; excludes HARS |
+| 3. TISL button | button | press | green triangle when active | Laser spot tracker drives ADI steering bars |
+| 4. STR PT button | button | press | green triangle when active | Sets HSI CDI to the steerpoint |
+| 5. ANCHR button | button | press | green triangle when active | Uses the CDU anchor point |
+| 6. TCN button | button | press | green triangle when active | Uses the selected TACAN station |
+| 7. ILS button | button | press | green triangle when active | Glide slope on ADI, localizer on HSI |
+| 8. UHF homing light | lamp | lit; unlit | amber; legend HOMING group | Lit with UHF panel in ADF mode; upper of the two |
+| 9. FM homing light | lamp | lit; unlit | amber; legend HOMING group | Lit with VHF/FM panel in homing mode; lower |
+
+### Target Identification Set Laser (TISL) control panel (p. 136)
+
+Where: Bottom of the centre front dash, below the NMSP (item 6 on p. 135); named on p. 136 with no text description, so everything here is read from the figure on p. 135, labels low resolution.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| MODE select | rotary | OFF; CAGE; DIVE; LVL BAR; LVL WIDE | none | OFF at the top, then clockwise |
+| SLANT RNG MILES switch | toggle | OVER 10; 10 / 5; UNDER 5 | none | 3 positions; to the right of MODE |
+| ALT ABV TST window | display | two drum digits | legend FT X 1000 | Altitude above target readout; meaning inferred from legend |
+| ENTER button | button | press | none | Label partly legible; first of four |
+| + button | button | press | none | Second of four |
+| BITE button | button | press | none | Third of four |
+| Fourth button | button | press | none | No label visible |
+| CODE SELECT | rotary | four digit wheels; digit range not stated | digits shown | Laser code; above the lower switch |
+| TISL / BOTH / AUX switch | toggle | TISL; BOTH; AUX | none | Lower right of the panel; switch has no name |
+
+## Right dash
+
+### Fire Extinguisher Discharge (p. 144)
+
+Where: Top of the right front dash, above the right MFCD (item 1 on p. 143).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| FIRE EXTING DISCH switch | toggle | left; centre; right | none | Spring return not stated |
+
+### Right Multifunction Color Display (MFCD) (p. 144)
+
+Where: Right front dash, centre, below the discharge switch (item 2 on p. 143). Same bezel as the left MFCD (p. 121).
+
+### Fuel Quantity and Hydraulic Indicator Panel (p. 146)
+
+Where: Lower right of the right front dash, right of the engine instruments (item 3 on p. 143).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 2. Fuel quantity gauge, left pointer | gauge | 0 to 6 thousand lb, legend FUEL LBS X1000 | none | Left fuel system; source set by selector |
+| 2. Fuel quantity gauge, right pointer | gauge | 0 to 6 thousand lb, legend FUEL LBS X1000 | none | Right fuel system |
+| 2. Total fuel readout | display | 5-digit counter, pounds | legend TOTAL LBS | Top of the dial; not affected by the selector |
+| 3. Fuel display selector | rotary | INT (total internal per side); MAIN (main tank per side); WING (wing tank per side); EXT WING (left and right external tanks); EXT CTR (left pointer centreline external, right pointer 0) | none | Sets what the two pointers show |
+| Test button | button | press and hold | none | Pointers go to 3, readout 6,000 while held |
+| 4. Hydraulic pressure gauge, left (HYD SYS L) | gauge | dial marked x1000, psi; end of scale not legible | none | Top left; normal 2,800 to 3,350, max above 3,350 |
+| 4. Hydraulic pressure gauge, right (HYD SYS R) | gauge | dial marked x1000, psi; end of scale not legible | none | Top right; text also says normal is above 1000 |
+
+### RIGHT Engine "T Handle" Fire Extinguisher Discharge Select (p. 147)
+
+Where: Below the HUD, right part of the front dash, top of the right dash (item 4 on p. 143).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| Right engine T-handle | handle | not pulled; pulled | fire lamp in the handle | Pull selects right engine as extinguisher target |
+| Right engine fire lamp | lamp | lit; unlit | lit on right engine fire; legend FIRE R ENG PULL | Discharge switch is on p. 144 |
+
+### Marker and Canopy Lights (p. 148)
+
+Where: Right dash, above the VVI (item 5 on p. 143).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| MARKER BEACON light | lamp | lit; unlit | legend MARKER BEACON, green in figure | Lit over a marker beacon in ILS mode |
+| CANOPY UNLOCKED light | lamp | lit; unlit | legend CANOPY UNLOCKED, green in figure | Lit with canopy open |
+
+### Vertical Velocity Indicator (VVI) (p. 148)
+
+Where: Right dash, left column, below the marker lights, above the altimeter (item 6 on p. 143).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| Climb rate pointer | gauge | 0 centred left; up and down to 6 (x1000 ft per min); labels .5, 1, 2, 4, 6 | legends CLIMB, UP, DOWN | Scale ticks every 100 ft; pointer rests at 0 in figure |
+
+### Altimeter (p. 149)
+
+Where: Right dash, left column, below the VVI, above the engine instruments (item 7 on p. 143).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| Altitude pointer | gauge | numerals 0 to 9 around the dial; 100-foot scale | legend ALT | Text says 200-foot markers; tick value not stated |
+| Altitude counter | display | 1,000 and 100 ft digits, last two always 00 | striped box on first digit in figure | Legends 1000 FT and 100 FT |
+| Pressure setting window | display | 4 digits; units not stated | none | Lower right of the counter |
+| 1. Pressure set knob | knob | turn clockwise or counter-clockwise | none | Lower left; sets the pressure window |
+| 2. ELECT/PNEU switch | toggle | ELECT; PNEU (PNEU on top in figure) | none | Lower right; use PNEU after a CADC failure |
+
+### Engine Monitoring Instruments (EMI) (p. 150)
+
+Where: Lower right of the front dash, below the altimeter and right MFCD, left of the fuel panel (item 8 on p. 143); 12 gauges in two blocks, left engine in the left column of each block.
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 1. Left oil pressure | gauge | psi, labels 20 to 100; normal idle 55 to 85 | green, yellow, red arcs | Bottom row, left block; min 40, max 95 |
+| 1. Right oil pressure | gauge | psi, labels 20 to 100; normal idle 55 to 85 | green, yellow, red arcs | Bottom row, left block; min 40, max 95 |
+| 2. Left core speed | gauge | percent rpm, labels 10 to 100; normal 56 to 98 | green, yellow, red arcs; small inset pointer | Middle row, left block; do not exceed 102 |
+| 2. Right core speed | gauge | percent rpm, labels 10 to 100; normal 56 to 98 | green, yellow, red arcs; small inset pointer | Middle row, left block; 100 to 102 max 3 s |
+| 3. Left fan speed | gauge | percent rpm, labels 25 to 100 | green, yellow, red arcs | Top row, right block; about 82 at takeoff |
+| 3. Right fan speed | gauge | percent rpm, labels 25 to 100 | green, yellow, red arcs | Top row, right block; about 82 at takeoff |
+| 4. Left ITT | gauge | degrees C x100, labels 1 to 10; normal 275 to 865 | green arc, red mark; small inset pointer | Top row, left block; 900 briefly at start |
+| 4. Right ITT | gauge | degrees C x100, labels 1 to 10; normal 275 to 865 | green arc, red mark; small inset pointer | Top row, left block; stable above 865 is a fault |
+| 5. Left fuel flow | gauge | pounds per hour, labels 5 to 50; multiplier not legible | green arc, red mark | Middle row, right block; normal 1500 to 4100 |
+| 5. Right fuel flow | gauge | pounds per hour, labels 5 to 50; multiplier not legible | green arc, red mark | Middle row, right block; normal 1500 to 4100 |
+| 7. APU RPM | gauge | percent rpm, labels 20 to 120 | none | Bottom row, right block, left gauge; normal 100, max 110 |
+| 6. APU EGT | gauge | degrees C x100, labels 1 to 10; normal 200 to 715 | green arc, yellow and red marks | Bottom row, right block, right gauge; 760 max for 2 s at start |
+
+## Above the dash
+
+### Heads Up Display Area Above Dash (p. 152)
+
+Where: Above the front dash between the canopy bows; the UFC sits under the HUD; three T-handles run along the dash top (figure on p. 152).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| 3. Heads-Up Display (HUD) | display | not stated | HUD symbology | Covered in other chapters |
+| 4. Up-Front Controller (UFC) | button | not stated | not stated | Panel under the HUD; covered in another chunk |
+
+Items 1, 2, 5 and 6 of the figure (standby compass, aerial refuelling lights, G-meter, AoA indexer) follow as their own sections.
+
+### Standby Compass (p. 153)
+
+Where: Hangs from the right canopy bow (item 1 on p. 152).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| Compass card | gauge | heading numerals in a window beside a fixed index line | none | Liquid-filled magnetic type; tilts, loses accuracy in bank |
+
+### Air Refuel Status Lights (p. 153)
+
+Where: Right canopy bow area, below the standby compass (item 2 on p. 152).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| READY light | lamp | lit; unlit | legend READY, green in figure | On when the slipway door is open |
+| LATCHED light | lamp | lit; unlit | legend LATCHED, green in figure | On when the nozzle is locked in; READY goes off |
+| DISCONNECT light | lamp | lit; unlit | legend DISCONNECT, green in figure | On after the nozzle comes out; off when door closes |
+
+### Accelerometer (G-meter) (p. 154)
+
+Where: Left canopy bow (item 5 on p. 152).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| G pointer | gauge | labels -4, -2, 0, 2, 4, 6, 8, 10 | legend ACCELERATION LIMITS | Shows current load, positive or negative |
+| PUSH TO SET button | button | press | none | Lower left of the dial; in figure only, function not stated |
+
+### Angle of Attack Indexer (p. 155)
+
+Where: Left front canopy rail, beneath the G-meter (item 6 on p. 152).
+
+| Control | Type | Positions / range | Lamps / display | Notes |
+| --- | --- | --- | --- | --- |
+| Low-speed symbol | lamp | lit; unlit | V shape, top in figure | Colours per symbol not stated; text names green and yellow |
+| On-speed symbol | lamp | lit; unlit | circle, middle in figure | With a chevron: slightly slow or fast |
+| High-speed symbol | lamp | lit; unlit | inverted V, bottom in figure | Works only with nose gear down |
