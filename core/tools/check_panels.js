@@ -9,6 +9,7 @@
 //
 // Geometry is compared in design units (du): css px divided by the page scale S (plate css width / plate box width).
 // A label box is its rendered text length by its font size (the uppercase text sits inside that height).
+// A scroll page (data-scroll on the page box) may be up to SCROLL_MAX du tall; parts scrolled out of view are measured as well.
 await (async () => {
   const LABEL_EDGE = 6;
   const PART_EDGE = 12;
@@ -18,6 +19,7 @@ await (async () => {
   const TOUCH_MIN = 56;
   const TOUCH_OVERLAP = 6;
   const DZUS_INSET = 22;
+  const SCROLL_MAX = 1800;
   const TOL = 0.5;
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const round = (v) => Math.round(v * 10) / 10;
@@ -80,7 +82,7 @@ await (async () => {
       return { id, kind: el.dataset.kit, body, frames, pads, cover, near, outer: [near, ...pads].reduce(join), size: px(body), frameSize: frames.map(px), coverSize: cover ? px(cover) : null };
     });
     const plates = [...pbox.querySelectorAll('.k-plate')].map(drawn);
-    return { S, bw, bh, rw, rh, plates: plates.length ? plates : [{ x0: 0, y0: 0, x1: bw, y1: bh }], ears: [...pbox.querySelectorAll('.k-ear')].map(drawn), screws, dzus, labels, parts };
+    return { S, bw, bh, rw, rh: 'scroll' in pbox.dataset ? SCROLL_MAX : rh, plates: plates.length ? plates : [{ x0: 0, y0: 0, x1: bw, y1: bh }], ears: [...pbox.querySelectorAll('.k-ear')].map(drawn), screws, dzus, labels, parts };
   }
 
   function touchAreas() {

@@ -15,6 +15,8 @@ web/index.html draws: box [w, h], controls (the given control data plus "at", "k
 slider also "handle", a lever the "y" of every position; the flap of a button is a control of its own), indicators (the lamps and letters
 of a dial), print ([text, x, y, size, width] or with a rotation) and art.
 A page with several physical panels is a PanelGroup: one Panel per plate at a page offset, 16 du apart.
+A page is at most REF; with scroll=True (Panel and PanelGroup) it may be up to SCROLL_MAX du tall and build() adds "scroll": True,
+which makes the page scroll vertically.
 
     p = Panel("EMERGENCY", 580, 276)
     p.mark("EMERGENCY", "TITLE", "CX", 52, "panel title")
@@ -27,6 +29,7 @@ A page with several physical panels is a PanelGroup: one Panel per plate at a pa
 import math
 
 REF = (640, 600)
+SCROLL_MAX = 1800
 GAP = 8
 MARGIN = 36
 EAR_CLEAR = 12
@@ -161,12 +164,13 @@ def text_size(text, style, rotate):
 
 
 class Panel:
-    def __init__(self, name: str, w: int, h: int, look: str = "ah64d"):
-        if w % 2 or h % 2 or not (0 < w <= REF[0] and 0 < h <= REF[1]):
-            raise LayoutError(f"{name}: plate {w} x {h} du must be even and at most {REF[0]} x {REF[1]}")
+    def __init__(self, name: str, w: int, h: int, look: str = "ah64d", scroll: bool = False):
+        limit = SCROLL_MAX if scroll else REF[1]
+        if w % 2 or h % 2 or not (0 < w <= REF[0] and 0 < h <= limit):
+            raise LayoutError(f"{name}: plate {w} x {h} du must be even and at most {REF[0]} x {limit}")
         if look not in LOOKS:
             raise LayoutError(f"{name}: look {look!r} is not one of {', '.join(LOOKS)}")
-        self.name, self.w, self.h, self.look = name, w, h, look
+        self.name, self.w, self.h, self.look, self.scroll = name, w, h, look, scroll
         fasteners = look == "a10c"
         ex, ey = (DZUS["inset"],) * 2 if fasteners else (EAR["w"] // 2, EAR["h"] // 2)
         self.xs = {"L": 0, "R": w, "CX": w // 2, "SL": ex, "SR": w - ex}
@@ -669,7 +673,7 @@ class Panel:
                 continue
             for i, line in enumerate(lab["text"].split("\n")):
                 printed.append([line, cx, num(y0 + size * i + size / 2), size] + ([len(line) * glyph] if len(line) > 1 else []))
-        return {"box": [self.w, self.h], "controls": controls, "indicators": self.indicators, "print": printed, "art": art}
+        return {"box": [self.w, self.h], "controls": controls, "indicators": self.indicators, "print": printed, "art": art, **({"scroll": True} if self.scroll else {})}
 
 
 def shifted(item, dx: int, dy: int, keys: tuple) -> dict:
@@ -682,16 +686,17 @@ def shifted(item, dx: int, dy: int, keys: tuple) -> dict:
 
 class PanelGroup:
     """A page of several physical panels: one Panel (plate with its own ears and screws) per panel at a page offset.
-    Plates next to each other are exactly GROUP_GAP du apart and share an edge line; the page is at most REF. All plates have the group's look."""
+    Plates next to each other are exactly GROUP_GAP du apart and share an edge line; the page is at most REF (as tall as SCROLL_MAX
+    with scroll=True). All plates have the group's look."""
 
-    def __init__(self, name: str, look: str = "ah64d"):
-        self.name, self.look = name, look
+    def __init__(self, name: str, look: str = "ah64d", scroll: bool = False):
+        self.name, self.look, self.scroll = name, look, scroll
         self.plates = []
 
     def panel(self, name: str, w: int, h: int, x: int, y: int) -> Panel:
         if not (isinstance(x, int) and isinstance(y, int)):
             raise LayoutError(f"{self.name}: plate {name} must sit on the 1 du grid, got ({x}, {y})")
-        panel = Panel(f"{self.name} / {name}", w, h, self.look)
+        panel = Panel(f"{self.name} / {name}", w, h, self.look, self.scroll)
         self.plates.append((panel, x, y))
         return panel
 
@@ -710,15 +715,16 @@ class PanelGroup:
         width, height = max(b[2] for _, b in boxes), max(b[3] for _, b in boxes)
         if min(b[0] for _, b in boxes) or min(b[1] for _, b in boxes):
             problems.append("the plates must start at 0, 0")
-        if width > REF[0] or height > REF[1]:
-            problems.append(f"page {width} x {height} du is bigger than {REF[0]} x {REF[1]}")
+        limit = SCROLL_MAX if self.scroll else REF[1]
+        if width > REF[0] or height > limit:
+            problems.append(f"page {width} x {height} du is bigger than {REF[0]} x {limit}")
         if problems:
             raise LayoutError(f"{self.name}: " + "; ".join(problems))
         return width, height
 
     def build(self) -> dict:
         width, height = self.check()
-        page = {"box": [width, height], "controls": [], "indicators": [], "print": [], "art": []}
+        page = {"box": [width, height], "controls": [], "indicators": [], "print": [], "art": [], **({"scroll": True} if self.scroll else {})}
         for panel, x, y in self.plates:
             built = panel.build()
             page["controls"] += [shifted(c, x, y, ("at", "cover_at", "mark", "dot", "knob")) for c in built["controls"]]

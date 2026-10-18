@@ -301,6 +301,17 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 
 .pbox { position: relative; flex: none; }
 body.ro .pbox { opacity: 0.6; }
+.pscroll { position: relative; flex: none; display: flex; flex-direction: column; overflow: hidden; border: 2px solid #5b6269; border-radius: 8px; }
+.pscroll, .pscroll * { touch-action: pan-y; }
+.pscroller { position: relative; z-index: 0; flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.pscroller::-webkit-scrollbar { display: none; }
+.pshade { position: absolute; left: 0; right: 0; z-index: 1; display: none; align-items: center; justify-content: center; height: 40px; color: #cfd3d8; pointer-events: none; }
+.pshade.on { display: flex; }
+.pshade.up { top: 0; background: linear-gradient(#111, rgba(17, 17, 17, 0)); }
+.pshade.down { bottom: 0; background: linear-gradient(rgba(17, 17, 17, 0), #111); }
+.pshade .icon { width: 24px; height: 12px; }
+.ptrack { position: absolute; top: 6px; bottom: 6px; right: 3px; z-index: 1; width: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.15); pointer-events: none; }
+.pthumb { position: absolute; left: 0; right: 0; border-radius: 3px; background: #b4bbc1; }
 .part, .pswitch { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .part text { fill: #f2f2f2; text-anchor: middle; letter-spacing: 0; }
 .pctl { position: absolute; }
@@ -664,6 +675,8 @@ const RING_ROUND = '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50
 const ICON_STROKE = ' fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
 const ICONS = {
   'chev-left': '<svg class="icon chev" viewBox="0 0 10 20" aria-hidden="true"><path d="M7.5 2L2.5 10L7.5 18"' + ICON_STROKE + '/></svg>',
+  'chev-up': '<svg class="icon" viewBox="0 0 20 10" aria-hidden="true"><path d="M2 8L10 2L18 8"' + ICON_STROKE + '/></svg>',
+  'chev-down': '<svg class="icon" viewBox="0 0 20 10" aria-hidden="true"><path d="M2 2L10 8L18 2"' + ICON_STROKE + '/></svg>',
   close: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5L19 19M19 5L5 19"' + ICON_STROKE + '/></svg>',
   'tri-up': '<svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="15,86 50,16 85,86" fill="currentColor"/></svg>',
   'tri-down': '<svg class="icon" viewBox="0 0 100 100" aria-hidden="true"><polygon points="15,18 50,88 85,18" fill="currentColor"/></svg>',
@@ -2574,7 +2587,7 @@ function placePlate(box, cs) {
   pbox.insertAdjacentHTML('beforeend', plateSvg(view));
   pbox.dataset.box = view.box.join(' ');
   pbox.dataset.ref = view.ref.join(' ');
-  plateView = { pbox, box: view.box, ref: view.ref, touch: [] };
+  plateView = { pbox, box: view.box, ref: view.ref, touch: [], frame: null, mark: null };
   cs.forEach((c) => {
     const [x, y, w, h] = c.def.at;
     boxRect(c.el, { x: 0, y: 0, w: view.box[0], h: view.box[1] }, x + w / 2, y + h / 2, w, h);
@@ -2585,7 +2598,36 @@ function placePlate(box, cs) {
     pbox.append(c.el);
     plateView.touch.push(...c.touchAt(c.def.at));
   });
-  box.append(pbox);
+  if (view.scroll) {
+    pbox.dataset.scroll = '';
+    box.append(scrollFrame(pbox));
+  } else {
+    box.append(pbox);
+  }
+}
+
+function scrollFrame(pbox) {
+  const frame = make('div', 'pscroll');
+  const area = make('div', 'pscroller');
+  const up = make('div', 'pshade up');
+  const down = make('div', 'pshade down');
+  const track = make('div', 'ptrack');
+  const thumb = make('div', 'pthumb');
+  up.innerHTML = ICONS['chev-up'];
+  down.innerHTML = ICONS['chev-down'];
+  track.append(thumb);
+  area.append(pbox);
+  frame.append(area, up, down, track);
+  plateView.frame = frame;
+  plateView.mark = () => {
+    const total = area.scrollHeight;
+    up.classList.toggle('on', area.scrollTop > 0);
+    down.classList.toggle('on', area.scrollTop + area.clientHeight < total - 1);
+    thumb.style.height = area.clientHeight / total * 100 + '%';
+    thumb.style.top = area.scrollTop / total * 100 + '%';
+  };
+  area.addEventListener('scroll', plateView.mark);
+  return frame;
 }
 
 function fitPlate() {
@@ -2601,6 +2643,10 @@ function fitPlate() {
   st.setProperty('--bh', bh * s + 'px');
   st.setProperty('--du', s + 'px');
   spread(plateView.touch, s);
+  if (plateView.frame) {
+    plateView.frame.style.maxHeight = h + 'px';
+    plateView.mark();
+  }
 }
 
 function homeView() {
@@ -2993,7 +3039,9 @@ async function init() {
 ['gesturestart', 'gesturechange', 'gestureend', 'dblclick', 'contextmenu'].forEach((type) => {
   document.addEventListener(type, (e) => e.preventDefault());
 });
-document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+document.addEventListener('touchmove', (e) => {
+  if (!e.target.closest('.pscroll')) e.preventDefault();
+}, { passive: false });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && wakeWanted) applyWake(false);
 });
