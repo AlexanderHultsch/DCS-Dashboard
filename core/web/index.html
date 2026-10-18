@@ -136,7 +136,7 @@ body.ro .panel { opacity: 0.6; }
 .handle.pending { border-color: #ffb300; box-shadow: 0 0 12px 3px rgba(255, 179, 0, 0.8); }
 .handle.none { display: none; }
 
-#controls.grid, #controls.mpd, #controls.mfcd, #controls.ku { min-height: 0; overflow: hidden; }
+#controls.grid, #controls.mpd, #controls.mfcd, #controls.cdu, #controls.ku { min-height: 0; overflow: hidden; }
 #controls.grid {
   grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr));
   gap: 8px 10px; padding-top: 8px;
@@ -193,7 +193,7 @@ body.ro .panel { opacity: 0.6; }
 .arm::after { content: ""; position: absolute; left: 50%; top: 9%; width: 3px; height: 38%; margin-left: -1.5px; background: #17191b; border-radius: 2px; }
 
 #controls.ku { display: flex; align-items: center; justify-content: center; }
-#controls.mpd, #controls.mfcd { display: flex; align-items: stretch; justify-content: flex-start; gap: 16px; padding-bottom: 12px; }
+#controls.mpd, #controls.mfcd, #controls.cdu { display: flex; align-items: stretch; justify-content: flex-start; gap: 16px; padding-bottom: 12px; }
 body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 
 .mpdmain { flex: none; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -214,7 +214,7 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .mart.ted text { font-size: 14px; }
 .mart.ted .lead { stroke-width: 1.4; }
 .mkey, .mknob { position: absolute; margin: 0; padding: 0; }
-.mkey::before, .mknob::before, .rhalf::before, .kkey::before, .pbtn::before, .ppos::before, .pstap::before, .pcap::before, .pmark::before, .pchipb::before, .pslot::before {
+.mkey::before, .mknob::before, .ckey::before, .rhalf::before, .kkey::before, .pbtn::before, .ppos::before, .pstap::before, .pcap::before, .pmark::before, .pchipb::before, .pslot::before {
   content: ""; position: absolute; left: 50%; top: 50%; width: var(--hw, 100%); height: var(--hh, 100%); transform: translate(-50%, -50%);
 }
 .mkey { font-stretch: condensed; letter-spacing: 0.02em; }
@@ -258,6 +258,29 @@ body.ro .mbezel, body.ro .kupanel, body.ro .cbtn { opacity: 0.6; }
 .mlabel.e-l { text-align: left; transform: translateY(-50%); }
 .mlabel.e-r { text-align: right; transform: translateY(-50%); }
 
+.mart.cdu text { font-size: 13px; }
+.ckey {
+  position: absolute; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; font-stretch: condensed; letter-spacing: 0.02em;
+  font-size: calc(var(--du) * 20); line-height: 1.05; color: #15181a; background: linear-gradient(#d4d7d9, #a3a8ac); border: 1px solid #000; border-radius: 12%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+.ckey:active { transform: scale(0.95); }
+.ckey.pressed { outline: 2px solid #ffb300; outline-offset: 1px; }
+.ckey.rnd { border-radius: 50%; }
+.ckey.sm { font-size: calc(var(--du) * 13); }
+.ckey[data-sub] { flex-direction: column; }
+.ckey[data-sub]::after { content: attr(data-sub); font-size: 0.55em; }
+.ckey .boxed { border-color: #15181a; border-radius: 50%; }
+.ckey.master { color: #8a7a4a; background: #17130a; border: 2px solid #8c2a16; font-size: calc(var(--du) * 15); }
+.ckey.master.lit { color: #111; background: #ffb300; border-color: #ffb300; box-shadow: 0 0 22px 5px rgba(255, 179, 0, 0.8); }
+.ckey.csel { flex-direction: column; gap: 2px; color: #f2f2f2; background: #1b1d1f; border-color: #666; font-size: calc(var(--du) * 15); }
+.ckey.csel .cv { font-size: 1.15em; color: #fff; }
+.ckey.csel .ct { color: #aaa; }
+.crock { position: absolute; background: #121314; border-radius: 10px; box-shadow: inset 0 1px 0 #4b5258, inset 0 0 0 1px #000, 0 2px 3px rgba(0, 0, 0, 0.65); }
+.crock .rhalf { font-size: calc(var(--du) * 16); }
+.crock.rocker.h .rhalf.a, .crock.rocker.h .rhalf.b { justify-content: center; padding: 0; }
+.crock.v::after { content: ""; position: absolute; left: 8%; right: 8%; top: 50%; border-top: 1px solid #3a3f44; pointer-events: none; }
+.crock.h::after { content: ""; position: absolute; top: 8%; bottom: 8%; left: 50%; border-left: 1px solid #3a3f44; pointer-events: none; }
 .mbezel.ted .mkey.fix, .mbezel.mfcd .mkey.fix { color: #f2f2f2; font-size: calc(var(--bh) * 0.03); }
 .mbezel.mfcd .mkey.fix { border: 0; }
 .mbezel.ted .mkey.ast { font-size: calc(var(--bh) * 0.06); }
@@ -649,6 +672,7 @@ const KNOB_GAP_MS = 100;
 const TAB_KEY = 'dcs-dashboard-tab';
 const WAKE_KEY = 'dcs-dashboard-wake';
 const MPD_KEY = 'dcs-dashboard-mpd';
+const CDU_KEY = 'dcs-dashboard-cdu';
 const UNREACHABLE = 'bridge not reachable';
 const BADGES = {
   nodata: { text: 'NO DCS DATA', cls: 'bad' },
@@ -703,6 +727,7 @@ const ICONS = {
   spring: '<svg class="icon spring" viewBox="0 0 40 16" aria-hidden="true"><path d="M3 8h5l3-5 6 10 6-10 6 10 3-5h5"' + ICON_STROKE + '/></svg>',
 };
 const CUR_MIN = 160;
+const CDU_SW_MIN = 100;
 const MPD_BOX = { x: 470, y: 25, w: 1060, h: 1065 };
 const MPD_SCREEN = { x: 605, y: 165, w: 790, h: 787 };
 const MPD_SIDES = [['L', 'LEFT MPD'], ['R', 'RIGHT MPD']];
@@ -746,6 +771,40 @@ for (let n = 1; n <= 20; n++) {
   MFCD_NUMBERS.push([n, ...[[x, y + 70], [x - 62, y], [x, y - 62], [x + 62, y]][edge]]);
 }
 const MFCD_PRINT = [['DAY', 140, 835], ['NT', 140, 870], ['OFF', 140, 905]];
+const CDU_SIDES = [['C', 'CDU'], ['U', 'UFC']];
+const CDU_BOXES = { C: { x: 0, y: 0, w: 860, h: 634 }, U: { x: 0, y: 0, w: 772, h: 340 } };
+const CDU_GEO = {
+  DISPLAY: [240, 171, 340, 290], BRT: [419, 350, 116, 50], PG: [250, 437, 52, 112], SCROLL: [395, 466, 112, 50], DATA: [656, 437, 52, 112],
+  PAGE: [775, 437, 140, 64], STEERPT: [775, 517, 140, 64],
+};
+[3, 5, 7, 9].forEach((n) => {
+  CDU_GEO[n + 'L'] = [34, 26 + (n - 0.5) * 29, 50, 46];
+  CDU_GEO[n + 'R'] = [446, 26 + (n - 0.5) * 29, 50, 46];
+});
+['SYS', 'NAV', 'WP', 'OSET', 'FPM', 'PREV'].forEach((slot, i) => { CDU_GEO[slot] = [34 + 58 * i, 350, 50, 46]; });
+[['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['POINT', '0', 'SLASH']].forEach((row, r) => {
+  row.forEach((slot, i) => { CDU_GEO[slot] = [34 + 58 * i, 408 + 58 * r, 50, 46]; });
+});
+['ABCDEF', 'GHIJKL', 'MNOPQR', 'STUVWX'].forEach((row, r) => {
+  [...row].forEach((slot, i) => { CDU_GEO[slot] = [526 + 58 * i, 84 + 58 * r, 50, 46]; });
+});
+[['BCK', 424, 408], ['SPC', 482, 408], ['Y', 540, 408], ['Z', 598, 408], ['MK', 308, 466], ['CLR', 540, 466], ['FA', 598, 466]].forEach(([slot, x, y]) => {
+  CDU_GEO[slot] = [x, y, 50, 46];
+});
+const CDU_INERT = [[308, 408], [366, 408]];
+const UFC_GEO = {
+  STEER: [36, 128, 52, 124], DATA: [486, 128, 52, 124], SEL: [546, 128, 52, 124], DEPR: [606, 128, 52, 124], INTEN: [690, 292, 116, 50],
+  MASTER_CAUTION: [166, 292, 124, 52],
+};
+[['1', '2', '3', 'HACK', 'FUNC', 'ENT'], ['4', '5', '6', '10', 'LTR', 'MK'], ['7', '8', '9', 'SPC', 'CLR', 'ALT_ALRT']].forEach((row, r) => {
+  row.forEach((slot, i) => { UFC_GEO[slot] = [106 + 60 * i, 58 + 70 * r, 52, 46]; });
+});
+['COM1', 'COM_SEC', 'IFF', 'COM2', 'ECCM', 'IDM'].forEach((slot, i) => { UFC_GEO[slot] = [286 + 60 * i, 292, 52, 46]; });
+const UFC_LEGENDS = {
+  '1': ['ABC', 'SYS'], '2': ['DEF', 'NAV'], '3': ['GHI', 'WP'], '4': ['JKL', 'OSET'], '5': ['MNO', 'FPM'], '6': ['PQR', 'PREV'],
+  '7': ['STU', 'FPLAN'], '8': ['VWX', 'MARK'], '9': ['YZ', 'MSN'], '10': ['', 'STEER'], HACK: ['', 'POS'], SPC: ['', 'WAYPT'], CLR: ['', 'MALF'], MK: ['', 'UPDT'],
+};
+const CDU_GEOS = { C: CDU_GEO, U: UFC_GEO };
 const KU_BOX = { x: 16, y: 13, w: 721, h: 599 };
 const KU_ROWS = [
   [176, ['A', 'B', 'C', 'D', 'E', 'F'], ['1', '2', '3']],
@@ -1675,6 +1734,49 @@ function buildScratch(def) {
   return c;
 }
 
+function buildCduButton(def) {
+  const round = def.side === 'C' ? /^\d$/.test(def.slot) : def.slot === 'FUNC' || def.slot === 'LTR';
+  const c = buildButton(def, 'ckey' + (round ? ' rnd' : '') + (def.label.length > 3 ? ' sm' : '') + (def.lamp ? ' master' : ''), def.label);
+  if (/^LSK/.test(def.label)) setLabel(c.el, def.slot.endsWith('L') ? 'tri-right' : 'tri-left', def.label);
+  if (def.side === 'C' && KU_BOXED.includes(def.slot)) {
+    c.el.textContent = '';
+    c.el.append(make('span', 'boxed', def.label));
+  }
+  const legend = def.side === 'U' && UFC_LEGENDS[def.slot];
+  if (legend && legend[0]) c.el.dataset.sub = legend[0];
+  if (def.lamp) {
+    const update = c.update;
+    c.update = () => {
+      update();
+      c.el.classList.toggle('lit', readValue(def.lamp) === 1);
+    };
+  }
+  return c;
+}
+
+function buildCduSelector(def) {
+  const btn = make('button', 'ckey csel');
+  const value = make('span', 'cv');
+  btn.type = 'button';
+  btn.append(make('span', 'ct', def.label), value);
+  const c = { def, el: btn, busy: false, pending: null };
+  btn.addEventListener('click', () => openChooser(c, btn));
+  c.update = () => {
+    const p = def.positions.find((q) => q.value === readValue(def.id));
+    value.textContent = p ? p.label : '–';
+    btn.classList.toggle('pressed', c.busy);
+    btn.setAttribute('aria-disabled', String(!can(c)));
+  };
+  return c;
+}
+
+function buildCduControl(def) {
+  if (def.type === 'display') return buildPlateDisplay({ ...def, at: CDU_GEO.DISPLAY });
+  if (def.type === 'selector') return buildCduSelector(def);
+  if (def.type === 'hat') return buildRocker(def, 'crock');
+  return buildCduButton(def);
+}
+
 function closeGuard() {
   if (!lifted) return;
   const { c, timer } = lifted;
@@ -2216,6 +2318,7 @@ function buildPanelControl(def) {
 
 function buildControl(def, layout) {
   if (layout === 'panel') return buildPanelControl(def);
+  if (layout === 'cdu') return buildCduControl(def);
   const bezel = layout === 'mpd' || layout === 'mfcd';
   if (def.type === 'selector') return bezel ? buildMpdKnob(def) : buildSelector(def);
   if (def.type === 'button') {
@@ -2310,6 +2413,28 @@ function mfcdSvg() {
     + '</svg>';
 }
 
+function cduSvg() {
+  const box = CDU_BOXES.C;
+  const [sx, sy, sw, sh] = CDU_GEO.DISPLAY;
+  const inert = CDU_INERT.map(([x, y]) => '<rect x="' + (x - 25) + '" y="' + (y - 23) + '" width="50" height="46" rx="6" fill="#6b7075" stroke="#000" stroke-width="1"/>');
+  return '<svg class="mart cdu" viewBox="' + [box.x, box.y, box.w, box.h].join(' ') + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<rect x="2" y="2" width="' + (box.w - 4) + '" height="' + (box.h - 4) + '" rx="30" fill="#26292c" stroke="#3d4348" stroke-width="4"/>'
+    + '<rect x="' + (sx - sw / 2 - 8) + '" y="' + (sy - sh / 2 - 8) + '" width="' + (sw + 16) + '" height="' + (sh + 16) + '" rx="10" fill="#15181a" stroke="#0e1012" stroke-width="3"/>'
+    + inert.join('') + '<text x="' + CDU_GEO.PAGE[0] + '" y="386">AAP</text>'
+    + '</svg>';
+}
+
+function ufcSvg() {
+  const box = CDU_BOXES.U;
+  const text = (t, x, y) => '<text x="' + x + '" y="' + y + '" dy="0.35em">' + t + '</text>';
+  const legends = Object.keys(UFC_LEGENDS).map((slot) => text(UFC_LEGENDS[slot][1], UFC_GEO[slot][0], UFC_GEO[slot][1] + 35));
+  const names = ['STEER', 'DATA', 'SEL', 'DEPR', 'INTEN'].map((slot) => text(slot, UFC_GEO[slot][0], UFC_GEO[slot][1] - UFC_GEO[slot][3] / 2 - 14));
+  return '<svg class="mart cdu" viewBox="' + [box.x, box.y, box.w, box.h].join(' ') + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<rect x="2" y="2" width="' + (box.w - 4) + '" height="' + (box.h - 4) + '" rx="30" fill="#26292c" stroke="#3d4348" stroke-width="4"/>'
+    + legends.join('') + names.join('')
+    + '</svg>';
+}
+
 function tedSvg() {
   const sc = TED_SCREEN;
   const [kx, ky, kd] = TED_GEO.MODE;
@@ -2389,17 +2514,17 @@ function mpdLabel(pb) {
   return el;
 }
 
-function loadMpdSide() {
+function loadMpdSide(key, sides) {
   try {
-    const side = localStorage.getItem(MPD_KEY + ':' + layoutAircraft);
-    if (side === 'R' || side === 'T') return side;
-  } catch (e) { /* storage not available, start on the left MPD */ }
-  return 'L';
+    const side = localStorage.getItem(key + ':' + layoutAircraft);
+    if (sides.some(([s]) => s === side)) return side;
+  } catch (e) { /* storage not available, start on the first display */ }
+  return sides[0][0];
 }
 
 function saveMpdSide(side) {
   try {
-    localStorage.setItem(MPD_KEY + ':' + layoutAircraft, side);
+    localStorage.setItem(mpdView.key + ':' + layoutAircraft, side);
   } catch (e) { /* storage not available, the choice is not remembered */ }
 }
 
@@ -2447,7 +2572,7 @@ function placeKeys(side, bezel, items, geoOf, bx) {
     boxRect(c.el, bx, ...geo);
     bezel.append(c.el);
     if (c.halves) mpdView.touch[side].push(...halfTouch(c, geo));
-    else mpdView.touch[side].push({ el: c.el, cx: geo[0], cy: geo[1], w: geo[2], h: geo[3] });
+    else if (c.def.type !== 'display') mpdView.touch[side].push({ el: c.el, cx: geo[0], cy: geo[1], w: geo[2], h: geo[3] });
   });
   mpdView.bezels[side] = bezel;
 }
@@ -2459,7 +2584,7 @@ function placeMpd(box, cs) {
   const tkr = make('div', 'curgrp');
   const sw = make('div', 'seg mpdsw');
   const stage = make('div', 'mpdstage');
-  mpdView = { pref: loadMpdSide(), side: null, main, cur, grp, tkr, sw, stage, bezels: {}, labels: {}, buttons: {}, touch: {} };
+  mpdView = { key: MPD_KEY, pref: loadMpdSide(MPD_KEY, DISPLAYS), side: null, main, cur, grp, tkr, sw, stage, bezels: {}, labels: {}, buttons: {}, touch: {} };
   mpdView.side = shownMpdSide();
   DISPLAYS.forEach(([side, name]) => {
     const btn = make('button', 'pos', name);
@@ -2505,7 +2630,7 @@ function placeMfcd(box, cs) {
   const cur = make('div', 'mpdcur');
   const sw = make('div', 'seg mfcdsw');
   const stage = make('div', 'mpdstage');
-  mpdView = { pref: loadMpdSide(), side: null, main, stage, bezels: {}, buttons: {}, touch: {} };
+  mpdView = { key: MPD_KEY, pref: loadMpdSide(MPD_KEY, MFCD_SIDES), side: null, main, stage, bezels: {}, buttons: {}, touch: {} };
   mpdView.side = shownMpdSide();
   MFCD_SIDES.forEach(([side, name]) => {
     const btn = make('button', 'pos', name);
@@ -2517,6 +2642,30 @@ function placeMfcd(box, cs) {
     const bezel = make('div', 'mbezel mfcd');
     bezel.insertAdjacentHTML('beforeend', mfcdSvg());
     placeKeys(side, bezel, cs.filter((c) => c.def.side === side && MFCD_GEO[c.def.slot]), MFCD_GEO, MFCD_BOX);
+  });
+  cur.append(sw);
+  main.append(stage);
+  box.append(main, cur);
+  stage.append(mpdView.bezels[mpdView.side]);
+}
+
+function placeCdu(box, cs) {
+  const main = make('div', 'mpdmain');
+  const cur = make('div', 'mpdcur');
+  const sw = make('div', 'seg mfcdsw');
+  const stage = make('div', 'mpdstage');
+  mpdView = { key: CDU_KEY, pref: loadMpdSide(CDU_KEY, CDU_SIDES), side: null, main, stage, bezels: {}, buttons: {}, touch: {} };
+  mpdView.side = shownMpdSide();
+  CDU_SIDES.forEach(([side, name]) => {
+    const btn = make('button', 'pos', name);
+    btn.type = 'button';
+    btn.addEventListener('click', () => setMpdSide(side));
+    btn.classList.toggle('cur', side === mpdView.side);
+    sw.append(btn);
+    mpdView.buttons[side] = btn;
+    const bezel = make('div', 'mbezel cdu');
+    bezel.insertAdjacentHTML('beforeend', side === 'C' ? cduSvg() : ufcSvg());
+    placeKeys(side, bezel, cs.filter((c) => c.def.side === side && CDU_GEOS[side][c.def.slot]), CDU_GEOS[side], CDU_BOXES[side]);
   });
   cur.append(sw);
   main.append(stage);
@@ -2597,6 +2746,7 @@ function fitBezel(bx) {
   st.width = bw + 'px';
   st.height = bh + 'px';
   st.setProperty('--bh', bh + 'px');
+  st.setProperty('--du', s + 'px');
   spread(mpdView.touch[side], s);
 }
 
@@ -2620,6 +2770,15 @@ function fitMfcd() {
   const gap = parseFloat(getComputedStyle(area).columnGap);
   mpdView.main.style.width = Math.max(0, Math.min(mpdView.stage.clientHeight * MFCD_BOX.w / MFCD_BOX.h, innerSize(area)[0] - CUR_MIN - gap)) + 'px';
   fitBezel(MFCD_BOX);
+}
+
+function fitCdu() {
+  if (!mpdView) return;
+  const bx = CDU_BOXES[mpdView.side];
+  const area = document.getElementById('controls');
+  const gap = parseFloat(getComputedStyle(area).columnGap);
+  mpdView.main.style.width = Math.max(0, Math.min(mpdView.stage.clientHeight * bx.w / bx.h, innerSize(area)[0] - CDU_SW_MIN - gap)) + 'px';
+  fitBezel(bx);
 }
 
 function placeKu(box, cs) {
@@ -2876,12 +3035,13 @@ function placeGrid(box, cs) {
   });
 }
 
-const PLACERS = { mpd: placeMpd, mfcd: placeMfcd, ku: placeKu, panel: placePlate, map: placeMap };
+const PLACERS = { mpd: placeMpd, mfcd: placeMfcd, cdu: placeCdu, ku: placeKu, panel: placePlate, map: placeMap };
 
 function fit() {
   const name = document.getElementById('controls').className;
   if (name === 'mpd') fitMpd();
   else if (name === 'mfcd') fitMfcd();
+  else if (name === 'cdu') fitCdu();
   else if (name === 'ku') fitKu();
   else if (name === 'plate') fitPlate();
 }

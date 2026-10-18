@@ -744,22 +744,26 @@ def aap_toggle(p: Panel, name: str, label: str, bios: str, x: int):
     p.label(name, "NAME", name, "above")
 
 
+AAP_STEERPT = {
+    "id": "AAP_STEERPT", "label": "STEER PT", "type": "selector", "style": "rotary",
+    "positions": [{"value": 0, "label": "FLT PLAN", "angle": -90}, {"value": 1, "label": "MARK", "angle": -50}, {"value": 2, "label": "MISSION", "angle": 0}],
+}
+AAP_PAGE = {
+    "id": "AAP_PAGE", "label": "PAGE", "type": "selector", "style": "rotary",
+    "positions": [
+        {"value": 0, "label": "OTHER", "angle": -90}, {"value": 1, "label": "POSITION", "angle": -50},
+        {"value": 2, "label": "STEER", "angle": 0}, {"value": 3, "label": "WAYPT", "angle": 50},
+    ],
+}
+
+
 def aap_plate(g: PanelGroup):
     p = g.panel("AAP", 640, 360, 0, 0)
     aap_toggle(p, "CDU", "CDU POWER", "AAP_CDUPWR", 200)
     aap_toggle(p, "EGI", "EGI POWER", "AAP_EGIPWR", 440)
-    p.rotary("STEERPT", 190, 240, {
-        "id": "AAP_STEERPT", "label": "STEER PT", "type": "selector", "style": "rotary",
-        "positions": [{"value": 0, "label": "FLT PLAN", "angle": -90}, {"value": 1, "label": "MARK", "angle": -50}, {"value": 2, "label": "MISSION", "angle": 0}],
-    })
+    p.rotary("STEERPT", 190, 240, AAP_STEERPT)
     p.label("STEER PT", "NAME", "STEERPT", "below")
-    p.rotary("PAGE", 480, 240, {
-        "id": "AAP_PAGE", "label": "PAGE", "type": "selector", "style": "rotary",
-        "positions": [
-            {"value": 0, "label": "OTHER", "angle": -90}, {"value": 1, "label": "POSITION", "angle": -50},
-            {"value": 2, "label": "STEER", "angle": 0}, {"value": 3, "label": "WAYPT", "angle": 50},
-        ],
-    })
+    p.rotary("PAGE", 480, 240, AAP_PAGE)
     p.label("PAGE", "NAME", "PAGE", "below")
     p.toggle("STEER", 283, 240, {
         "id": "AAP_STEER", "label": "STEER", "type": "selector", "rest": 1, "hold": 0.5,
@@ -1033,12 +1037,60 @@ def mfcd_controls(side: str) -> list[dict]:
     return controls
 
 
+CDU_LABELS = {"POINT": ".", "SLASH": "/"}
+UP_DOWN = {"up": "tri-up", "down": "tri-down"}
+LEFT_RIGHT = {"left": "tri-left", "right": "tri-right"}
+
+
+def hat_rocker(prefix: str, name: str, label: str, side: str, positions: dict) -> dict:
+    axis = "ud" if "up" in positions else "lr"
+    return {"id": f"{prefix}_{name}", "label": label, "type": "hat", axis: f"{prefix}_{name}", "hold": BUTTON_HOLD, "positions": positions, "side": side, "slot": name}
+
+
+def cdu_controls() -> list[dict]:
+    keys = ["SYS", "NAV", "WP", "OSET", "FPM", "PREV"] + list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") + ["POINT", "SLASH", "CLR", "BCK", "SPC", "FA", "MK"]
+    controls = [{"id": "CDU_SCREEN", "label": "CDU", "type": "display", "cols": 24, "ids": [f"CDU_LINE{n}" for n in range(10)], "side": "C", "slot": "DISPLAY"}]
+    controls += [
+        {"id": f"CDU_LSK_{slot}", "label": f"LSK {slot}", "type": "button", "hold": BUTTON_HOLD, "side": "C", "slot": slot}
+        for slot in ("3L", "5L", "7L", "9L", "3R", "5R", "7R", "9R")
+    ]
+    controls += [
+        {"id": f"CDU_{key}", "label": CDU_LABELS.get(key, key), "type": "button", "hold": BUTTON_HOLD, "side": "C", "slot": key}
+        for key in keys
+    ]
+    controls += [
+        hat_rocker("CDU", "BRT", "BRT / DIM", "C", {"left": "DIM", "right": "BRT"}),
+        hat_rocker("CDU", "PG", "PG", "C", UP_DOWN),
+        hat_rocker("CDU", "SCROLL", "SCROLL", "C", LEFT_RIGHT),
+        hat_rocker("CDU", "DATA", "+ / \u2212", "C", UP_DOWN),
+        {**AAP_PAGE, "side": "C", "slot": "PAGE"},
+        {**AAP_STEERPT, "side": "C", "slot": "STEERPT"},
+    ]
+    return controls
+
+
+def ufc_controls() -> list[dict]:
+    keys = [(f"UFC_{n}", str(n % 10)) for n in (*range(1, 10), 10)]
+    keys += [("UFC_SPC", "SPC"), ("UFC_HACK", "HACK"), ("UFC_FUNC", "FUNC"), ("UFC_LTR", "LTR"), ("UFC_CLR", "CLR"), ("UFC_ENT", "ENT"), ("UFC_MK", "MK"), ("UFC_ALT_ALRT", "ALT ALRT")]
+    keys += [("UFC_COM1", "COM 1"), ("UFC_COM_SEC", "COM SEC"), ("UFC_IFF", "IFF"), ("UFC_COM2", "COM 2"), ("UFC_ECCM", "ECCM"), ("UFC_IDM", "IDM")]
+    controls = [
+        {"id": bios, "label": label, "type": "button", "hold": BUTTON_HOLD, "side": "U", "slot": bios[4:]}
+        for bios, label in keys
+    ]
+    controls.append({"id": "UFC_MASTER_CAUTION", "label": "MASTER CAUTION", "type": "button", "hold": BUTTON_HOLD, "lamp": "MASTER_CAUTION", "side": "U", "slot": "MASTER_CAUTION"})
+    controls += [hat_rocker("UFC", name, name, "U", UP_DOWN) for name in ("STEER", "DATA", "SEL", "DEPR")]
+    controls.append(hat_rocker("UFC", "INTEN", "INTEN", "U", LEFT_RIGHT))
+    return controls
+
+
 VIEWS = [
     {
         "name": "COCKPIT", "seats": [0], "layout": "map", "lamps": MASTER_LAMPS, "controls": [],
         "links": [
             {"label": "MFCD L", "view": "MFCD", "side": "L", "seats": [0], "map": [3, 5, 2, 1]},
             {"label": "MFCD R", "view": "MFCD", "side": "R", "seats": [0], "map": [3, 8, 2, 1]},
+            {"label": "CDU", "view": "CDU", "side": "C", "seats": [0], "map": [4, 9, 1, 2]},
+            {"label": "UFC", "view": "CDU", "side": "U", "seats": [0], "map": [1, 5, 1, 4]},
         ],
     },
     *brake_pages(),
@@ -1065,6 +1117,7 @@ VIEWS = [
     *env_pages(),
     *lighting_pages(),
     {"name": "MFCD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfcd_controls("L") + mfcd_controls("R")},
+    {"name": "CDU", "seats": [0], "layout": "cdu", "lamps": [], "controls": cdu_controls() + ufc_controls()},
 ]
 
 CONTROL_NAMES = []
