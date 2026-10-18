@@ -68,6 +68,8 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] George: the ROE state (HOLD FIRE or FREE FIRE) is not readable; read the colour of the ring text.
 - [ ] George: the ring state is not readable. The bridge assumes the ring is hidden at the start of a ring command and starts with Hide.
 - [ ] A-10C: the MFCD screen is empty (DCS-BIOS has no MFCD text and the export script table of the A-10C is empty); the six A-10C II UFC buttons stand in one provisional row until their place on the real UFC is known.
+- [ ] AH-64D, gunner FIGHT page: the hats WAS, SIGHT SEL and TADS FOV (99 × 52.9 px at 1180 × 820, 84.2 × 47.1 px at 1024 × 768) and the SENSOR selector (309.1 × 54.2 and 264.6 × 48.4 px) are under the 56 px minimum, because the 7 × 3 grid has no room for two-row hats (they need 24 cells, the grid has 21). Open decision, options: a fourth grid row, eight columns, or less chrome per cell. Until then they are accepted exceptions ([design rules](SPEC.md#design-rules)).
+- [ ] A-10C (under development): the long-hold page list with 29 entries is taller than the screen and cuts off entries (found by `core/tools/test/sweep.js`). Fix when the A-10C work resumes.
 - [ ] Open questions: radios on the dashboard (later?); which keyboard combinations for cockpit commands are used today (each one would become a button).
 
 ## Deviations to look at on the tablet

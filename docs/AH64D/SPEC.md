@@ -279,16 +279,16 @@ Two pages, one per seat, both named Fight ([Seat](#1-seats)). The tab bar has on
 | FLARE, CHAFF | `{seat}_CYCLIC_FLARE`, `{seat}_CYCLIC_CHAFF` | push button | as A/S |
 | FLARE COUNT, CHAFF COUNT | `PLT_CMWS_FLARE_COUNT`, `PLT_CMWS_CHAFF_COUNT` | display | read only; from the pilot's CMWS panel, also shown on the gunner page |
 
-**Hats.** A hat is drawn as a cross of four buttons. A tap sets the axis (`_UD` or `_LR`) to 2 (up, right) or 0 (down, left) and holds it for 0.3 s; then the bridge returns the axis to the centre, 1. The highlighted direction comes from the readback of the two axes. The pilot page uses the cyclic WAS and the collective sight select; the gunner page uses the cyclic WAS and the right-grip sight select. The left-grip WAS (LHG WAS) is left out on purpose: it does the same as the cyclic WAS (it works too, as a fallback).
+**Hats.** A hat is drawn as a cross of four buttons. A tap sets the axis (`_UD` or `_LR`) to 2 (up, right) or 0 (down, left) and holds it for 0.3 s; then the bridge returns the axis to the centre, 1. The highlighted direction comes from the readback of the two axes. The pilot page uses the cyclic WAS and the collective sight select; the gunner page uses the cyclic WAS and the right-grip sight select. The left-grip WAS (LHG WAS) is left out on purpose: it does the same as the cyclic WAS (it works too, as a fallback). On the pilot page each hat takes two rows × two columns of the grid (WAS: rows 1–2, columns 3–4; SIGHT SEL: rows 1–2, columns 5–6), so every button is at least 56 px high. The gunner page has no room for that, see [Touch sizes per view](#touch-sizes-per-view).
 
 **CMWS.** Flares only fire with the CMWS panel set up: CMWS PWR ON, FLARE SQUIBS ARM, CMWS MODE CMWS; CMWS OPER BYPASS / AUTO decides whether the CMWS dispenses on its own. Chaff must be armed on the MPD ASE page. On the ground dispensing may be blocked.
 
 | Label | DCS-BIOS | Positions | Grid |
 | --- | --- | --- | --- |
-| CMWS PWR | `PLT_CMWS_PW` | 2 = TEST (spring-loaded, 0.5 s), 1 = ON, 0 = OFF | row 1, column 5 |
-| FLARE SQUIBS | `PLT_CMWS_ARM` | 1 = ARM, 0 = SAFE | row 1, column 6 |
-| CMWS MODE | `PLT_CMWS_MODE` | 1 = CMWS, 0 = NAV | row 2, column 5 |
-| CMWS OPER | `PLT_CMWS_BYPASS` | 1 = BYPASS, 0 = AUTO | row 2, column 6 |
+| CMWS PWR | `PLT_CMWS_PW` | 2 = TEST (spring-loaded, 0.5 s), 1 = ON, 0 = OFF | rows 1–2, column 7 |
+| FLARE SQUIBS | `PLT_CMWS_ARM` | 1 = ARM, 0 = SAFE | row 3, column 5 |
+| CMWS MODE | `PLT_CMWS_MODE` | 1 = CMWS, 0 = NAV | row 3, column 6 |
+| CMWS OPER | `PLT_CMWS_BYPASS` | 1 = BYPASS, 0 = AUTO | row 3, column 7 |
 
 #### Gunner page
 
@@ -341,7 +341,7 @@ One display at a time, following the current seat (`"layout": "mpd"`). A `LEFT M
 
 #### Knob bar
 
-Tapping a knob (MPD BRT / VID / MODE, KU BRT, TEDAC knobs, the knobs of the COCKPIT pages) opens a bar at the knob (420 px wide, or the screen less 24 px, 120 px high): below it, above it if there is no room, always inside the screen. BRT / VID / KU BRT and the panel knobs: drag or tap the track; the bridge sets the absolute knob position (`{"value": 0..65535}`, at most every 100 ms while dragging). MODE: three stops DAY / NT / MONO. Tap outside or the close cross to close. The MPD mode selectors use `step_fallback`: if the position is not reached in 0.5 s the bridge turns the knob with INC / DEC steps.
+Tapping a knob (MPD BRT / VID / MODE, KU BRT, TEDAC knobs, the knobs of the COCKPIT pages) opens a bar at the knob (420 px wide, or the screen less 24 px, 130 px high): below it, above it if there is no room, always inside the screen. BRT / VID / KU BRT and the panel knobs: drag or tap the track; the bridge sets the absolute knob position (`{"value": 0..65535}`, at most every 100 ms while dragging). MODE: three stops DAY / NT / MONO. Tap outside or the close cross (56 × 56 px) to close. The MPD mode selectors use `step_fallback`: if the position is not reached in 0.5 s the bridge turns the knob with INC / DEC steps.
 
 ### KU
 
@@ -411,6 +411,30 @@ The list buttons only press a direction key, with no Hide first, because Hide wo
 | AH-64D CPG only | Request Aircraft Control | `LCtrl+LAlt+R` |
 | AH-64D George AI Helper | George AI - Hide | `LCtrl+LAlt+H` |
 | AH-64D George AI Helper | George AI - Up / Down / Left / Right | `LCtrl+LAlt+I` / `K` / `J` / `L` |
+
+### Touch sizes per view
+
+The 56 px rule of the [design rules](../SPEC.md#design-rules) holds for every view. Measured with `core/tools/test/sweep.js` (AH-64D, both seats, 1180 × 820 and 1024 × 768); the table gives the smallest touch target of each view in CSS pixels (width × height, the smaller of the two seats), the settings gear left out (own row).
+
+| View | At 1180 × 820 | At 1024 × 768 | Smallest element | Status |
+| --- | --- | --- | --- | --- |
+| COCKPIT map | 263.5 × 64.7 | 224.5 × 57.3 | CANOPY button (pilot map) | meets 56 px |
+| Panel pages | 56 × 62.3 | 56 × 56 | rocker half EUFD WCA (1180); IHADSS BRT mark and touch squares such as CKT A (1024) | meets 56 px |
+| FLIGHT | 142.6 × 189.7 | 120.3 × 172.3 | CTRL IND | meets 56 px |
+| FIGHT, pilot | 142.6 × 83.3 | 120.3 × 74.7 | FLARE SQUIBS (ARM / SAFE) | meets 56 px |
+| FIGHT, CP/G | 99 × 52.9 | 84.2 × 47.1 | hat buttons WAS, SIGHT SEL, TADS FOV; the SENSOR selector is 309.1 × 54.2 and 264.6 × 48.4 | open |
+| MPD | 56 × 45.6 | 56 × 39.8 | the FCR, WPN, VID and COM keys, L6 and R6 (at 1024 also R1 and \*) | accepted exception |
+| TEDAC | 188 × 56 | 188 × 56 | the LEFT MPD side switch; every TEDAC key and rocker is 56 or more | meets 56 px |
+| KU | 66.5 × 56 | 61.5 × 56 | key A | meets 56 px |
+| GEORGE | 142.6 × 189.7 | 120.3 × 172.3 | PHS SEARCH | meets 56 px |
+| Settings | 92.3 × 56 | 92.3 × 56 | BACK | meets 56 px |
+| Settings gear (every view) | 44 × 44 | 44 × 44 | the gear | accepted exception |
+| Chooser, knob bar, page list | 56 × 56 | 56 × 56 | close button of the knob bar (chooser buttons 64 × 64, page list CLOSE 101.4 × 56) | meets 56 px |
+| Tab bar, badge, lamp row | 85.5 × 56 | 85.5 × 56 | the CP/G badge; tabs 124 × 56; lamps 186 × 56 (1180) and 160 × 56 (1024) | meets 56 px |
+
+- **MPD.** The hit area of an MPD key is 56 px wide; its height is limited by the neighbouring keys (about 0.7 of the button spacing, as on the real bezel), so it falls to 39.8 px at 1024 × 768. The side switch above the display is 56 px high.
+- **Open: CP/G FIGHT.** The hats WAS, SIGHT SEL and TADS FOV and the SENSOR selector each take one grid row and two columns, which is below 56 px high. The 7 × 3 grid has no room for two-row hats; see [FIXES.md](../FIXES.md).
+- **POWER, APU cover open.** The open cover is 103.8 × 56 px at 1180 × 820 and 95.2 × 56 px at 1024 × 768.
 
 ## 3. Keybinds
 

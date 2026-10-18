@@ -129,7 +129,13 @@ Dangerous or irreversible controls are never part of a sweep or a quick page: fo
 ### Design rules
 
 - **Cockpit names and positions.** Every control uses the label printed in the cockpit and shows all of its real positions, in cockpit order, even positions we do not use. A position that cannot be set is greyed out and cannot be selected.
-- **Big touch targets:** 56 CSS pixels where space allows; at least 44 px on the three-row FLIGHT view and as on the real bezel on the MPD view (about 0.7 of the button spacing).
+- **Big touch targets:** every touch target is at least 56 CSS pixels wide and high, on every view: the tab bar, the seat badge, the lamp row, the COCKPIT map, the panel pages, the quick pages, the display layouts (MPD, TEDAC, KU), the pop-ups (chooser, knob bar, page list) and the settings. Accepted exceptions:
+  - the MPD keys, whose height is limited by the neighbouring keys, as on the real bezel (about 0.7 of the button spacing); their width stays 56 px;
+  - the settings gear, 44 px, so that it stays clear of the controls;
+  - the PULL chip of a panel page knob (32 px floor; the long press on the knob is the large target);
+  - until decided, the CP/G FIGHT hats and the SENSOR selector ([Fixes and open points](FIXES.md)).
+
+  `core/tools/test/sweep.js` measures every view of an aircraft at 1180 × 820 and 1024 × 768 and lists each target under 56 px; `core/tools/check_panels.js` measures the panel pages. The measured sizes of the AH-64D are in [Touch sizes per view](AH64D/SPEC.md#touch-sizes-per-view).
 - **Landscape first.** Designed for an iPad Air in landscape (1180 × 820 CSS pixels), laid out with a CSS grid that also fits other tablets from about 1024 × 768 up. Portrait works but is not optimised. Smaller screens overlap.
 - **Plain look.** Dark background, white stencil-style labels, lamp colours as in the cockpit. The panel pages need CSS container queries: Safari / iPadOS 16 or newer, or current Chrome.
 - **No emoji-capable code points** in the UI or the aircraft file (they are drawn as coloured emoji on iOS). Arrows, chevrons, the close cross and the spring mark are inline SVG from one small icon set (`ICONS` in `core/web/index.html`: `chev-left`, `close`, `tri-up`, `tri-down`, `tri-left`, `tri-right`, `spring`).
