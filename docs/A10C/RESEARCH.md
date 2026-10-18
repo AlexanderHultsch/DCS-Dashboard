@@ -5,7 +5,9 @@ Working notes for adding the A-10C II to the dashboard. Our own notes only: the 
 ## Decisions
 
 - Aircraft: A-10C II Tank Killer only.
-- Layout: every aircraft gets the same tabs (COCKPIT with panel pages, FLIGHT, FIGHT, displays, keyboard). Aircraft-specific sub-pages where needed, for example MFCD instead of MPD, CDU and UFC instead of KU. GEORGE is AH-64D only.
+- Layout: every aircraft gets the same tabs (COCKPIT with panel pages, FLIGHT, FIGHT, displays, keyboard). Aircraft-specific sub-pages where needed, for example MFCD instead of MPD, CDU and UFC instead of KU, hand-drawn like the AH-64D MPD and KU. GEORGE is AH-64D only.
+- Look: the A-10C panel pages get their own A-10C-specific look.
+- Aircraft choice: automatic from the DCS-BIOS aircraft name, with a manual switch in the settings page for debugging.
 - Reference material (manual pages, screenshots) is used to draw the panels, as for the AH-64D; it stays out of the repo.
 
 ## Sources
@@ -48,7 +50,7 @@ From the manual and the DCS-BIOS mapping, to settle in DCS (phase 7):
 | 2 | Read the manual: pp. 105–209 (cockpit panels, HOTAS, CDU), 303–311 (UFC, MFCD overview), 482 and 491–503 (HMCS HOTAS, defensive systems), 504–544 (start-up) | Claude | [PANELS.md](PANELS.md): 66 panel sections; [STARTUP.md](STARTUP.md): cold start in 164 steps | done |
 | 3 | Match with DCS-BIOS | Claude | [BIOS.md](BIOS.md): every PANELS.md control with its identifier and access, the 72 DCS-BIOS-only controls, gaps, cold start coverage | done |
 | 4 | Reference pictures per panel | Claude, then user (screenshots) | [PICTURES.md](PICTURES.md): 66 panels, 48 good, 15 partial, 2 poor (TISL, flap lever), 1 none (HMCS HOTAS); screenshot needed only for the flap lever | done |
-| 5 | Compare with the engine | Claude | List of engine changes, each with a user decision: single seat (no CP/G), MFCD / CDU / UFC drawings, export script arguments, trim display | open |
+| 5 | Compare with the engine | Claude, user decides | [ENGINE.md](ENGINE.md): 9 changes E1–E9, all decided (automatic aircraft choice with a manual switch, seats per aircraft, hand-drawn MFCD / CDU / UFC, A-10C-specific look, docs first) | done |
 | 6 | A-10C spec | Claude writes, user reviews | Spec of views, panel pages, controls, keybinds | open |
 | 7 | Research in DCS (needs the module) | user flies, Claude analyses | Read test and control sweep adapted from the `research-v1` tag; export arguments and MFCD indication numbers | open |
 | 8 | Build plan and build | Claude delegates | Verified steps | open |

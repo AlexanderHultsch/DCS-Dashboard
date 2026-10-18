@@ -1,6 +1,6 @@
 # A-10C II – engine changes
 
-What the dashboard engine (bridge, page, panel kit, export script) must change so that a second aircraft, the single-seat A-10C II, can use it next to the AH-64D. Based on a full read of the code (findings with file and line references were collected during phase 5) and on [BIOS.md](BIOS.md). Every change has options, a recommendation and a decision. Nothing is built before the decisions are made and the A-10C spec (phase 6) is approved.
+What the dashboard engine (bridge, page, panel kit, export script) must change so that a second aircraft, the single-seat A-10C II, can use it next to the AH-64D. Based on a full read of the code (findings with file and line references were collected during phase 5) and on [BIOS.md](BIOS.md). Every change has options, a recommendation and a decision (all decided on 2026-10-18, see the table at the end). Nothing is built before the A-10C spec (phase 6) is approved.
 
 Already generic and unchanged: DCS-BIOS decoding and commands (`core/dcsbios.py`), keypresses (`core/keys.py`, apart from its key table), log, config loader, HTTP server, settings page, guard covers, knob bar, chooser, the panel-page builders and the multi-line text display of the panel kit.
 
@@ -85,11 +85,11 @@ Today: the cockpit arguments 470–478 (stick and pedal positions) and the MPD i
 | # | Decision | Date |
 | --- | --- | --- |
 | E1 | Automatic from the DCS-BIOS aircraft name (`_ACFT_NAME`); for debugging the aircraft can also be switched by hand in the settings page | 2026-10-18 |
-| E2 | open | |
-| E3 | open | |
-| E4 | open | |
+| E2 | As recommended: seats and seat output declared by the aircraft file; one seat = badge shows the aircraft, no debug-seat hold | 2026-10-18 |
+| E3 | As recommended: trim display only for aircraft that define it; none for the A-10C in version 1 | 2026-10-18 |
+| E4 | As recommended: lever keys only for aircraft with levers; A-10C throttles as read-only gauges in version 1 | 2026-10-18 |
 | E5 | Option A: hand-drawn layouts for MFCD, CDU and UFC, like the AH-64D MPD and KU | 2026-10-18 |
 | E6 | A-10C-specific look for the A-10C panel pages (not the AH-64D plate style) | 2026-10-18 |
-| E7 | open | |
-| E8 | open | |
-| E9 | open | |
+| E7 | As recommended: one export script with a table per aircraft name; A-10C table empty in version 1 | 2026-10-18 |
+| E8 | As recommended: add keys when the exported A-10C keybinds need them; HOTAS buttons as key / macro controls; required keys per aircraft | 2026-10-18 |
+| E9 | Docs first: update README and SPEC for several aircraft before building; remembered tab and display side scoped by aircraft | 2026-10-18 |
