@@ -1,23 +1,23 @@
 # A-10C II – engine changes
 
-What the dashboard engine (bridge, page, panel kit, export script) must change so that a second aircraft, the single-seat A-10C II, can use it next to the AH-64D. Based on a full read of the code (findings with file and line references were collected during phase 5) and on [BIOS.md](BIOS.md). Every change has options, a recommendation and a decision (all decided on 2026-10-18, see the table at the end; E10 was added during the A-10C spec). Nothing is built before the A-10C spec (phase 6) is approved.
+What the dashboard engine (bridge, page, panel kit, export script) must change so that a second aircraft, the single-seat A-10C II, can use it next to the AH-64D. Based on a full read of the code (findings with file and line references were collected during phase 5) and on [BIOS.md](BIOS.md). Every change has options, a recommendation and a decision (all decided on 2026-10-18, see the table at the end; E10 was added during the A-10C spec). All ten changes are built; the Overview table says what was built.
 
 Already generic and unchanged: DCS-BIOS decoding and commands (`core/dcsbios.py`), keypresses (`core/keys.py`, apart from its key table), log, config loader, HTTP server, settings page, guard covers, knob bar, chooser, the panel-page builders and the multi-line text display of the panel kit.
 
 ## Overview
 
-| # | Change | Why | Recommendation | Size |
-| --- | --- | --- | --- | --- |
-| E1 | Aircraft selection | Only the `[dcs] aircraft` setting chooses the aircraft file; default AH-64D | Automatic from DCS-BIOS `_ACFT_NAME`, setting kept as override | medium |
-| E2 | Seats optional | `SEAT_POSITION` is required: the bridge stops at start for the A-10C; the page knows only PILOT / CP/G | Seats defined by the aircraft file; one seat = no badge switch, no debug seat | medium |
-| E3 | Trim display optional | Trim tracking reads `{seat}_CYCLIC_TRIM_UD`; the A-10C trim hat is not in DCS-BIOS (the reader thread would stop) | Trim display only for aircraft that define it; not for the A-10C | small |
-| E4 | Power levers optional | 8 `power_*` keys and the lever model are required for every aircraft; A-10C throttles are read only in DCS-BIOS | Levers only for aircraft that define them; A-10C throttle shown as a gauge in version 1 | small |
-| E5 | Display pages (MFCD, CDU, UFC) | MPD, TEDAC and KU are hand-drawn AH-64D layouts in the page | **Decided:** hand-drawn MFCD, CDU and UFC layouts, like MPD and KU | small in the engine, work in the aircraft file |
-| E6 | Panel kit additions | No plain legend lamp outside a dial (caution panel), lit colours only green and amber, plate budget 640 × 600 du | Add a LAMP part and red / white / blue lit styles. **Decided:** A-10C-specific look | small |
-| E7 | Export script per aircraft | Cockpit arguments and MPD indication numbers are hard-coded for the AH-64D; the script does not know the aircraft | Tables per aircraft name in the script; A-10C version 1 needs none | small |
-| E8 | Keys | Key table lacks numpad, Tab, Esc, punctuation; trim reset key required for every aircraft | Add keys when the A-10C keybinds need them; required keys per aircraft | small |
-| E9 | Per-aircraft memory and docs | Remembered tab / MPD side not scoped by aircraft; README and SPEC say "AH-64D only" | Scope by aircraft; docs updated at the end | small |
-| E10 | Scroll page | A panel page larger than 640 × 600 du is a layout error; four A-10C pages are tight | **Decided:** a page that does not fit scrolls vertically, only that page, with clear boundaries | small |
+| # | Change | Why | Recommendation | Size | Built |
+| --- | --- | --- | --- | --- | --- |
+| E1 | Aircraft selection | Only the `[dcs] aircraft` setting chooses the aircraft file; default AH-64D | Automatic from DCS-BIOS `_ACFT_NAME`, setting kept as override | medium | Every file in `aircraft/` is loaded; the bridge follows `_ACFT_NAME`; `[dcs] aircraft` defaults to `auto`; AIRCRAFT switch in the settings page; the page reloads on a change |
+| E2 | Seats optional | `SEAT_POSITION` is required: the bridge stops at start for the A-10C; the page knows only PILOT / CP/G | Seats defined by the aircraft file; one seat = no badge switch, no debug seat | medium | `SEATS` and `SEAT_OUTPUT` in the aircraft file; `/layout` carries the seats; one seat = no debug seat |
+| E3 | Trim display optional | Trim tracking reads `{seat}_CYCLIC_TRIM_UD`; the A-10C trim hat is not in DCS-BIOS (the reader thread would stop) | Trim display only for aircraft that define it; not for the A-10C | small | `TRIM_SWITCH` is `None` for the A-10C: no trim tracking, no `trim_reset` key |
+| E4 | Power levers optional | 8 `power_*` keys and the lever model are required for every aircraft; A-10C throttles are read only in DCS-BIOS | Levers only for aircraft that define them; A-10C throttle shown as a gauge in version 1 | small | `power_*` keys required only with a `lever` control; the A-10C throttles are read-only bars |
+| E5 | Display pages (MFCD, CDU, UFC) | MPD, TEDAC and KU are hand-drawn AH-64D layouts in the page | **Decided:** hand-drawn MFCD, CDU and UFC layouts, like MPD and KU | small in the engine, work in the aircraft file | layouts `mfcd` and `cdu` (CDU and UFC, one at a time) |
+| E6 | Panel kit additions | No plain legend lamp outside a dial (caution panel), lit colours only green and amber, plate budget 640 × 600 du | Add a LAMP part and red / white / blue lit styles. **Decided:** A-10C-specific look | small | `LAMP` and `LAMP_WIDE`, lit red and white, plate look `a10c` with Dzus fasteners (no blue) |
+| E7 | Export script per aircraft | Cockpit arguments and MPD indication numbers are hard-coded for the AH-64D; the script does not know the aircraft | Tables per aircraft name in the script; A-10C version 1 needs none | small | one table per aircraft name in the script; the A-10C table is empty |
+| E8 | Keys | Key table lacks numpad, Tab, Esc, punctuation; trim reset key required for every aircraft | Add keys when the A-10C keybinds need them; required keys per aircraft | small | required keys per aircraft; the key hat (`hat` with `keys`) and the read-only bar (`bar`) are built; the key table is not extended yet (waits for the keybind export) |
+| E9 | Per-aircraft memory and docs | Remembered tab / MPD side not scoped by aircraft; README and SPEC say "AH-64D only" | Scope by aircraft; docs updated at the end | small | tab, MPD / MFCD side and CDU unit remembered per aircraft; README and specs updated |
+| E10 | Scroll page | A panel page larger than 640 × 600 du is a layout error; four A-10C pages are tight | **Decided:** a page that does not fit scrolls vertically, only that page, with clear boundaries | small | `scroll=True` on `Panel` and `PanelGroup`; nine A-10C pages scroll |
 
 ## Details
 
@@ -76,6 +76,7 @@ Today: the cockpit arguments 470–478 (stick and pedal positions) and the MPD i
 - `core/keys.py` knows modifiers, letters, digits, F1–F12, Home / End / PageUp / PageDown / Insert / Delete, arrows, Space and Enter. If an A-10C default keybind (HOTAS: TMS, DMS, coolie hat, CMS, speed brake, trim) uses numpad, Tab, Esc or punctuation keys, the table gets those keys. Known once the A-10C keybinds are exported from DCS (phase 1, needs the module).
 - HOTAS buttons on the dashboard use the existing `key` and `macro` controls (one button per direction; a long press is a macro with a 1 s hold); no new control type.
 - **Changed in phase 6 (A-10C SPEC.md sections 4 and 3):** the HOTAS hats are a **key hat**, the existing `hat` widget with key names and a long press (a tap sends a 0.15 s press, a 0.6 s hold sends the key held 1.0 s), so 20 keys fit six grid cells; and the throttles get a **read-only bar**, a small new display type.
+- **Built:** the key hat, the bar and, added during the build, the **step rocker** (a `hat` with `steps`: up sends `INC` or `+N`, down `DEC` or `-N`) for dials that have no absolute DCS-BIOS input. The key table is not extended yet and the A-10C file has no key control: both wait for the A-10C keybind export (phase 7). A key hat in a 1 × 1 grid cell has touch areas of about 44 px, so the HOTAS key hats need 2 × 2 cells.
 
 ### E9 Per-aircraft memory and docs
 
@@ -95,7 +96,7 @@ Today: every panel page fits the fixed 640 × 600 du budget; a larger page is a 
 | E1 | Automatic from the DCS-BIOS aircraft name (`_ACFT_NAME`); for debugging the aircraft can also be switched by hand in the settings page | 2026-10-18 |
 | E2 | As recommended: seats and seat output declared by the aircraft file; one seat = badge shows the aircraft, no debug-seat hold | 2026-10-18 |
 | E3 | As recommended: trim display only for aircraft that define it; none for the A-10C in version 1 | 2026-10-18 |
-| E4 | As recommended: lever keys only for aircraft with levers; A-10C throttles as read-only gauges in version 1 | 2026-10-18 |
+| E4 | As recommended: lever keys only for aircraft with levers; A-10C throttles as read-only gauges in version 1 (built as read-only bars, see E8) | 2026-10-18 |
 | E5 | Option A: hand-drawn layouts for MFCD, CDU and UFC, like the AH-64D MPD and KU | 2026-10-18 |
 | E6 | A-10C-specific look for the A-10C panel pages (not the AH-64D plate style) | 2026-10-18 |
 | E7 | As recommended: one export script with a table per aircraft name; A-10C table empty in version 1 | 2026-10-18 |

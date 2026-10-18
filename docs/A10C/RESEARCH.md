@@ -41,6 +41,29 @@ From the manual and the DCS-BIOS mapping, to settle in DCS (phase 7):
 - AAP STEER: PANELS.md (from the text) calls it a toggle, the manual picture shows a round push button; the CDU and EGI power switches carry no labels in the picture.
 - The CDU keys work only with the AAP PAGE dial at OTHER; several UFC keys act on the HUD only.
 
+From the build (phase 8), to check in DCS:
+
+- Value directions of the switches. The aircraft file takes the order from the DCS-BIOS description where it names one ("LEFT - OFF - RIGHT", "OFF - ON"). Where the description names none, it assumes a value, for example that the up position of a toggle is 1 (ON, PWR, NORM). The assumed values are in brackets; check them in DCS, by page:
+  - BRAKE / AUX LT / SAS: EMER BRAKE (1 = PULLED), SEAT ADJUST (2 = UP), NVIS LTS (2 = TOP).
+  - IFF: the mode toggles M-1, M-2, M-3/A and M-C (2 = TEST, 1 = ON, 0 = OUT).
+  - EMER FLT CTRL: SPD BK and FLAP EMER RETR (1 = UP).
+  - INTERCOM / STALL: the eight PULL chips (0 = IN, 1 = OUT), the rotary selector order.
+  - FUEL SYSTEM: the pump, EXT TKS, tank gate and crossfeed toggles (1 = ON), the RCVR lever (1 = CLOSE), the four fill disable buttons (0 = IN, 1 = OUT).
+  - THROTTLE: the fuel flow toggles (1 = NORM), ENG OPER (2 = IGN, 0 = MOTOR), APU START (1 = START).
+  - LASTE: RDR ALTM (1 = NRM), the autopilot select switch (2 = PATH).
+  - RADIO 1: the order of the positions of the two ARC-210 mode dials.
+  - UHF and VHF FM: the squelch toggles, the function, mode and selection dials, the DF position.
+  - FIRE / JETT: the three T-handles (1 = PULL), FIRE EXTING DISCH (0 = L, 2 = R).
+  - LANDING GEAR: anti-skid (1 = ON), LIGHTS LAND (2 = LAND), the auxiliary gear handle (1 = PULLED).
+  - CMSP: the mode dial order, the system switches (2 = MENU).
+  - AAP / ILS: CDU and EGI power (1 = ON), the STEER switch (2 = UP), ILS power (1 = PWR).
+  - TACAN: the mode dial order, X / Y (1 = Y).
+  - HARS / HMCS: SLAVE / DG (1 = SLAVE), MAG VAR (2 = +15).
+  - CANOPY / ELEC: the canopy switch (2 = OPEN), canopy jettison and its unlock (1 = PULL, 1 = UNLOCK), the actuator disengage lever (1 = DISENGAGE), the electrical toggles (1 = PWR).
+  - ENVIRONMENT: pitot heat, bleed air and main air supply (1 = ON), the oxygen emergency lever, the order of the cabin air condition dial.
+  - LIGHTING: POSITION (0 = FLASH, 2 = STEADY), anti-collision, nose illumination, signal lights (1 = BRT), accelerometer and compass lights.
+- Key hat cell size: a key hat in a 1 × 1 grid cell on FLIGHT or FIGHT has touch areas of about 44 px, below the 56 px minimum. The HOTAS key hats need 2 × 2 cells, and the FLIGHT and FIGHT grids are rearranged when the keys are added.
+
 ## Plan
 
 | Phase | What | Who | Output | Status |
@@ -50,7 +73,7 @@ From the manual and the DCS-BIOS mapping, to settle in DCS (phase 7):
 | 2 | Read the manual: pp. 105–209 (cockpit panels, HOTAS, CDU), 303–311 (UFC, MFCD overview), 482 and 491–503 (HMCS HOTAS, defensive systems), 504–544 (start-up) | Claude | [PANELS.md](PANELS.md): 66 panel sections; [STARTUP.md](STARTUP.md): cold start in 164 steps | done |
 | 3 | Match with DCS-BIOS | Claude | [BIOS.md](BIOS.md): every PANELS.md control with its identifier and access, the 72 DCS-BIOS-only controls, gaps, cold start coverage | done |
 | 4 | Reference pictures per panel | Claude, then user (screenshots) | [PICTURES.md](PICTURES.md): 66 panels, 48 good, 15 partial, 2 poor (TISL, flap lever), 1 none (HMCS HOTAS); screenshot needed for the flap lever (three more found in phase 6) | done |
-| 5 | Compare with the engine | Claude, user decides | [ENGINE.md](ENGINE.md): 9 changes E1–E9, all decided (automatic aircraft choice with a manual switch, seats per aircraft, hand-drawn MFCD / CDU / UFC, A-10C-specific look, docs first) | done |
+| 5 | Compare with the engine | Claude, user decides | [ENGINE.md](ENGINE.md): 10 changes E1–E10, all decided and built (automatic aircraft choice with a manual switch, seats per aircraft, hand-drawn MFCD / CDU / UFC, A-10C-specific look, docs first) | done |
 | 6 | A-10C spec | Claude writes, user reviews | [SPEC.md](SPEC.md): 5 tabs, COCKPIT map with 23 panel pages, FLIGHT, FIGHT (HOTAS key hats), MFCD, CDU / UFC, lamp row, keybind names, engine behaviour, look, test run; 4 more screenshots needed | done (approved 2026-10-18: decisions as written, plus scroll pages, ENGINE.md E10) |
 | 7 | Research in DCS (needs the module) | user flies, Claude analyses | Read test and control sweep adapted from the `research-v1` tag; export arguments and MFCD indication numbers | open |
-| 8 | Build plan and build | Claude delegates | Verified steps | open |
+| 8 | Build plan and build | Claude delegates | Verified steps | built except the keypress controls; phase 7 (DCS research, keybinds, screenshots) open |

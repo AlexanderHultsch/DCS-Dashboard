@@ -1,6 +1,6 @@
 # Fixes and open points
 
-Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md) (engine) or [AH64D/SPEC.md](AH64D/SPEC.md) (AH-64D).
+Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md) (engine), [AH64D/SPEC.md](AH64D/SPEC.md) (AH-64D) or [A10C/SPEC.md](A10C/SPEC.md) (A-10C II).
 
 ## Open points
 
@@ -39,6 +39,10 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] Gunner FIGHT: SIGHT SEL from the right grip (HMD, FCR, TADS, LINK) and SLAVE.
 - [ ] TKR pad (MPD tab, TEDAC selected): the direction of all four axes (the up / down sign is shared with the cursor, `CURSOR_Y_SIGN` in `core/web/index.html`), the dead zone, the slew ramp.
 - [ ] Debug seat on the tablet: the long hold works with a finger on the badge.
+- [ ] A-10C II test run in DCS ([A10C/SPEC.md](A10C/SPEC.md), section 12): everything was tested only against a simulated DCS-BIOS. Includes the aircraft change: load an AH-64D mission, then an A-10C mission; the page reloads by itself, the AIRCRAFT switch in the settings works, and the remembered tab and display side stay per aircraft.
+- [ ] A-10C value directions: the switches whose position order the DCS-BIOS description does not give (up position assumed to be 1, IFF mode toggles, ARC-210 dials, T-handles, fill disable buttons, CMSP and AAP switches and more). The list by page is in [A10C/RESEARCH.md](A10C/RESEARCH.md), Open points.
+- [ ] A-10C keybinds: export the default keybinds from DCS (Options, Controls, Make HTML). The keypress controls (speed brake, trim, nosewheel steering, the HOTAS key hats) are not built until the keys are known.
+- [ ] A-10C key hat layout: a key hat in a 1 × 1 grid cell has touch areas of about 44 px, below the 56 px minimum. The HOTAS key hats need 2 × 2 cells, so the FLIGHT and FIGHT grids are rearranged when the keys are added.
 
 ### Needs a look on the iPad
 
@@ -46,6 +50,7 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] Chooser: button size, the arc of the dials, placement near the screen edges.
 - [ ] PULL chips on COMM: `PULL OUT` fits and reads in the font the iPad uses (checked in Arial Narrow and Arial; the iPad may use Helvetica Neue); the long press (0.6 s) on the knob is comfortable.
 - [ ] The deviations from the photos below: say which ones to change.
+- [ ] A-10C scroll pages (nine of the 23 panel pages): the frame, the scroll bar and the shaded edges are clear; a drag never taps or turns a control; the page opens at the top.
 
 ### Known limitations
 
@@ -62,6 +67,7 @@ Temporary: delete the entries when they are fixed or moved to [SPEC.md](SPEC.md)
 - [ ] George: the weapon-release buttons (FIRE, TRACK / ENGAGE, ROE HOLD / FREE, POINT SEARCH, SELECT TARGET) are unguarded on purpose for now. A guard for grid buttons would be a page change: first tap arms for 5 s, second tap fires.
 - [ ] George: the ROE state (HOLD FIRE or FREE FIRE) is not readable; read the colour of the ring text.
 - [ ] George: the ring state is not readable. The bridge assumes the ring is hidden at the start of a ring command and starts with Hide.
+- [ ] A-10C: the MFCD screen is empty (DCS-BIOS has no MFCD text and the export script table of the A-10C is empty); the six A-10C II UFC buttons stand in one provisional row until their place on the real UFC is known.
 - [ ] Open questions: radios on the dashboard (later?); which keyboard combinations for cockpit commands are used today (each one would become a button).
 
 ## Deviations to look at on the tablet
