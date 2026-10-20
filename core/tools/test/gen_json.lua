@@ -1,6 +1,6 @@
 -- Usage: lua5.1 gen_json.lua [OUTPUT_DIR]
 -- Needs the environment variable DCSBIOS_REPO: a DCS-BIOS source checkout (the folder that contains Scripts/DCS-BIOS).
--- Writes MetadataStart, CommonData, A-10C and AH-64D JSON files into OUTPUT_DIR/Scripts/DCS-BIOS/doc/json
+-- Writes MetadataStart, CommonData, A-10C, AH-64D and F-16C_50 JSON files into OUTPUT_DIR/Scripts/DCS-BIOS/doc/json
 -- (default: logs/test/sg in the repo), a stand-in for the Saved Games folder.
 local windows = package.config:sub(1, 1) == "\\"
 local here = arg[0]:match("^(.*)[/\\][^/\\]*$") or "."
@@ -45,6 +45,7 @@ local modules = {
 	CommonData,
 	require("Scripts.DCS-BIOS.lib.modules.aircraft_modules.A-10C"),
 	require("Scripts.DCS-BIOS.lib.modules.aircraft_modules.AH-64D"),
+	require("Scripts.DCS-BIOS.lib.modules.aircraft_modules.F-16C_50"),
 }
 
 for _, module in ipairs(modules) do
