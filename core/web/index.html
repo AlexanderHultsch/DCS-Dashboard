@@ -355,6 +355,7 @@ body.ro .pbox { opacity: 0.6; }
 .pthumb { position: absolute; left: 0; right: 0; border-radius: 3px; background: #b4bbc1; }
 .part, .pswitch { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .part text { fill: #f2f2f2; text-anchor: middle; letter-spacing: 0; }
+.part.f16c text { fill: #e9e9e4; font-weight: 600; }
 .pctl { position: absolute; }
 .kdefs { position: absolute; width: 0; height: 0; }
 .pbtn {
@@ -780,8 +781,9 @@ const DISP_BOX = { L: MPD_BOX, R: MPD_BOX, T: TED_BOX };
 const DISP_GEO = { L: MPD_GEO, R: MPD_GEO, T: TED_GEO };
 const MFCD_BOX = { x: 0, y: 0, w: 940, h: 940 };
 const MFCD_SCREEN = { x: 170, y: 170, w: 600, h: 600 };
-const MFCD_SIDES = [['L', 'LEFT MFCD'], ['R', 'RIGHT MFCD']];
-const MFCD_GEO = { ADJ: [70, 120, 76, 200], BRT: [870, 820, 76, 200], PWR: [70, 870, 76, 76] };
+const MFCD_CORNERS = { TL: [70, 120, 76, 200], TR: [870, 120, 76, 200], BL: [70, 820, 76, 200], BR: [870, 820, 76, 200] };
+const MFCD_GEO = { ...MFCD_CORNERS, ADJ: MFCD_CORNERS.TL, BRT: MFCD_CORNERS.BR, PWR: [70, 870, 76, 76] };
+const MFCD_INERT = { DSP: MFCD_CORNERS.TR, CON: [70, 770, 76, 100], SYM: [770, 870, 116, 60, true] };
 const MFCD_NUMBERS = [];
 for (let n = 1; n <= 20; n++) {
   const edge = Math.floor((n - 1) / 5);
@@ -1532,7 +1534,7 @@ function buildStick(def) {
 
 function barTitle(def) {
   if (views[activeIndex].layout === 'panel') return def.label;
-  const sides = views[activeIndex].layout === 'mfcd' ? MFCD_SIDES : DISPLAYS;
+  const sides = views[activeIndex].layout === 'mfcd' ? mfcdSides() : DISPLAYS;
   const side = def.side ? sides.find(([s]) => s === def.side)[1] : 'KU';
   return side + ' · ' + def.label;
 }
@@ -2477,15 +2479,23 @@ function mfcdRocker(x, y, w, h, label, across) {
     + part('+', x + dx, y - dy) + part(label, x, y) + part('&minus;', x - dx, y + dy);
 }
 
-function mfcdSvg() {
+function mfcdSides() {
+  return Object.entries(views[activeIndex].titles);
+}
+
+function mfcdSvg(withPwr) {
   const sc = MFCD_SCREEN;
-  const text = [...MFCD_NUMBERS, ...MFCD_PRINT].map(([t, x, y]) => '<text x="' + x + '" y="' + y + '" dy="0.35em">' + t + '</text>');
+  const inert = views[activeIndex].inert.map((name) => {
+    const [x, y, w, h, across] = MFCD_INERT[name];
+    return mfcdRocker(x, y, w, h, name, across);
+  });
+  const text = [...MFCD_NUMBERS, ...(withPwr ? MFCD_PRINT : [])].map(([t, x, y]) => '<text x="' + x + '" y="' + y + '" dy="0.35em">' + t + '</text>');
   return '<svg class="mart" viewBox="' + [MFCD_BOX.x, MFCD_BOX.y, MFCD_BOX.w, MFCD_BOX.h].join(' ') + '" preserveAspectRatio="none" aria-hidden="true">'
     + '<defs><linearGradient id="fbevel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4147"/><stop offset="1" stop-color="#15181a"/></linearGradient></defs>'
     + '<rect x="2" y="2" width="936" height="936" rx="40" fill="#26292c" stroke="#3d4348" stroke-width="4"/>'
     + '<rect x="' + (sc.x - 8) + '" y="' + (sc.y - 8) + '" width="' + (sc.w + 16) + '" height="' + (sc.h + 16) + '" rx="12" fill="url(#fbevel)" stroke="#0e1012" stroke-width="3"/>'
     + '<rect x="' + sc.x + '" y="' + sc.y + '" width="' + sc.w + '" height="' + sc.h + '" rx="6" fill="#0b0d12" stroke="#000" stroke-width="3"/>'
-    + mfcdRocker(870, 120, 76, 200, 'DSP') + mfcdRocker(70, 770, 76, 100, 'CON') + mfcdRocker(770, 870, 116, 60, 'SYM', true)
+    + inert.join('')
     + text.join('')
     + '</svg>';
 }
@@ -2707,9 +2717,9 @@ function placeMfcd(box, cs) {
   const cur = make('div', 'mpdcur');
   const sw = make('div', 'seg mfcdsw');
   const stage = make('div', 'mpdstage');
-  mpdView = { key: MPD_KEY, pref: loadMpdSide(MPD_KEY, MFCD_SIDES), side: null, main, stage, bezels: {}, buttons: {}, touch: {} };
+  mpdView = { key: MPD_KEY, pref: loadMpdSide(MPD_KEY, mfcdSides()), side: null, main, stage, bezels: {}, buttons: {}, touch: {} };
   mpdView.side = shownMpdSide();
-  MFCD_SIDES.forEach(([side, name]) => {
+  mfcdSides().forEach(([side, name]) => {
     const btn = make('button', 'pos', name);
     btn.type = 'button';
     btn.addEventListener('click', () => setMpdSide(side));
@@ -2717,7 +2727,7 @@ function placeMfcd(box, cs) {
     sw.append(btn);
     mpdView.buttons[side] = btn;
     const bezel = make('div', 'mbezel mfcd');
-    bezel.insertAdjacentHTML('beforeend', mfcdSvg());
+    bezel.insertAdjacentHTML('beforeend', mfcdSvg(cs.some((c) => c.def.slot === 'PWR')));
     placeKeys(side, bezel, cs.filter((c) => c.def.side === side && MFCD_GEO[c.def.slot]), MFCD_GEO, MFCD_BOX);
   });
   cur.append(sw);
@@ -2889,7 +2899,7 @@ function plateArt(a) {
   const tag = (cls) => (cls ? ' class="' + cls + '"' + (a.for ? ' data-for="' + a.for + '"' : '') : '');
   const rect = (r, style, cls) => '<rect' + tag(cls) + ' x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + r + '" ' + style + '/>';
   if (a.shape === 'plate') {
-    const colours = a.look === 'a10c' ? 'fill="#3b4045" stroke="#50565c"' : 'fill="#26292c" stroke="#3d4348"';
+    const colours = { a10c: 'fill="#3b4045" stroke="#50565c"', f16c: 'fill="#17191b" stroke="#3a3f44"' }[a.look] || 'fill="#26292c" stroke="#3d4348"';
     return rect(a.r, colours + ' stroke-width="' + a.border + '"', 'k-plate');
   }
   if (a.shape === 'ear') return rect(a.r, 'fill="#33373b" stroke="#474e54" stroke-width="' + a.border + '"', 'k-ear');
@@ -2902,6 +2912,10 @@ function plateArt(a) {
   if (a.shape === 'dzus') {
     return '<g class="k-dzus"><circle cx="' + x + '" cy="' + y + '" r="' + w + '" fill="#7a8086" stroke="#2a2d30" stroke-width="2"/>'
       + '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#2a2d30" stroke-width="2.4" transform="rotate(' + a.rot + ' ' + x + ' ' + y + ')"/></g>';
+  }
+  if (a.shape === 'cross') {
+    const bar = (turn) => '<line x1="' + (x - w * 0.6) + '" y1="' + y + '" x2="' + (x + w * 0.6) + '" y2="' + y + '" stroke="#0b0c0d" stroke-width="2.6" transform="rotate(' + (a.rot + turn) + ' ' + x + ' ' + y + ')"/>';
+    return '<g class="k-cross"><circle cx="' + x + '" cy="' + y + '" r="' + w + '" fill="#2b2f33" stroke="#6a7077" stroke-width="2"/>' + bar(0) + bar(90) + '</g>';
   }
   if (a.shape === 'slot') return rect(10, 'fill="#0b0c0d" stroke="#3a3f44" stroke-width="3"', a.for ? 'k-pad' : a.body ? 'k-body' : '');
   if (a.shape === 'glass') return rect(8, 'fill="#121a16" stroke="#3a3f44" stroke-width="3"', 'k-pad');
@@ -2937,7 +2951,8 @@ function plateSvg(view) {
     + (rot ? ' transform="rotate(' + rot + ' ' + x + ' ' + y + ')"' : '') + '>' + t + '</text>'
   ));
   const stripe = (view.art.find((a) => a.shape === 'hazard') || {}).period || 34;
-  return '<svg class="part" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">'
+  const look = (view.art.find((a) => a.shape === 'plate') || {}).look;
+  return '<svg class="part' + (look === 'f16c' ? ' f16c' : '') + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">'
     + '<defs><pattern id="phaz" patternUnits="userSpaceOnUse" width="' + stripe + '" height="' + stripe + '" patternTransform="rotate(45)">'
     + '<rect width="' + stripe / 2 + '" height="' + stripe + '" fill="#e0c21a"/><rect x="' + stripe / 2 + '" width="' + stripe / 2 + '" height="' + stripe + '" fill="#e4e4e0"/></pattern></defs>'
     + view.art.map(plateArt).join('') + text.join('')

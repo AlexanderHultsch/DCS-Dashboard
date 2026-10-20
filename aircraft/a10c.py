@@ -1189,7 +1189,10 @@ VIEWS = [
             {"id": "CMSP2", "label": "CMSP 2", "type": "display", "grid": [3, 4, 1, 3]},
         ],
     },
-    {"name": "MFCD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfcd_controls("L") + mfcd_controls("R")},
+    {
+        "name": "MFCD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfcd_controls("L") + mfcd_controls("R"),
+        "titles": {"L": "LEFT MFCD", "R": "RIGHT MFCD"}, "inert": ["DSP", "CON", "SYM"],
+    },
     {"name": "CDU", "seats": [0], "layout": "cdu", "lamps": [], "controls": cdu_controls() + ufc_controls()},
 ]
 

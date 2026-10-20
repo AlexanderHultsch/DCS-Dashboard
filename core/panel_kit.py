@@ -4,7 +4,8 @@ Every size is in design units (du) and defined once, below. A page makes one Pan
 du, even numbers), places parts by their centre on the 1 du grid and attaches labels to them; it never gives a
 size, except for a display (a glass screen with live text), whose size the content decides, and the travel of the
 power levers (within limits). The plate brings four identical corner ears with a SCREW_L in the centre of each; a plate of the
-look "a10c" has four DZUS fasteners instead. Further screws are placed only by naming an x line and a y line from the line table:
+look "a10c" has four DZUS fasteners instead, a plate of the look "f16c" four cross-head screws at the same places. Further screws are
+placed only by naming an x line and a y line from the line table:
 
     x lines: L R (plate edges), CX (middle), SL SR (corner screws or fasteners), NAME.cx (every placed part)
     y lines: T B (plate edges), CY (middle), ST SB (corner screws or fasteners), NAME.cy (every placed part)
@@ -66,7 +67,7 @@ PARTS = {
 }
 KNOBS = ("KNOB_L", "KNOB_M", "KNOB_S")
 LAMPS = ("LAMP", "LAMP_WIDE")
-LOOKS = ("ah64d", "a10c")
+LOOKS = ("ah64d", "a10c", "f16c")
 # DISPLAY has no size here: the page gives it; inset: glass border and padding between the glass and its text
 DISPLAY = {"inset": 6, "border": 3}
 # slot of a lever or the slider: pad around the grip, border, tick beside a lever mark; reach: how far the touch area of the
@@ -83,7 +84,8 @@ HAZARD_STRIP = {"w": 32, "inset": 8}
 PLATE = {"radius": 6, "border": 3}
 EAR = {"w": 52, "h": 52, "border": 2}
 SCREWS = {"L": 26, "M": 18, "S": 12}
-# fastener of the plate look "a10c": diameter, and the distance of its centre from both edges of its corner
+# corner fastener of the plate looks "a10c" (Dzus) and "f16c" (cross-head screw): diameter, and the distance of its centre
+# from both edges of its corner
 DZUS = {"d": 24, "inset": 22}
 SLOT_ANGLES = (15, 100, 65, 140)
 # label style: font size and estimated glyph width; the page draws the text at exactly that width
@@ -173,7 +175,7 @@ class Panel:
         if look not in LOOKS:
             raise LayoutError(f"{name}: look {look!r} is not one of {', '.join(LOOKS)}")
         self.name, self.w, self.h, self.look, self.scroll = name, w, h, look, scroll
-        fasteners = look == "a10c"
+        fasteners = look in ("a10c", "f16c")
         ex, ey = (DZUS["inset"],) * 2 if fasteners else (EAR["w"] // 2, EAR["h"] // 2)
         self.xs = {"L": 0, "R": w, "CX": w // 2, "SL": ex, "SR": w - ex}
         self.ys = {"T": 0, "B": h, "CY": h // 2, "ST": ey, "SB": h - ey}
@@ -654,7 +656,7 @@ class Panel:
         art = [{"shape": "plate", "at": xywh(grow((0, 0, self.w, self.h), -PLATE["border"] / 2)), "r": PLATE["radius"], "border": PLATE["border"], **({"look": self.look} if self.look != "ah64d" else {})}]
         art += [{"shape": "ear", "at": xywh(grow(e, -EAR["border"] / 2)), "r": PLATE["radius"], "border": EAR["border"]} for e in self.ears]
         art += [{"shape": "screw", "at": [num(s["cx"]), num(s["cy"]), num(SCREWS[s["size"]] / 2)], "size": s["size"], "rot": s["rot"]} for s in self.screws]
-        art += [{"shape": "dzus", "at": [num(f["cx"]), num(f["cy"]), DZUS["d"] // 2], "rot": f["rot"]} for f in self.dzus]
+        art += [{"shape": "dzus" if self.look == "a10c" else "cross", "at": [num(f["cx"]), num(f["cy"]), DZUS["d"] // 2], "rot": f["rot"]} for f in self.dzus]
         controls = []
         for p in self.parts.values():
             art += p["art"]

@@ -55,7 +55,7 @@ await (async () => {
       const box = du(g.querySelector('circle').getBoundingClientRect());
       return { size: g.dataset.size, box, x: (box.x0 + box.x1) / 2, y: (box.y0 + box.y1) / 2 };
     });
-    const dzus = [...pbox.querySelectorAll('.k-dzus')].map((g) => {
+    const dzus = [...pbox.querySelectorAll('.k-dzus, .k-cross')].map((g) => {
       const box = du(g.querySelector('circle').getBoundingClientRect());
       return { box, x: (box.x0 + box.x1) / 2, y: (box.y0 + box.y1) / 2 };
     });
