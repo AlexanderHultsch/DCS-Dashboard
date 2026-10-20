@@ -220,6 +220,161 @@ def elec_pages() -> list[dict]:
     return [kit_page("ELEC / TEST", [4, 1, 1, 2], g.build())]
 
 
+def rotary_positions(items: tuple) -> list[dict]:
+    return [{"value": value, "label": text, "angle": angle} for value, text, angle in items]
+
+
+def ext_lighting_plate(g: PanelGroup):
+    p = g.panel("EXT LIGHTING", 620, 460, 0, 0)
+    p.mark("EXT LIGHTING", "TITLE", 52, 230, "panel name turned along the left edge", 90)
+    p.rotary("ANTI", 140, 190, {
+        "id": "ANTI_COLL_LIGHT_KNB", "label": "ANTI-COLL", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "OFF", -140), (1, "1", -105), (2, "2", -70), (3, "3", -35), (4, "4", 0), (5, "A", 35), (6, "B", 70), (7, "C", 105))),
+    })
+    p.label("ANTI-COLL", "NAME", "ANTI", "above")
+    p.toggle("FLASH", 290, 190, selector("POS_FLASH_LIGHT_SW", "POSITION FLASH / STEADY", ((1, "FLASH"), (0, "STEADY"))), "above_below")
+    p.toggle("WING", 390, 190, selector("POS_WING_TAIL_LIGHT_SW", "POSITION WING / TAIL", ((0, "BRT"), (1, "OFF"), (2, "DIM"))), "above_side_below")
+    p.label("WING/\nTAIL", "NAME", "WING", "above")
+    p.toggle("FUSE", 500, 190, selector("POS_FUSELAGE_LIGHT_SW", "FUSELAGE", ((0, "BRT"), (1, "OFF"), (2, "DIM"))), "above_side_below")
+    p.label("FUSELAGE", "NAME", "FUSE", "above")
+    p.knob("FORM", "KNOB_M", 140, 360, trim_knob("FORM_LIGHT_KNB", "FORM"))
+    p.label("FORM", "NAME", "FORM", "above")
+    p.label("BRT", "POS", "FORM", "right")
+    p.rotary("MASTER", 336, 360, {
+        "id": "MASTER_LIGHT_SW", "label": "MASTER", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "OFF", -90), (1, "ALL", -50), (2, "A-C", 0), (3, "FORM", 50), (4, "NORM", 90))),
+    })
+    p.label("MASTER", "NAME", "MASTER", "above")
+    p.knob("AERIAL", "KNOB_M", 520, 360, trim_knob("AIR_REFUEL_LIGHT_KNB", "AERIAL REFUELING"))
+    p.label("AERIAL\nREFUELING", "NAME", "AERIAL", "above")
+    p.label("BRT", "POS", "AERIAL", "below")
+
+
+def ext_lighting_pages() -> list[dict]:
+    g = PanelGroup("EXT LIGHTING", "f16c")
+    ext_lighting_plate(g)
+    return [kit_page("EXT LIGHTING", [5, 1, 1, 2], g.build())]
+
+
+def ecm_plate(g: PanelGroup):
+    p = g.panel("ECM", 626, 520, 0, 0)
+    p.mark("ECM", "TITLE", 52, 260, "panel name turned along the left edge", 90)
+    p.toggle("PWR", 116, 112, selector("ECM_PW_SW", "ECM POWER", ((2, "OPR"), (1, "STBY"), (0, "OFF"))), "right_triple")
+    p.toggle("XMIT", 270, 112, selector("ECM_XMIT_SW", "XMIT", ((2, "1"), (1, "2"), (0, "3"))), "right_triple")
+    p.label("XMIT", "NAME", "XMIT", "above")
+    p.knob("DIM", "KNOB_M", 420, 112, trim_knob("ECM_DIM_KNB", "DIM"))
+    p.label("DIM", "NAME", "DIM", "above")
+    modules = (("1", "ECM_1_BTN", "LIGHT_ECM_1_"), ("2", "ECM_2_BTN", "LIGHT_ECM_2_"), ("3", "ECM_3_BTN", "LIGHT_ECM_3_"),
+               ("4", "ECM_4_BTN", "LIGHT_ECM_4_"), ("5", "ECM_5_BTN", "LIGHT_ECM_5_"), ("6", "ECM_6_BTN", "LIGHT_ECM_"))
+    for n, (number, bios, lights) in enumerate(modules):
+        x, y = 118 + 268 * (n % 2), 230 + 104 * (n // 2)
+        key = {**push_button(bios, f"ECM {number}"), **({"legend": number} if number != "6" else {})}
+        p.push(f"M{number}", x, y, key)
+        for m, (letter, color) in enumerate((("S", "amber"), ("A", "green"), ("F", "red"), ("T", "white"))):
+            p.lamp(f"M{number}{letter}", x + 88 + 80 * (m % 2), y - 24 + 48 * (m // 2), lamp(lights + letter, letter, color))
+
+
+def ecm_pages() -> list[dict]:
+    g = PanelGroup("ECM", "f16c")
+    ecm_plate(g)
+    return [kit_page("ECM", [6, 1, 1, 2], g.build())]
+
+
+def audio1_plate(g: PanelGroup):
+    p = g.panel("AUDIO 1", 616, 324, 0, 0)
+    p.mark("AUDIO 1", "TITLE", 52, 162, "panel name turned along the left edge", 90)
+    for name, x, bios, mode in (("COMM1", 170, "COMM1_PWR_KNB", "COMM1_MODE_KNB"), ("COMM2", 372, "COMM2_PWR_KNB", "COMM2_MODE_KNB")):
+        title = f"COMM {name[-1]}"
+        p.knob(name, "KNOB_M", x, 112, trim_knob(bios, title))
+        p.label(title, "NAME", name, "above")
+        p.knob_labels(name, "lower_sides", "OFF", "INC")
+        p.rotary(f"{name}_MODE", x, 236, {
+            "id": mode, "label": f"{title} MODE", "type": "selector", "style": "rotary",
+            "positions": rotary_positions(((0, "OFF", -50), (1, "SQL", 0), (2, "GD", 50))),
+        })
+    p.knob("MSL", "KNOB_S", 508, 112, trim_knob("MSL_KNB", "MSL"))
+    p.label("MSL", "NAME", "MSL", "above")
+    p.label("INC", "POS", "MSL", "right")
+    p.knob("THREAT", "KNOB_S", 508, 236, trim_knob("THREAT_KNB", "THREAT"))
+    p.label("THREAT", "NAME", "THREAT", "above")
+    p.label("INC", "POS", "THREAT", "right")
+
+
+def audio2_plate(g: PanelGroup):
+    p = g.panel("AUDIO 2", 616, 206, 0, 340)
+    p.mark("AUDIO 2", "TITLE", 52, 103, "panel name turned along the left edge", 90)
+    p.knob("TACAN", "KNOB_S", 170, 118, trim_knob("TACAN_KNB", "TACAN"))
+    p.label("TACAN", "NAME", "TACAN", "above")
+    p.label("INC", "POS", "TACAN", "right")
+    p.knob("ILS", "KNOB_S", 372, 118, trim_knob("ILS_PWR_KNB", "ILS"))
+    p.label("ILS", "NAME", "ILS", "above")
+    p.knob_labels("ILS", "lower_sides", "OFF", "INC")
+
+
+def audio_pages() -> list[dict]:
+    g = PanelGroup("AUDIO", "f16c")
+    audio1_plate(g)
+    audio2_plate(g)
+    return [kit_page("AUDIO", [7, 1, 1, 2], g.build())]
+
+
+def gear_plate(g: PanelGroup):
+    p = g.panel("LANDING GEAR", 640, 642, 0, 0)
+    p.push("JETT", 110, 158, {**push_button("EMERG_STORE_JETT", "EMER STORES JETTISON"), "guard": True, "hold": 1.0})
+    p.hazard("JETT")
+    p.label("EMER STORES\nJETTISON", "POS", "JETT", "above")
+    p.mark("WHEELS", "NAME", 240, 64, "title of the three gear lamps")
+    for n, (bios, legend) in enumerate((("LIGHT_GEAR_N", "NOSE"), ("LIGHT_GEAR_L", "LEFT"), ("LIGHT_GEAR_R", "RIGHT"))):
+        p.lamp(f"W{n}", 240, 110 + 48 * n, lamp(bios, legend, "green"))
+    p.toggle("HOOK", 330, 158, selector("HOOK_SW", "HOOK", ((1, "UP"), (0, "DN")), guard=True), "above_below")
+    p.label("HOOK", "NAME", "HOOK", "above")
+    p.toggle("GEAR", 420, 158, selector("GEAR_HANDLE", "LG HANDLE", ((1, "UP"), (0, "DOWN"))), "above_below")
+    p.label("LG\nHANDLE", "NAME", "GEAR", "above")
+    p.lamp("WARN", 492, 158, lamp("LIGHT_GEAR_WARN", "GEAR\nWARN", "red"))
+    p.bar("SPEED", 564, 194, {"id": "SPEEDBRAKE_INDICATOR", "label": "SPEED BRAKE", "type": "bar", "max": 65535})
+    p.label("SPEED\nBRAKE", "NAME", "SPEED", "above")
+    p.toggle("GND", 94, 360, selector("GND_JETT_ENABLE_SW", "GND JETT ENABLE", ((1, "ENABLE"), (0, "OFF"))), "above_below")
+    p.label("GND\nJETT", "NAME", "GND", "above")
+    p.toggle("BRAKES", 206, 360, selector("BRAKE_CHAN_SW", "BRAKES", ((1, "CHAN 1"), (0, "CHAN 2"))), "above_below")
+    p.label("BRAKES", "NAME", "BRAKES", "above")
+    p.toggle("PARK", 340, 360, selector("ANTI_SKID_SW", "PARKING BRAKE / ANTI-SKID", ((0, "PARKING BRAKE"), (1, "ANTI-SKID"), (2, "OFF"))))
+    p.label("PARKING BRAKE", "POS", "PARK", "above")
+    p.label("ANTI-SKID", "POS", "PARK", "right")
+    p.label("OFF", "POS", "PARK", "below")
+    p.toggle("STORES", 94, 544, selector("STORES_CONFIG_SW", "STORES CONFIG", ((1, "CAT I"), (0, "CAT III"))), "above_below")
+    p.label("STORES\nCONFIG", "NAME", "STORES", "above")
+    p.push("HORN", 206, 544, push_button("HORN_SILENCE_BTN", "HORN SILENCER"))
+    p.label("HORN\nSILENCER", "NAME", "HORN", "above")
+    p.toggle("LAND", 330, 544, selector("LAND_TAXI_LIGHT_SW", "LANDING / TAXI LIGHTS", ((0, "LANDING"), (1, "OFF"), (2, "TAXI"))), "above_side_below")
+    p.push("DNLOCK", 470, 544, push_button("DN_LOCK_BTN", "DN LOCK REL"))
+    p.hazard("DNLOCK")
+    p.label("DN LOCK\nREL", "POS", "DNLOCK", "above")
+
+
+def alt_gear_plate(g: PanelGroup):
+    p = g.panel("ALT GEAR", 300, 240, 0, 658)
+    p.toggle("HANDLE", 100, 136, selector("GEAR_ALT_HANDLE", "ALT GEAR", ((1, "PULL"), (0, "STOW")), guard=True), "above_below")
+    p.label("ALT GEAR", "NAME", "HANDLE", "above")
+    p.push("RESET", 220, 136, push_button("GEAR_ALT_BTN", "ALT GEAR RESET"))
+    p.label("RESET", "NAME", "RESET", "above")
+
+
+def hmcs_plate(g: PanelGroup):
+    p = g.panel("HMCS", 324, 200, 316, 658)
+    p.mark("HMCS", "TITLE", 52, 100, "panel name turned along the left edge", 90)
+    p.knob("INT", "KNOB_M", 190, 128, trim_knob("HMCS_INT_KNB", "HMCS SYMBOLOGY INT"))
+    p.label("SYMBOLOGY\nINT", "NAME", "INT", "above")
+    p.knob_labels("INT", "lower_sides", "OFF", "INC")
+
+
+def gear_pages() -> list[dict]:
+    g = PanelGroup("LANDING GEAR / HMCS", "f16c", scroll=True)
+    gear_plate(g)
+    alt_gear_plate(g)
+    hmcs_plate(g)
+    return [kit_page("LANDING GEAR / HMCS", [1, 3, 1, 2], g.build())]
+
+
 VIEWS = [
     {
         "name": "COCKPIT", "seats": [0], "layout": "map", "controls": [],
@@ -238,6 +393,10 @@ VIEWS = [
     *fuel_pages(),
     *flcs_pages(),
     *elec_pages(),
+    *ext_lighting_pages(),
+    *ecm_pages(),
+    *audio_pages(),
+    *gear_pages(),
     {
         "name": "MFD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfd_controls("L") + mfd_controls("R"),
         "titles": {"L": "LEFT MFD", "R": "RIGHT MFD"}, "inert": [],
