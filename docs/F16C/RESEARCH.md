@@ -2,7 +2,7 @@
 
 Working notes for adding the F-16C Viper (Block 50) to the dashboard. Our own notes only: the manual, its text and its pictures are copyrighted and are never committed. They are downloaded from the link below when needed and kept outside the repo.
 
-Status: planned. Phases 0 to 5 done, nothing built.
+Status: planned. Phases 0 to 6 done, nothing built.
 
 ## Decisions
 
@@ -54,7 +54,7 @@ Collected during the work for the owner's review at the end; see the summary of 
 | 3 | Match with DCS-BIOS, with the per-id check of input kind, readback and position order | Claude | [BIOS.md](BIOS.md): 398 rows (236 read + command, 107 read only, 55 none) plus 40 DCS-BIOS-only controls; Build and Position order columns; 1 id without readback, 99 guessed position orders; cold start: 62 of 117 steps fully possible, 36 checks, 6 keybinds | done |
 | 4 | Reference pictures per panel, quality, screenshot needs | Claude, then user (screenshots) | [PICTURES.md](PICTURES.md): 74 panels, 42 good, 27 partial, 5 poor; 6 screenshots needed (throttle, canopy switch and handle, handcrank, ANTI-G TEST, right console fittings, chaff/flare button) | done |
 | 5 | Compare with the engine: page list scroll, coverage per aircraft, reuse of the MFD and keypad layouts, the F-16C look | Claude, user decides | [ENGINE.md](ENGINE.md): 6 changes F1–F6 (page list scroll, coverage per aircraft, `f16c` look, MFD on the `mfcd` layout, DED tab as a kit page, export table empty), decided as recommended, owner review at the end | done |
-| 6 | F-16C spec with the real fit check: COCKPIT map, panel pages, FLIGHT / FIGHT with 2 × 2 key hats, MFD, DED | Claude writes, user reviews | SPEC.md | open |
+| 6 | F-16C spec with the real fit check: COCKPIT map, panel pages, FLIGHT / FIGHT with 2 × 2 key hats, MFD, DED | Claude writes, user reviews | [SPEC.md](SPEC.md): 5 tabs, COCKPIT map with 21 panel pages and 3 link boxes, FLIGHT / FIGHT with reserved 2 × 2 key hat cells, MFD, DED kit page; fit check per page (7 scroll pages plus the DED tab); 29 questions for the owner | done (owner review at the end) |
 | 7 | Research in DCS (needs the module): keybinds, screenshots, position orders that are guesses | user flies, Claude analyses | updated BIOS.md and SPEC.md | open |
 | 8 | Engine fixes, then the build in batches, each tested; AH-64D and A-10C rechecked every step | Claude delegates | aircraft/f16c.py and page code | open |
 | 9 | Test run in DCS, open points updated | user flies, Claude fixes | FIXES.md | open |
