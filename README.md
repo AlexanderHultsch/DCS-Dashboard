@@ -23,6 +23,7 @@ The dashboard follows the aircraft DCS reports and, in the AH-64D, the seat you 
 
 - **AH-64D Apache** (pilot and CP/G seat): mature and tested. Specification: [docs/AH64D/SPEC.md](docs/AH64D/SPEC.md).
 - **A-10C II Tank Killer**: under development, tested only against a simulated DCS-BIOS, not yet in DCS. The controls that need a keypress (speed brake, trim, nosewheel steering, the HOTAS hats) are not built yet: the A-10C default keybinds are not known until they are exported from DCS. Specification: [docs/A10C/SPEC.md](docs/A10C/SPEC.md); research and plan: [docs/A10C/RESEARCH.md](docs/A10C/RESEARCH.md).
+- **F-16C Viper**: planned, research started, nothing built. Research and plan: [docs/F16C/RESEARCH.md](docs/F16C/RESEARCH.md).
 
 The bridge loads every aircraft file and follows the aircraft that DCS-BIOS reports, so you can fly one after the other without a restart; the page reloads when the aircraft changes. The settings page has an AIRCRAFT switch (AUTO or one button per aircraft) for debugging. The engine that all aircraft share is described in [docs/SPEC.md](docs/SPEC.md).
 
@@ -84,7 +85,8 @@ aircraft/a10c.py      everything specific to the A-10C II: panel pages, views, c
 config/               config.example.toml (config.toml and settings.json are local and ignored)
 logs/                 rolling log, created at runtime (ignored)
 docs/                 SPEC.md (the engine spec), FIXES.md (open points and fixes in progress),
-                      AH64D/ (AH-64D spec), A10C/ (A-10C II spec, research and plan)
+                      AH64D/ (AH-64D spec), A10C/ (A-10C II spec, research and plan),
+                      F16C/ (F-16C research and plan)
 ```
 
 Further aircraft may follow: the bridge and the page engine are aircraft-independent, an aircraft is one file in `aircraft/` (every file there is loaded) plus its drawings. See [docs/SPEC.md](docs/SPEC.md).
