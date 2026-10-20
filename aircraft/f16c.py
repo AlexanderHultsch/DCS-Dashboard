@@ -54,12 +54,20 @@ def push_button(bios: str, label: str) -> dict:
     return {"id": bios, "label": label, "type": "button", "hold": BUTTON_HOLD}
 
 
-def trim_knob(bios: str, label: str) -> dict:
+def knob(bios: str, label: str) -> dict:
     return {"id": bios, "label": label, "type": "knob", "step": KNOB_STEP, "sweep": [-135, 135]}
 
 
 def lamp(bios: str, legend: str, color: str) -> dict:
     return {"id": bios, "legend": legend, "color": color}
+
+
+def step_rocker(bios: str, label: str) -> dict:
+    return {"id": bios, "label": label, "type": "hat", "ud": bios, "steps": "fixed", "positions": {"up": "tri-up", "down": "tri-down"}}
+
+
+def readout(bios: str, label: str, cols: int) -> dict:
+    return {"id": bios, "label": label, "type": "display", "cols": cols, "ids": [bios]}
 
 
 def canopy_plate(g: PanelGroup):
@@ -155,15 +163,15 @@ def flcs_plate(g: PanelGroup):
 def trim_plate(g: PanelGroup):
     p = g.panel("MANUAL TRIM", 454, 366, 0, 298)
     p.mark("MANUAL TRIM", "TITLE", 52, 183, "panel name turned along the left edge", 90)
-    p.knob("ROLL", "KNOB_M", 192, 104, trim_knob("ROLL_TRIM", "ROLL TRIM"))
+    p.knob("ROLL", "KNOB_M", 192, 104, knob("ROLL_TRIM", "ROLL TRIM"))
     p.label("ROLL TRIM", "NAME", "ROLL", "above")
     p.knob_labels("ROLL", "lower_sides", "L WING\nDN", "R WING\nDN")
     p.toggle("DISC", 368, 148, selector("TRIM_AP_DISC_SW", "TRIM/AP DISC", ((1, "NORM"), (0, "DISC"))), "above_below")
     p.label("TRIM/AP\nDISC", "NAME", "DISC", "above")
-    p.knob("YAW", "KNOB_M", 132, 284, trim_knob("YAW_TRIM", "YAW TRIM"))
+    p.knob("YAW", "KNOB_M", 132, 284, knob("YAW_TRIM", "YAW TRIM"))
     p.label("YAW TRIM", "NAME", "YAW", "above")
     p.knob_labels("YAW", "lower_sides", "L", "R")
-    p.knob("PITCH", "KNOB_M", 288, 284, trim_knob("PITCH_TRIM", "PITCH TRIM"))
+    p.knob("PITCH", "KNOB_M", 288, 284, knob("PITCH_TRIM", "PITCH TRIM"))
     p.label("PITCH TRIM", "NAME", "PITCH", "above")
     p.knob_labels("PITCH", "lower_sides", "NOSE\nUP", "NOSE\nDN")
 
@@ -221,7 +229,7 @@ def elec_pages() -> list[dict]:
 
 
 def rotary_positions(items: tuple) -> list[dict]:
-    return [{"value": value, "label": text, "angle": angle} for value, text, angle in items]
+    return [{"value": value, "label": text, "angle": angle, **({"disabled": True} if rest else {})} for value, text, angle, *rest in items]
 
 
 def ext_lighting_plate(g: PanelGroup):
@@ -237,7 +245,7 @@ def ext_lighting_plate(g: PanelGroup):
     p.label("WING/\nTAIL", "NAME", "WING", "above")
     p.toggle("FUSE", 500, 190, selector("POS_FUSELAGE_LIGHT_SW", "FUSELAGE", ((0, "BRT"), (1, "OFF"), (2, "DIM"))), "above_side_below")
     p.label("FUSELAGE", "NAME", "FUSE", "above")
-    p.knob("FORM", "KNOB_M", 140, 360, trim_knob("FORM_LIGHT_KNB", "FORM"))
+    p.knob("FORM", "KNOB_M", 140, 360, knob("FORM_LIGHT_KNB", "FORM"))
     p.label("FORM", "NAME", "FORM", "above")
     p.label("BRT", "POS", "FORM", "right")
     p.rotary("MASTER", 336, 360, {
@@ -245,7 +253,7 @@ def ext_lighting_plate(g: PanelGroup):
         "positions": rotary_positions(((0, "OFF", -90), (1, "ALL", -50), (2, "A-C", 0), (3, "FORM", 50), (4, "NORM", 90))),
     })
     p.label("MASTER", "NAME", "MASTER", "above")
-    p.knob("AERIAL", "KNOB_M", 520, 360, trim_knob("AIR_REFUEL_LIGHT_KNB", "AERIAL REFUELING"))
+    p.knob("AERIAL", "KNOB_M", 520, 360, knob("AIR_REFUEL_LIGHT_KNB", "AERIAL REFUELING"))
     p.label("AERIAL\nREFUELING", "NAME", "AERIAL", "above")
     p.label("BRT", "POS", "AERIAL", "below")
 
@@ -262,7 +270,7 @@ def ecm_plate(g: PanelGroup):
     p.toggle("PWR", 116, 112, selector("ECM_PW_SW", "ECM POWER", ((2, "OPR"), (1, "STBY"), (0, "OFF"))), "right_triple")
     p.toggle("XMIT", 270, 112, selector("ECM_XMIT_SW", "XMIT", ((2, "1"), (1, "2"), (0, "3"))), "right_triple")
     p.label("XMIT", "NAME", "XMIT", "above")
-    p.knob("DIM", "KNOB_M", 420, 112, trim_knob("ECM_DIM_KNB", "DIM"))
+    p.knob("DIM", "KNOB_M", 420, 112, knob("ECM_DIM_KNB", "DIM"))
     p.label("DIM", "NAME", "DIM", "above")
     modules = (("1", "ECM_1_BTN", "LIGHT_ECM_1_"), ("2", "ECM_2_BTN", "LIGHT_ECM_2_"), ("3", "ECM_3_BTN", "LIGHT_ECM_3_"),
                ("4", "ECM_4_BTN", "LIGHT_ECM_4_"), ("5", "ECM_5_BTN", "LIGHT_ECM_5_"), ("6", "ECM_6_BTN", "LIGHT_ECM_"))
@@ -285,17 +293,17 @@ def audio1_plate(g: PanelGroup):
     p.mark("AUDIO 1", "TITLE", 52, 162, "panel name turned along the left edge", 90)
     for name, x, bios, mode in (("COMM1", 170, "COMM1_PWR_KNB", "COMM1_MODE_KNB"), ("COMM2", 372, "COMM2_PWR_KNB", "COMM2_MODE_KNB")):
         title = f"COMM {name[-1]}"
-        p.knob(name, "KNOB_M", x, 112, trim_knob(bios, title))
+        p.knob(name, "KNOB_M", x, 112, knob(bios, title))
         p.label(title, "NAME", name, "above")
         p.knob_labels(name, "lower_sides", "OFF", "INC")
         p.rotary(f"{name}_MODE", x, 236, {
             "id": mode, "label": f"{title} MODE", "type": "selector", "style": "rotary",
             "positions": rotary_positions(((0, "OFF", -50), (1, "SQL", 0), (2, "GD", 50))),
         })
-    p.knob("MSL", "KNOB_S", 508, 112, trim_knob("MSL_KNB", "MSL"))
+    p.knob("MSL", "KNOB_S", 508, 112, knob("MSL_KNB", "MSL"))
     p.label("MSL", "NAME", "MSL", "above")
     p.label("INC", "POS", "MSL", "right")
-    p.knob("THREAT", "KNOB_S", 508, 236, trim_knob("THREAT_KNB", "THREAT"))
+    p.knob("THREAT", "KNOB_S", 508, 236, knob("THREAT_KNB", "THREAT"))
     p.label("THREAT", "NAME", "THREAT", "above")
     p.label("INC", "POS", "THREAT", "right")
 
@@ -303,10 +311,10 @@ def audio1_plate(g: PanelGroup):
 def audio2_plate(g: PanelGroup):
     p = g.panel("AUDIO 2", 616, 206, 0, 340)
     p.mark("AUDIO 2", "TITLE", 52, 103, "panel name turned along the left edge", 90)
-    p.knob("TACAN", "KNOB_S", 170, 118, trim_knob("TACAN_KNB", "TACAN"))
+    p.knob("TACAN", "KNOB_S", 170, 118, knob("TACAN_KNB", "TACAN"))
     p.label("TACAN", "NAME", "TACAN", "above")
     p.label("INC", "POS", "TACAN", "right")
-    p.knob("ILS", "KNOB_S", 372, 118, trim_knob("ILS_PWR_KNB", "ILS"))
+    p.knob("ILS", "KNOB_S", 372, 118, knob("ILS_PWR_KNB", "ILS"))
     p.label("ILS", "NAME", "ILS", "above")
     p.knob_labels("ILS", "lower_sides", "OFF", "INC")
 
@@ -362,7 +370,7 @@ def alt_gear_plate(g: PanelGroup):
 def hmcs_plate(g: PanelGroup):
     p = g.panel("HMCS", 324, 200, 316, 658)
     p.mark("HMCS", "TITLE", 52, 100, "panel name turned along the left edge", 90)
-    p.knob("INT", "KNOB_M", 190, 128, trim_knob("HMCS_INT_KNB", "HMCS SYMBOLOGY INT"))
+    p.knob("INT", "KNOB_M", 190, 128, knob("HMCS_INT_KNB", "HMCS SYMBOLOGY INT"))
     p.label("SYMBOLOGY\nINT", "NAME", "INT", "above")
     p.knob_labels("INT", "lower_sides", "OFF", "INC")
 
@@ -373,6 +381,183 @@ def gear_pages() -> list[dict]:
     alt_gear_plate(g)
     hmcs_plate(g)
     return [kit_page("LANDING GEAR / HMCS", [1, 3, 1, 2], g.build())]
+
+
+def cmds_plate(g: PanelGroup):
+    p = g.panel("CMDS", 600, 448, 0, 0)
+    for n, (bios, legend) in enumerate((("LIGHT_CMDS_NO_GO", "NO GO"), ("LIGHT_CMDS_GO", "GO"), ("LIGHT_CMDS_DISP", "DISP"), ("LIGHT_CMDS_RDY", "RDY"))):
+        p.lamp(f"S{n}", 72 + 76 * n, 64, lamp(bios, legend, "green"))
+    p.display("CH", 404, 64, 96, 56, readout("CMDS_CH_AMOUNT", "CH", 4))
+    p.display("FL", 516, 64, 96, 56, readout("CMDS_FL_AMOUNT", "FL", 4))
+    p.toggle("RWR", 100, 188, selector("CMDS_PWR_SOURCHE_SW", "RWR", ((1, "ON"), (0, "OFF"))), "above_below")
+    p.label("RWR", "NAME", "RWR", "above")
+    p.toggle("CHSW", 404, 188, selector("CMDS_CH_EXP_CAT_SW", "CH", ((1, "ON"), (0, "OFF"))), "above_below")
+    p.label("CH", "NAME", "CHSW", "above")
+    p.toggle("FLSW", 516, 188, selector("CMDS_FL_EXP_CAT_SW", "FL", ((1, "ON"), (0, "OFF"))), "above_below")
+    p.label("FL", "NAME", "FLSW", "above")
+    p.toggle("JETT", 100, 330, selector("CMDS_JETT_SW", "JETT", ((1, "JETT"), (0, "OFF")), guard=True), "above_below")
+    p.rotary("PRGM", 280, 330, {
+        "id": "CMDS_PROG_KNB", "label": "PRGM", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "BIT", -105, True), (1, "1", -70), (2, "2", -20), (3, "3", 20), (4, "4", 70))),
+    })
+    p.label("PRGM", "NAME", "PRGM", "below")
+    p.rotary("MODE", 462, 330, {
+        "id": "CMDS_MODE_KNB", "label": "MODE", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "OFF", -135), (1, "STBY", -105), (2, "MAN", -75), (3, "SEMI", -35), (4, "AUTO", 35), (5, "BYP", 75))),
+    })
+    p.label("MODE", "NAME", "MODE", "below")
+
+
+def dispense_plate(g: PanelGroup):
+    p = g.panel("CHAFF/FLARE", 204, 204, 0, 464)
+    p.push("BTN", 102, 126, push_button("CMDS_DISPENSE_BTN", "CHAFF/FLARE DISPENSE"))
+    p.label("CHAFF/\nFLARE", "POS", "BTN", "above")
+
+
+def cmds_pages() -> list[dict]:
+    g = PanelGroup("CMDS", "f16c", scroll=True)
+    cmds_plate(g)
+    dispense_plate(g)
+    return [kit_page("CMDS", [2, 3, 1, 2], g.build())]
+
+
+def rwr_button(p: Panel, name: str, bios: str, label: str, x: int, y: int, *lamps: tuple, hold: float = BUTTON_HOLD):
+    control = {**push_button(bios, label), "hold": hold}
+    if len(lamps) == 1:
+        control.update(lamp=lamps[0][0], legend=lamps[0][1], color=lamps[0][2])
+    else:
+        control["lamps"] = [lamp(*item) for item in lamps]
+    p.push(name, x, y, control)
+    p.label(label, "POS", name, "above")
+
+
+def rwr_prime_plate(g: PanelGroup):
+    p = g.panel("PRIME", 364, 304, 0, 0)
+    rwr_button(p, "LAUNCH", "RWR_LAUNCH_BTN", "LAUNCH", 78, 106, ("LIGHT_RWR_MSL_LAUNCH", "MSL", "red"))
+    rwr_button(p, "MODE", "RWR_MODE_BTN", "MODE", 182, 106, ("LIGHT_RWR_MODE_PRI", "PRI", "green"), ("LIGHT_RWR_MODE_OPEN", "OPEN", "green"))
+    rwr_button(p, "HANDOFF", "RWR_HANDOFF_BTN", "HANDOFF", 286, 106, ("LIGHT_RWR_HANDOFF_UP", "UP", "green"), ("LIGHT_RWR_HANDOFF_H", "H", "green"))
+    rwr_button(p, "UNKNOWN", "RWR_UNKNOWN_SHIP_BTN", "UNKNOWN", 78, 226, ("LIGHT_RWR_SHIP_U", "U", "green"), ("LIGHT_RWR_SHIP_UNK", "UNK", "green"))
+    rwr_button(p, "SYSTEST", "RWR_SYS_TEST_BTN", "SYS TEST", 182, 226, ("LIGHT_RWR_SYSTEST_ON", "ON", "green"), ("LIGHT_RWR_SYSTEST", "TEST", "green"), hold=1.0)
+    rwr_button(p, "TGTSEP", "RWR_T_BTN", "TGT SEP", 286, 226, ("LIGHT_RWR_TGTSEP_UP", "TGT", "green"), ("LIGHT_RWR_TGTSEP_DN", "SEP", "green"))
+
+
+def rwr_azimuth_plate(g: PanelGroup):
+    p = g.panel("AZIMUTH", 220, 304, 380, 0)
+    p.mark("AZIMUTH\nINDICATOR", "NAME", 110, 84, "title of the plate, the scope itself is not drawn")
+    p.knob("BRT", "KNOB_M", 110, 196, knob("RWR_INTENS_KNB", "AZIMUTH INDICATOR BRIGHTNESS"))
+    p.label("BRT", "NAME", "BRT", "above")
+
+
+def rwr_aux_plate(g: PanelGroup):
+    p = g.panel("AUX", 600, 184, 0, 320)
+    rwr_button(p, "SEARCH", "RWR_SEARCH_BTN", "SEARCH", 90, 106, ("LIGHT_RWR_SEARCH", "S", "green"))
+    rwr_button(p, "ACTPWR", "RWR_ACT_PWR_BTN", "ACT/PWR", 198, 106, ("LIGHT_RWR_ACTIVITY", "ACT", "amber"), ("LIGHT_RWR_ACT_POWER", "POWER", "green"))
+    rwr_button(p, "ALT", "RWR_ALT_BTN", "ALTITUDE", 306, 106, ("LIGHT_RWR_ALT_LOW", "LOW", "amber"), ("LIGHT_RWR_ALT", "ALT", "green"))
+    rwr_button(p, "POWER", "RWR_PWR_BTN", "POWER", 414, 106, ("LIGHT_RWR_POWER", "PWR", "green"))
+    p.knob("DIM", "KNOB_M", 522, 106, knob("RWR_IND_DIM_KNB", "DIM"))
+    p.label("DIM", "NAME", "DIM", "above")
+
+
+def threat_pages() -> list[dict]:
+    g = PanelGroup("THREAT WARNING", "f16c")
+    rwr_prime_plate(g)
+    rwr_azimuth_plate(g)
+    rwr_aux_plate(g)
+    return [kit_page("THREAT WARNING", [3, 3, 1, 2], g.build())]
+
+
+def iff_plate(g: PanelGroup):
+    p = g.panel("IFF", 264, 232, 0, 0)
+    p.mark("IFF", "TITLE", 52, 116, "panel name turned along the left edge", 90)
+    p.rotary("CI", 130, 114, {
+        "id": "IFF_C_I_KNB", "label": "C & I", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((1, "BACK UP", -35), (0, "UFC", 50))),
+    })
+    p.label("C & I", "NAME", "CI", "below")
+
+
+def uhf_plate(g: PanelGroup):
+    p = g.panel("UHF BACKUP", 600, 592, 0, 248)
+    p.push("TEST", 90, 96, push_button("UHF_TEST_BTN", "TEST DISPLAY"))
+    p.label("TEST\nDISPLAY", "POS", "TEST", "below")
+    p.display("CHAN", 300, 96, 72, 56, readout("UHF_CHAN_DISP", "CHAN", 2))
+    p.label("CHAN", "NAME", "CHAN", "above")
+    p.rocker("CHAN_KNB", 378, 96, step_rocker("UHF_CHAN_KNB", "CHAN"))
+    p.push("STATUS", 510, 96, push_button("UHF_STATUS_BTN", "STATUS"))
+    p.label("STATUS", "POS", "STATUS", "below")
+    p.display("FREQ", 300, 230, 288, 64, readout("UHF_FREQ_DISP", "FREQUENCY", 7))
+    p.rotary("A32", 106, 346, {
+        "id": "UHF_FREQ_100_KNB", "label": "A-3-2", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "A", -50, True), (1, "3", -80), (2, "2", -110))),
+    })
+    for bios, label, x in (("10", "10", 190), ("1", "1", 276), ("01", ".1", 362)):
+        p.rocker(f"F{bios}", x, 346, step_rocker(f"UHF_FREQ_{bios}_KNB", label))
+    p.rotary("F0025", 482, 346, {
+        "id": "UHF_FREQ_0025_KNB", "label": "0.025 MHZ", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "00", -75), (1, "25", -25), (2, "50", 25), (3, "75", 75))),
+    })
+    p.rotary("FUNC", 140, 500, {
+        "id": "UHF_FUNC_KNB", "label": "FUNCTION", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "OFF", -75), (1, "MAIN", -40), (2, "BOTH", 40), (3, "ADF", 75, True))),
+    })
+    p.toggle("SQL", 300, 500, selector("UHF_SQUELCH_SW", "SQUELCH", ((1, "ON"), (0, "OFF"))), "above_below")
+    p.label("SQUELCH", "NAME", "SQL", "above")
+    p.rotary("MODE", 460, 500, {
+        "id": "UHF_MODE_KNB", "label": "MODE", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "MNL", -70), (1, "PRESET", 0), (2, "GRD", 70))),
+    })
+
+
+def uhf_pages() -> list[dict]:
+    g = PanelGroup("UHF / IFF BACKUP", "f16c", scroll=True)
+    iff_plate(g)
+    uhf_plate(g)
+    return [kit_page("UHF / IFF BACKUP", [4, 3, 2, 2], g.build())]
+
+
+def left_eyebrow_plate(g: PanelGroup):
+    p = g.panel("LEFT EYEBROW", 364, 284, 0, 0)
+    p.push("MC", 170, 78, {**push_button("MASTER_CAUTION", "MASTER CAUTION"), "lamp": "LIGHT_MASTER_CAUTION", "color": "amber"})
+    p.label("MASTER\nCAUTION", "POS", "MC", "left")
+    p.lamp("TF", 264, 78, lamp("LIGHT_TF_FAIL", "TF-FAIL", "red"))
+    p.push("ACK", 170, 178, push_button("F_ACK_BTN", "F-ACK"))
+    p.label("F-ACK", "POS", "ACK", "below")
+    p.push("IDENT", 270, 178, push_button("IFF_ID_BTN", "IFF IDENT"))
+    p.label("IFF IDENT", "POS", "IDENT", "below")
+
+
+def right_eyebrow_plate(g: PanelGroup):
+    p = g.panel("RIGHT EYEBROW", 364, 208, 0, 300)
+    lamps = (("LIGHT_ENG_FIRE", "ENG\nFIRE"), ("LIGHT_ENGINE", "ENGINE"), ("LIGHT_HYD_OIL_PRESS", "HYD/OIL\nPRESS"),
+             ("LIGHT_FLCS", "FLCS"), ("LIGHT_DBU_ON", "DBU ON"), ("LIGHT_TO_LDG_CONFIG", "TO/LDG\nCONFIG"),
+             ("LIGHT_CANOPY", "CANOPY"), ("LIGHT_OXY_LOW", "OXY\nLOW"))
+    for n, (bios, legend) in enumerate(lamps):
+        p.lamp(f"L{n}", 94 + 88 * (n % 3), 56 + 48 * (n // 3), lamp(bios, legend, "red"))
+
+
+def aoa_plate(g: PanelGroup):
+    p = g.panel("AOA INDEXER", 244, 284, 380, 0)
+    p.knob("DIM", "KNOB_S", 84, 142, knob("AOA_INDEX_BRT_KNB", "AOA INDEXER DIMMING"))
+    p.label("DIM", "NAME", "DIM", "above")
+    for n, (bios, legend, color) in enumerate((("LIGHT_AOA_UP", "HIGH", "red"), ("LIGHT_AOA_MID", "OPT", "green"), ("LIGHT_AOA_DN", "LOW", "amber"))):
+        p.lamp(f"L{n}", 170, 86 + 56 * n, lamp(bios, legend, color))
+
+
+def ar_plate(g: PanelGroup):
+    p = g.panel("AR / NWS", 244, 208, 380, 300)
+    p.knob("DIM", "KNOB_S", 84, 104, knob("AR_STATUS_BRT_KNB", "AR STATUS DIMMING"))
+    p.label("DIM", "NAME", "DIM", "above")
+    for n, (bios, legend, color) in enumerate((("LIGHT_RDY", "RDY", "white"), ("LIGHT_AR_NWS", "AR\nNWS", "green"), ("LIGHT_DISC", "DISC", "red"))):
+        p.lamp(f"L{n}", 170, 56 + 48 * n, lamp(bios, legend, color))
+
+
+def eyebrow_pages() -> list[dict]:
+    g = PanelGroup("EYEBROWS / INDEXERS", "f16c")
+    left_eyebrow_plate(g)
+    right_eyebrow_plate(g)
+    aoa_plate(g)
+    ar_plate(g)
+    return [kit_page("EYEBROWS / INDEXERS", [1, 5, 1, 4], g.build())]
 
 
 VIEWS = [
@@ -397,6 +582,10 @@ VIEWS = [
     *ecm_pages(),
     *audio_pages(),
     *gear_pages(),
+    *cmds_pages(),
+    *threat_pages(),
+    *uhf_pages(),
+    *eyebrow_pages(),
     {
         "name": "MFD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfd_controls("L") + mfd_controls("R"),
         "titles": {"L": "LEFT MFD", "R": "RIGHT MFD"}, "inert": [],
