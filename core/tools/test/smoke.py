@@ -2,7 +2,7 @@
 """Command smoke test of the panel pages against the running test bridge (python3 bridge.py).
 
   python3 smoke.py [--acft NAME] [--seat 0|1] PAGE ...      e.g. python3 smoke.py IFF "EMER FLT CTRL"   (NAME: the _ACFT_NAME to send, default A-10C_2)
-  AH-64D: python3 smoke.py --acft AH-64D_BLK_II --seat 1 MPD KU George ...   (--seat is sent as SEAT_POSITION every second; {seat} ids are expanded
+  Two seats (AH-64D): python3 smoke.py --acft AH-64D_BLK_II --seat 1 MPD KU George ...   (seat 0 if --seat is missing; --seat is sent as SEAT_POSITION every second; {seat} ids are expanded
   with PLT / CPG; a page name with two seats (FIGHT, COCKPIT, ...) is taken for the given seat; the master lamp buttons of the lamp row are tested too;
   controls of the other seat (own "seats", or a page of the other seat) are SKIPped; key, macro and key hat controls and the power levers are checked in
   logs/test/keys.log (the fake keys module of bridge.py) instead of UDP: the combo of the control's key(s) must be pressed in order; a lever is moved by one step and the
@@ -40,7 +40,7 @@ SETTLE = 0.2
 ACFT = "A-10C_2"
 SEAT = None
 KEYS_LOG = REPO / "logs" / "test" / "keys.log"
-PREFIX = {0: "PLT", 1: "CPG"}
+PREFIX = []
 
 
 SIM_LOCK = threading.Lock()
@@ -82,8 +82,7 @@ def expand(text: str) -> str:
 def key_map() -> dict:
     sys.path.insert(0, str(REPO / "aircraft"))
     sys.path.insert(0, str(REPO / "core"))
-    module = __import__("ah64d" if ACFT.startswith("AH-64D") else "a10c")
-    return module.KEYS
+    return aircraft_module(ACFT).KEYS
 
 
 def key_calls() -> list[tuple]:
@@ -276,21 +275,22 @@ def check_one(sock: socket.socket, control: dict) -> tuple[str, str]:
     return "PASS", f"{json.dumps(body)} -> {hit[0]}" + ("" if reply.get("confirmed") else " (not confirmed)")
 
 
-def aircraft_name(dcs_name: str) -> str | None:
+def aircraft_module(dcs_name: str):
     sys.path.insert(0, str(REPO / "core"))
     sys.path.insert(0, str(REPO / "aircraft"))
     for path in sorted((REPO / "aircraft").glob("*.py")):
         module = importlib.import_module(path.stem)
         if dcs_name in module.DCS_NAMES:
-            return module.NAME
+            return module
     return None
 
 
 def switch_aircraft() -> bool:
-    name = aircraft_name(ACFT)
-    if name is None:
+    module = aircraft_module(ACFT)
+    if module is None:
         print(f"no file in aircraft/ lists {ACFT} in DCS_NAMES", file=sys.stderr)
         return False
+    name = module.NAME
     sim(f"_ACFT_NAME={ACFT}", *([] if SEAT is None else [f"SEAT_POSITION={SEAT}"]))
     deadline = time.monotonic() + 10
     seen = None
@@ -305,6 +305,7 @@ def switch_aircraft() -> bool:
 
 
 def main(names: list[str]) -> int:
+    global SEAT
     if not names:
         print(__doc__)
         return 2
@@ -312,6 +313,9 @@ def main(names: list[str]) -> int:
         return 1
     with urllib.request.urlopen(BRIDGE + "/layout", timeout=15) as reply:
         layout = json.loads(reply.read())
+    PREFIX[:] = [seat["prefix"] for seat in layout["seats"]]
+    if len(PREFIX) > 1 and SEAT is None:
+        SEAT = 0
     views = {}
     for view in layout["views"]:
         views.setdefault(view["name"].upper(), []).append(view)
@@ -366,6 +370,4 @@ if __name__ == "__main__":
         else:
             SEAT = int(args[1])
         args = args[2:]
-    if ACFT.startswith("AH-64D") and SEAT is None:
-        SEAT = 0
     sys.exit(main(args))

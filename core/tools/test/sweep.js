@@ -458,7 +458,7 @@ async function runOne(browser, seat, width, height) {
     record(res, 'page list');
     await shot('page list');
     for (const name of names) {
-      const r = await page.evaluate((name) => { const b = [...document.querySelectorAll('#pagelist > *')].find((x) => x.textContent.trim() === name); const q = b.getBoundingClientRect(); return { x: q.x + q.width / 2, y: q.y + q.height / 2 }; }, name);
+      const r = await page.evaluate((name) => { const b = [...document.querySelectorAll('#pagelist > *')].find((x) => x.textContent.trim() === name); b.scrollIntoView({ block: 'nearest' }); const q = b.getBoundingClientRect(); return { x: q.x + q.width / 2, y: q.y + q.height / 2 }; }, name);
       await mouseClick(r.x, r.y);
       const a = await active();
       const entry = boxes.find((b) => b.label === name);

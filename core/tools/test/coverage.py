@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Coverage of the A-10C panel pages against docs/A10C (SPEC.md section 2 and 11, BIOS.md).
+"""Coverage of the panel pages of an aircraft against its docs folder (SPEC.md section 2 and 11, BIOS.md).
 
-  python3 coverage.py [PAGE ...]               per page: expected / used / missing / extra DCS-BIOS ids
-  python3 coverage.py --expected [PAGE ...]    print the expected ids of the pages instead
+  python3 coverage.py [--docs docs/F16C] [PAGE ...]               per page: expected / used / missing / extra DCS-BIOS ids
+  python3 coverage.py [--docs docs/F16C] --expected [PAGE ...]    print the expected ids of the pages instead
 
-No page name = all 23 pages. Exit code is always 0. A-10C.json comes from the DCS-BIOS JSON folder of the dashboard config.
+--docs is the docs folder of the aircraft (default docs/A10C); the aircraft file is aircraft/<folder in lower case>.py (a10c.py, f16c.py)
+and its DCSBIOS_MODULE names the JSON file. No page name = all pages of the spec. Exit code is always 0. The JSON comes from the DCS-BIOS
+JSON folder of the dashboard config.
+The page -> panel table of the A-10C is PAGE_SECTIONS below (its Panels lines are prose). For any other aircraft it is read from the spec:
+the Panels line of every "#### PAGE" section, each "Name (p. N)" is the "### " heading of BIOS.md with that text.
 """
 import fnmatch
 import importlib
@@ -14,8 +18,8 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
-BIOS_MD = REPO / "docs" / "A10C" / "BIOS.md"
-SPEC_MD = REPO / "docs" / "A10C" / "SPEC.md"
+DOCS = "docs/A10C"
+BIOS_MD = SPEC_MD = None
 
 # page name (SPEC.md "#### NAME") -> exact BIOS.md "### " headings of its panels.
 # A (heading, [ids]) entry takes only those ids of that section.
@@ -86,11 +90,17 @@ NOT_SHOWN = {
 ID_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 
 
+def aircraft_file() -> str:
+    return Path(DOCS).name.lower()
+
+
 def load_json_ids() -> set:
     sys.path.insert(0, str(REPO / "core"))
+    sys.path.insert(0, str(REPO / "aircraft"))
     import config
+    module = importlib.import_module(aircraft_file()).DCSBIOS_MODULE
     json_dir = Path(config.load()["dcs"]["saved_games"]) / "Scripts" / "DCS-BIOS" / "doc" / "json"
-    with open(json_dir / "A-10C.json", encoding="utf-8") as f:
+    with open(json_dir / f"{module}.json", encoding="utf-8") as f:
         data = json.load(f)
     return {c["identifier"] for category in data.values() for c in category.values()}
 
@@ -144,6 +154,16 @@ def section_ids(lines: list, json_ids: set) -> list:
     return ids
 
 
+def spec_page_sections(spec_pages: dict) -> dict:
+    sections = {}
+    for page, lines in spec_pages.items():
+        for line in lines:
+            if line.startswith("- **Panels:**"):
+                sections[page] = re.findall(r"(?:^|, )(.+?\(pp?\. [^)]*\))(?=, |\.|$)", line.split(":**", 1)[1].strip())
+                break
+    return sections
+
+
 def section11_ids() -> list:
     lines, inside = [], False
     for line in SPEC_MD.read_text(encoding="utf-8").splitlines():
@@ -167,9 +187,9 @@ def matches(id_: str, patterns: list) -> bool:
     return any(fnmatch.fnmatchcase(id_, p) for p in patterns)
 
 
-def expected(page: str, json_ids: set, bios: dict, spec_pages: dict, excluded: list, warnings: list) -> list:
+def expected(page: str, sections: dict, json_ids: set, bios: dict, spec_pages: dict, excluded: list, warnings: list) -> list:
     candidates = []
-    for entry in PAGE_SECTIONS[page]:
+    for entry in sections[page]:
         heading, only = entry if isinstance(entry, tuple) else (entry, None)
         if heading not in bios:
             warnings.append(f"WARNING {page}: BIOS.md has no section '{heading}'")
@@ -182,9 +202,9 @@ def expected(page: str, json_ids: set, bios: dict, spec_pages: dict, excluded: l
         if id_ in result:
             continue
         if id_ not in json_ids:
-            warnings.append(f"WARNING {page}: expected id is not in A-10C.json: {id_}")
+            warnings.append(f"WARNING {page}: expected id is not in the DCS-BIOS JSON: {id_}")
             continue
-        if matches(id_, excluded) or matches(id_, NOT_SHOWN.get(page, [])):
+        if matches(id_, excluded) or (aircraft_file() == "a10c" and matches(id_, NOT_SHOWN.get(page, []))):
             continue
         result.append(id_)
     return result
@@ -206,36 +226,42 @@ def load_views():
     sys.dont_write_bytecode = True
     sys.path.insert(0, str(REPO / "core"))
     sys.path.insert(0, str(REPO / "aircraft"))
-    return importlib.import_module("a10c").VIEWS
+    return importlib.import_module(aircraft_file()).VIEWS
 
 
 def main(argv: list) -> int:
+    global DOCS, BIOS_MD, SPEC_MD
     args = argv[1:]
+    if args[:1] == ["--docs"]:
+        DOCS, args = args[1].rstrip("/\\"), args[2:]
+    BIOS_MD = REPO / DOCS / "BIOS.md"
+    SPEC_MD = REPO / DOCS / "SPEC.md"
     show_expected = "--expected" in args
-    pages = [a for a in args if a != "--expected"] or list(PAGE_SECTIONS)
     json_ids = load_json_ids()
     bios = split_sections(BIOS_MD, "###")
     spec_pages = split_sections(SPEC_MD, "####")
+    sections = PAGE_SECTIONS if aircraft_file() == "a10c" else spec_page_sections(spec_pages)
+    pages = [a for a in args if a != "--expected"] or list(sections)
     excluded = section11_ids()
     warnings = []
-    for page in PAGE_SECTIONS:
+    for page in sections:
         if page not in spec_pages:
             warnings.append(f"WARNING SPEC.md has no page section '#### {page}'")
     for page in spec_pages:
-        if page not in PAGE_SECTIONS:
-            warnings.append(f"WARNING SPEC.md page section '#### {page}' is not in PAGE_SECTIONS")
+        if page not in sections:
+            warnings.append(f"WARNING SPEC.md page section '#### {page}' has no Panels line" if aircraft_file() != "a10c" else f"WARNING SPEC.md page section '#### {page}' is not in PAGE_SECTIONS")
     views = []
     if not show_expected:
         try:
             views = load_views()
         except Exception as e:
-            print(f"WARNING cannot import aircraft/a10c.py: {e!r}")
+            print(f"WARNING cannot import aircraft/{aircraft_file()}.py: {e!r}")
     total = 0
     for page in pages:
-        if page not in PAGE_SECTIONS:
+        if page not in sections:
             print(f"{page}: unknown page")
             continue
-        exp = expected(page, json_ids, bios, spec_pages, excluded, warnings)
+        exp = expected(page, sections, json_ids, bios, spec_pages, excluded, warnings)
         if show_expected:
             print(f"{page}: expected {len(exp)}")
             print("  " + ", ".join(exp))

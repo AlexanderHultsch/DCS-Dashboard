@@ -1,4 +1,4 @@
-// usage: node check_page.js <width> <height> [seat 0|1] [_ACFT_NAME, default AH-64D_BLK_II]
+// usage: node check_page.js <width> <height> [seat 0|1] [_ACFT_NAME, default AH-64D_BLK_II]   (the seat only counts for an aircraft with two seats)
 // Opens the dashboard in headless Chromium, runs core/tools/check_panels.js in the page, prints its JSON report.
 // Screenshot: logs/test/shot_<width>x<height>_<seat>.png. Environment: DASHBOARD_URL (default http://127.0.0.1:8080),
 // CHROMIUM_PATH (a Chromium binary; default: the browser of the playwright package).
@@ -25,7 +25,16 @@ const PYTHON = process.platform === 'win32' ? 'python' : 'python3';
   }
   const acft = acftArg === undefined ? 'AH-64D_BLK_II' : acftArg;
   fs.mkdirSync(OUT, { recursive: true });
-  const simArgs = [path.join(HERE, 'sim.py'), `_ACFT_NAME=${acft}`, ...(acft.startsWith('AH-64D') ? [`SEAT_POSITION=${seat}`] : [])];
+  const SIM = path.join(HERE, 'sim.py');
+  execFileSync(PYTHON, [SIM, `_ACFT_NAME=${acft}`]);
+  let layout = null;
+  for (let i = 0; i < 30 && !(layout && acft.startsWith(layout.aircraft)); i++) {
+    await new Promise((r) => setTimeout(r, 500));
+    layout = await (await fetch(BASE_URL + '/layout')).json();
+  }
+  if (!layout || !acft.startsWith(layout.aircraft)) throw new Error(`the bridge does not switch to ${acft} (/layout shows ${layout && layout.aircraft})`);
+  const twoSeats = layout.seats.length > 1;
+  const simArgs = [SIM, `_ACFT_NAME=${acft}`, ...(twoSeats ? [`SEAT_POSITION=${seat}`] : [])];
   const sim = () => execFile(PYTHON, simArgs, () => {});
   execFileSync(PYTHON, simArgs);
   const keepAlive = setInterval(sim, 1000); // the page treats DCS data older than 3 s as stale
@@ -36,7 +45,7 @@ const PYTHON = process.platform === 'win32' ? 'python' : 'python3';
     const logs = [];
     page.on('console', (msg) => logs.push(msg.text()));
     await page.goto(BASE_URL, { waitUntil: 'load' });
-    const label = acft.startsWith('AH-64D') ? (seat === 0 ? 'PILOT' : 'CP/G') : 'A-10C';
+    const label = layout.seats[twoSeats ? seat : 0].label;
     await page.waitForFunction((label) => {
       const el = document.getElementById('seat');
       return el && el.textContent.includes(label) && !/NO DCS|OFFLINE/.test(el.textContent);

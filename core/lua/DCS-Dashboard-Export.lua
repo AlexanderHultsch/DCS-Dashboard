@@ -18,6 +18,7 @@ local AIRCRAFT = {
         },
     },
     ["A-10C_2"] = {indications = {}, controls = {}},
+    ["F-16C_50"] = {indications = {}, controls = {}},
 }
 
 package.path = package.path .. ";.\\LuaSocket\\?.lua"

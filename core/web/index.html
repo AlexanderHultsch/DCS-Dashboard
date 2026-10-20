@@ -500,11 +500,15 @@ body.ro .pbox { opacity: 0.6; }
 }
 #pages.open { display: flex; }
 #pagecard {
-  display: flex; flex-direction: column; gap: 10px; width: min(560px, 100%); padding: 12px;
+  display: flex; flex-direction: column; gap: 10px; width: min(560px, 100%); max-height: 100%; padding: 12px;
   background: #1b1d1f; border: 1px solid #3a3d40; border-radius: 6px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8);
 }
-.phead { display: flex; align-items: center; gap: 12px; }
-#pagelist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.phead { display: flex; align-items: center; gap: 12px; flex: none; }
+#pagelist {
+  flex: 0 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 8px;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #b4bbc1 rgba(255, 255, 255, 0.15);
+}
+#pagelist, #pagelist * { touch-action: pan-y; }
 
 #kscrim { position: fixed; inset: 0; z-index: 60; display: none; }
 #kbar {
@@ -3401,7 +3405,7 @@ async function init() {
   document.addEventListener(type, (e) => e.preventDefault());
 });
 document.addEventListener('touchmove', (e) => {
-  if (!e.target.closest('.pscroll')) e.preventDefault();
+  if (!e.target.closest('.pscroll, #pagelist')) e.preventDefault();
 }, { passive: false });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && wakeWanted) applyWake(false);
