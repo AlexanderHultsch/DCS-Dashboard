@@ -2,7 +2,7 @@
 
 Working notes for adding the F-16C Viper (Block 50) to the dashboard. Our own notes only: the manual, its text and its pictures are copyrighted and are never committed. They are downloaded from the link below when needed and kept outside the repo.
 
-Status: planned. Phase 0 and 1 done, nothing built.
+Status: planned. Phases 0 to 2 done, nothing built.
 
 ## Decisions
 
@@ -46,7 +46,7 @@ None yet.
 | --- | --- | --- | --- | --- |
 | 0 | Scope and decisions | user, Claude | Decisions above | done |
 | 1 | Collect sources | user, Claude | Table above | manual and DCS-BIOS done; keybinds and screenshots need the module |
-| 2 | Read the manual: every cockpit panel, the HOTAS, the HUD control panel, ICP / DED, MFD, autopilot, the defensive panels, the cold start | Claude | PANELS.md, STARTUP.md | open |
+| 2 | Read the manual: every cockpit panel, the HOTAS, the HUD control panel, ICP / DED, MFD, autopilot, the defensive panels, the cold start | Claude | [PANELS.md](PANELS.md): 75 panel sections, 398 controls; [STARTUP.md](STARTUP.md): cold start in 117 steps up to Before Taxi | done |
 | 3 | Match with DCS-BIOS, with the per-id check of input kind, readback and position order | Claude | BIOS.md with a "how to build" column | open |
 | 4 | Reference pictures per panel, quality, screenshot needs | Claude, then user (screenshots) | PICTURES.md | open |
 | 5 | Compare with the engine: page list scroll, coverage per aircraft, reuse of the MFD and keypad layouts, the F-16C look | Claude, user decides | ENGINE.md | open |
