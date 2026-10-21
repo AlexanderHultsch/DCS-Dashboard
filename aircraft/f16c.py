@@ -560,6 +560,164 @@ def eyebrow_pages() -> list[dict]:
     return [kit_page("EYEBROWS / INDEXERS", [1, 5, 1, 4], g.build())]
 
 
+def misc_plate(g: PanelGroup):
+    p = g.panel("MISC", 522, 412, 0, 0)
+    p.mark("MISC", "TITLE", 52, 206, "panel name turned along the left edge", 90)
+    p.toggle("RF", 130, 96, selector("RF_SW", "RF", ((2, "NORM"), (1, "QUIET"), (0, "SILENT"))), "right_triple")
+    p.label("RF", "NAME", "RF", "above")
+    p.lamp("ECM", 330, 96, lamp("LIGHT_ECM", "ECM", "green"))
+    p.toggle("LASER", 130, 206, selector("LASER_ARM_SW", "LASER ARM", ((1, "LASER ARM"), (0, "OFF"))), "above_below")
+    p.toggle("MASTER", 330, 206, selector("MASTER_ARM_SW", "MASTER ARM", ((0, "MASTER ARM"), (1, "OFF"), (2, "SIMULATE"))), "right_triple")
+    p.toggle("ROLL", 130, 338, selector("AP_ROLL_SW", "AUTOPILOT ROLL", ((2, "HDG SEL"), (1, "ATT HOLD"), (0, "STRG SEL"))), "right_triple")
+    p.label("ROLL", "NAME", "ROLL", "above")
+    p.toggle("PITCH", 330, 338, selector("AP_PITCH_SW", "AUTOPILOT PITCH", ((2, "ALT HOLD"), (1, "A/P OFF"), (0, "ATT HOLD"))), "right_triple")
+    p.label("PITCH", "NAME", "PITCH", "above")
+
+
+def misc_pages() -> list[dict]:
+    g = PanelGroup("MISC", "f16c")
+    misc_plate(g)
+    return [kit_page("MISC", [2, 5, 3, 1], g.build())]
+
+
+def var_rocker(bios: str, label: str) -> dict:
+    return {**step_rocker(bios, label), "steps": KNOB_STEP}
+
+
+def air_data_plate(g: PanelGroup):
+    p = g.panel("AIR DATA / SAI / ADI", 380, 468, 0, 0)
+    p.rocker("IAS", 82, 152, var_rocker("AIRSPEED_SET_KNB", "IAS"))
+    p.label("SET\nINDEX", "NAME", "IAS", "above")
+    p.rocker("ALT", 178, 152, var_rocker("ALT_BARO_SET_KNB", "ALT"))
+    p.label("BARO\nSET", "NAME", "ALT", "above")
+    p.toggle("MODE", 274, 152, spring("ALT_MODE_LV", "ALTIMETER MODE", ((2, "PNEU"), (1, "OFF"), (0, "ELEC")), 1), "above_side_below")
+    p.label("ALT\nMODE", "NAME", "MODE", "above")
+    p.knob("ADI", "KNOB_M", 120, 340, knob("ADI_PITCH_TRIM", "ADI PITCH TRIM"))
+    p.label("ADI\nTRIM", "NAME", "ADI", "above")
+    p.knob("SAI", "KNOB_S", 264, 340, knob("SAI_PITCH_TRIM", "SAI PITCH TRIM"))
+    p.label("SAI", "NAME", "SAI", "above")
+    p.chip("SAI_PULL", "SAI", {
+        "id": "SAI_CAGE", "label": "SAI PULL TO CAGE", "type": "selector", "style": "chip", "legend": "PULL",
+        "positions": [{"value": 0, "label": "IN"}, {"value": 1, "label": "OUT"}],
+    })
+
+
+def fuel_qty_plate(g: PanelGroup):
+    p = g.panel("FUEL QTY SEL", 244, 468, 396, 0)
+    p.mark("FUEL QTY SEL", "NAME", 122, 52, "panel name above the knob")
+    p.rotary("SEL", 100, 160, {
+        "id": "FUEL_QTY_SEL_KNB", "label": "FUEL QTY SEL", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "NORM", 25), (1, "RSVR", 60), (2, "INT WING", 95), (3, "EXT WING", 150), (4, "EXT CTR", -150))),
+    }, labels="fan")
+    p.toggle("TRANS", 122, 374, selector("EXT_FUEL_TRANS_SW", "EXT FUEL TRANS", ((1, "NORM"), (0, "WING FIRST"))), "above_below")
+    p.label("EXT FUEL\nTRANS", "NAME", "TRANS", "above")
+
+
+def ehsi_plate(g: PanelGroup):
+    p = g.panel("EHSI", 380, 468, 0, 484)
+    p.mark("EHSI", "NAME", 190, 52, "title of the plate, the instrument itself is not drawn")
+    p.display("RANGE", 130, 130, 96, 56, readout("EHSI_RANGE", "RANGE", 4))
+    p.label("NM", "POS", "RANGE", "above")
+    p.display("COURSE", 258, 130, 72, 56, readout("EHSI_COURSE", "COURSE", 3))
+    p.label("CRS", "POS", "COURSE", "above")
+    p.display("LEFT", 90, 240, 72, 56, readout("EHSI_MODE_LEFT", "MODE", 3))
+    p.display("RIGHT", 170, 240, 72, 56, readout("EHSI_MODE_RIGHT", "MODE", 3))
+    p.mark("MODE", "POS", 130, 196, "title of the two mode windows")
+    p.push("M", 294, 240, {**push_button("EHSI_MODE", "EHSI MODE"), "legend": "M"})
+    p.rocker("HDG", 62, 356, var_rocker("EHSI_HDG_SET_KNB", "HDG"))
+    p.push("HDG_PUSH", 142, 356, push_button("EHSI_HDG_SET_BTN", "HDG SET PUSH"))
+    p.label("ADJ HDG", "POS", "HDG_PUSH", "below")
+    p.rocker("CRS", 222, 356, var_rocker("EHSI_CRS_SET_KNB", "CRS"))
+    p.push("CRS_PUSH", 302, 356, push_button("EHSI_CRS_SET", "CRS SET PUSH"))
+    p.label("BRT", "POS", "CRS_PUSH", "below")
+
+
+def clock_plate(g: PanelGroup):
+    p = g.panel("CLOCK", 244, 266, 396, 484)
+    p.mark("CLOCK", "NAME", 122, 52, "title of the plate, the instrument itself is not drawn")
+    p.rocker("WIND", 74, 140, var_rocker("CLOCK_WIND", "WIND"))
+    p.push("SET", 154, 140, push_button("CLOCK_SET", "CLOCK SET PULL"))
+    p.label("PULL\nSET", "POS", "SET", "below")
+
+
+def instruments_pages() -> list[dict]:
+    g = PanelGroup("INSTRUMENTS", "f16c", scroll=True)
+    air_data_plate(g)
+    fuel_qty_plate(g)
+    ehsi_plate(g)
+    clock_plate(g)
+    return [kit_page("INSTRUMENTS", [4, 6, 2, 3], g.build())]
+
+
+def seat_arming_plate(g: PanelGroup):
+    p = g.panel("SEAT ARMING", 160, 240, 0, 0)
+    p.toggle("ARM", 80, 148, selector("SEAT_EJECT_SAFE", "SEAT ARMING LEVER", ((1, "LOCKED"), (0, "ARMED"))), "above_below")
+    p.label("SEAT\nARMING", "NAME", "ARM", "above")
+
+
+def seat_adj_plate(g: PanelGroup):
+    p = g.panel("SEAT ADJ", 288, 336, 176, 0)
+    p.toggle("ADJ", 96, 192, spring("SEAT_ADJ", "SEAT ADJ", ((0, "UP"), (1, "OFF"), (2, "DOWN")), 1), "above_side_below")
+    p.label("SEAT ADJ", "NAME", "ADJ", "above")
+    p.bar("HEIGHT", 210, 192, {"id": "SEAT_HEIGHT", "label": "SEAT HEIGHT", "type": "bar", "max": 65535})
+    p.label("SEAT\nHEIGHT", "NAME", "HEIGHT", "above")
+
+
+def seat_pages() -> list[dict]:
+    g = PanelGroup("SEAT", "f16c")
+    seat_arming_plate(g)
+    seat_adj_plate(g)
+    return [kit_page("SEAT", [6, 6, 2, 3], g.build())]
+
+
+CAUTION_LAMPS = (
+    ("LIGHT_FLCS_FAULT", "FLCS\nFAULT"), ("LIGHT_ENGINE_FAULT", "ENGINE\nFAULT"), ("LIGHT_AVIONICS_FAULT", "AVIONICS\nFAULT"), ("LIGHT_SEAT_NOT", "SEAT NOT\nARMED"),
+    ("LIGHT_ELEC_SYS", "ELEC SYS"), ("LIGHT_SEC", "SEC"), ("LIGHT_EQUIP_HOT", "EQUIP\nHOT"), ("LIGHT_NWS_FAIL", "NWS\nFAIL"),
+    ("LIGHT_PROBE_HEAT", "PROBE HEAT"), ("LIGHT_FUEL_OIL_HOT", "FUEL/OIL\nHOT"), ("LIGHT_RADAR_ALT", "RADAR\nALT"), ("LIGHT_ANTI_SKID", "ANTI\nSKID"),
+    ("LIGHT_CADC", "CADC"), ("LIGHT_INLET_ICING", "INLET\nICING"), ("LIGHT_IFF", "IFF"), ("LIGHT_HOOK", "HOOK"),
+    ("LIGHT_STORES_CONFIG", "STORES\nCONFIG"), ("LIGHT_OVERHEAT", "OVERHEAT"), ("LIGHT_NUCLEAR", "NUCLEAR"), ("LIGHT_OBOGS", "OBOGS"),
+    ("LIGHT_ATF_NOT", "ATF NOT\nENGAGED"), ("LIGHT_EEC", "EEC"), None, ("LIGHT_CABIN_PRESS", "CABIN\nPRESS"),
+    ("LIGHT_FWD_FUEL_LOW", "FWD\nFUEL LOW"), ("LIGHT_BUC", "BUC"), None, None,
+    ("LIGHT_AFT_FUEL_LOW", "AFT\nFUEL LOW"), None, None, None,
+)
+
+
+def caution_plate(g: PanelGroup):
+    p = g.panel("CAUTION", 640, 448, 0, 0)
+    for n, cell in enumerate(CAUTION_LAMPS):
+        if cell:
+            p.lamp(f"L{n}", 104 + 144 * (n % 4), 56 + 48 * (n // 4), lamp(cell[0], cell[1], "amber"), "LAMP_WIDE")
+
+
+def caution_pages() -> list[dict]:
+    g = PanelGroup("CAUTION", "f16c")
+    caution_plate(g)
+    return [kit_page("CAUTION", [1, 9, 2, 2], g.build())]
+
+
+def hud_plate(g: PanelGroup):
+    p = g.panel("HUD CONTROL", 462, 312, 0, 0)
+    p.mark("HUD", "TITLE", 52, 156, "panel name turned along the left edge", 90)
+    brightness = selector("HUD_BRT_SW", "HUD BRIGHTNESS", ((0, "DAY"), (1, "AUTO BRT"), (2, "NIGHT")))
+    brightness["positions"][1]["disabled"] = True
+    switches = (
+        ("SCALES", selector("HUD_SCALES_SW", "HUD SCALES", ((0, "VV/VAH"), (1, "VAH"), (2, "OFF")))),
+        ("FPM", selector("HUD_FP_MARKER_SW", "HUD FLIGHTPATH MARKER", ((0, "ATT/FPM"), (1, "FPM"), (2, "OFF")))),
+        ("DED", selector("HUD_DED_DATA_SW", "HUD DED/PFLD", ((0, "DED DATA"), (1, "PFL"), (2, "OFF")))),
+        ("RETICLE", selector("HUD_DEPRESS_RET_SW", "HUD DEPRESSIBLE RETICLE", ((0, "STBY"), (1, "PRI"), (2, "OFF")))),
+        ("SPEED", selector("HUD_SPEED_SW", "HUD VELOCITY", ((0, "CAS"), (1, "TAS"), (2, "GND SPD")))),
+        ("BRT", brightness),
+    )
+    for n, (name, control) in enumerate(switches):
+        p.toggle(name, 130 + 120 * (n % 3), 92 + 128 * (n // 3), control, "above_side_below")
+
+
+def hud_pages() -> list[dict]:
+    g = PanelGroup("HUD CONTROL", "f16c")
+    hud_plate(g)
+    return [kit_page("HUD CONTROL", [3, 9, 1, 2], g.build())]
+
+
 VIEWS = [
     {
         "name": "COCKPIT", "seats": [0], "layout": "map", "controls": [],
@@ -586,6 +744,11 @@ VIEWS = [
     *threat_pages(),
     *uhf_pages(),
     *eyebrow_pages(),
+    *misc_pages(),
+    *instruments_pages(),
+    *seat_pages(),
+    *caution_pages(),
+    *hud_pages(),
     {
         "name": "MFD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfd_controls("L") + mfd_controls("R"),
         "titles": {"L": "LEFT MFD", "R": "RIGHT MFD"}, "inert": [],
