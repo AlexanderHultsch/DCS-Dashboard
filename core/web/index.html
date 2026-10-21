@@ -147,6 +147,7 @@ body.ro .panel { opacity: 0.6; }
 .grid .panel.lever { padding: 4px; }
 .grid .title { font-size: 12px; }
 .grid .stack { gap: 4px; }
+.grid .stack.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid .pos, .grid .push { min-width: 44px; min-height: 44px; font-size: 13px; }
 .grid .push { font-size: 15px; }
 .grid .cross { grid-template-columns: repeat(3, minmax(44px, 1fr)); grid-template-rows: repeat(3, minmax(44px, 1fr)); }
@@ -1104,7 +1105,7 @@ function buildLamp(def) {
 
 function buildSelector(def) {
   const panel = make('div', 'panel');
-  const stack = make('div', 'stack');
+  const stack = make('div', def.positions.length > 4 ? 'stack two' : 'stack');
   panel.append(make('div', 'title', def.label), stack);
   const c = { def, el: panel, busy: false, pending: null, buttons: [] };
   def.positions.forEach((p) => {

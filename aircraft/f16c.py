@@ -134,16 +134,18 @@ def epu_plate(g: PanelGroup):
 
 
 def start_plate(g: PanelGroup):
-    p = g.panel("ENG & JET START", 336, 264, 304, 268)
+    p = g.panel("ENG & JET START", 336, 440, 304, 268)
     p.lamp("RUN", 76, 160, lamp("LIGHT_JFS_RUN", "RUN", "green"))
     p.toggle("JFS", 156, 160, spring("JFS_SW", "JFS", ((0, "START 1"), (1, "OFF"), (2, "START 2")), 1), "above_side_below")
     p.label("JFS", "NAME", "JFS", "above")
     p.toggle("CONT", 254, 160, selector("ENG_CONT_SW", "ENG CONT", ((1, "PRI"), (0, "SEC")), guard=True, cover="ENG_CONT_SW_COVER"), "above_below")
     p.label("ENG\nCONT", "NAME", "CONT", "above")
+    p.push("THROTTLE", 168, 348, {**push_button("THROTTLE_OFF_IDLE", "OFF / IDLE"), "guard": True})
+    p.label("THROTTLE\nCUTOFF", "POS", "THROTTLE", "above")
 
 
 def fuel_pages() -> list[dict]:
-    g = PanelGroup("FUEL / EPU / START", "f16c")
+    g = PanelGroup("FUEL / EPU / START", "f16c", scroll=True)
     fuel_plate(g)
     epu_plate(g)
     start_plate(g)
@@ -888,6 +890,66 @@ def ded_pages() -> list[dict]:
     return [kit_page("DED", None, g.build())]
 
 
+def bar(bios: str, label: str, cell: list) -> dict:
+    return {"id": bios, "label": label, "type": "bar", "max": 65535, "grid": cell}
+
+
+def flight_view() -> dict:
+    return {
+        "name": "FLIGHT", "seats": [0],
+        "lamps": MASTER_LAMPS + [
+            {"id": "LIGHT_GEAR_N", "label": "N", "color": "green"},
+            {"id": "LIGHT_GEAR_L", "label": "L", "color": "green"},
+            {"id": "LIGHT_GEAR_R", "label": "R", "color": "green"},
+            {"id": "LIGHT_GEAR_WARN", "label": "GEAR", "color": "red"},
+            {"id": "LIGHT_TO_LDG_CONFIG", "label": "TO / LDG CONFIG", "color": "red"},
+            {"id": "LIGHT_ENG_FIRE", "label": "ENG FIRE", "color": "red"},
+            {"id": "LIGHT_ENGINE", "label": "ENGINE", "color": "red"},
+            {"id": "LIGHT_CANOPY", "label": "CANOPY", "color": "red"},
+        ],
+        "controls": [
+            bar("SPEEDBRAKE_INDICATOR", "SPD BRK", [1, 4, 1, 1]),
+            {**selector("GEAR_HANDLE", "GEAR", ((1, "UP"), (0, "DOWN"))), "grid": [1, 5, 1, 1]},
+            {**selector("ALT_FLAPS_SW", "ALT FLAPS", ((1, "EXTEND"), (0, "NORM"))), "grid": [1, 6, 1, 1]},
+            {**selector("LAND_TAXI_LIGHT_SW", "LAND / TAXI", ((0, "LANDING"), (1, "OFF"), (2, "TAXI"))), "grid": [1, 7, 1, 1]},
+            {**selector("ANTI_SKID_SW", "BRAKE / SKID", ((0, "PARKING"), (1, "ANTI-SKID"), (2, "OFF"))), "grid": [2, 5, 1, 1]},
+            bar("ENGINE_TACHOMETER", "RPM", [2, 6, 1, 1]),
+            bar("ENGINE_FTIT", "FTIT", [2, 7, 1, 1]),
+            bar("FUEL_AL", "FUEL AL", [3, 1, 1, 1]),
+            bar("FUEL_FR", "FUEL FR", [3, 2, 1, 1]),
+            bar("ENGINE_NOZZLE_POSITION", "NOZ", [3, 4, 1, 1]),
+            bar("ENGINE_OIL_PRESSURE", "OIL", [3, 5, 1, 1]),
+            bar("SYSA_PRESSURE", "HYD A", [3, 6, 1, 1]),
+            bar("SYSB_PRESSURE", "HYD B", [3, 7, 1, 1]),
+        ],
+    }
+
+
+def fight_view() -> dict:
+    program = selector("CMDS_PROG_KNB", "CMDS PRGM", ((0, "BIT"), (1, "1"), (2, "2"), (3, "3"), (4, "4")))
+    program["positions"][0]["disabled"] = True
+    return {
+        "name": "FIGHT", "seats": [0],
+        "lamps": MASTER_LAMPS + [
+            {"id": "LIGHT_RWR_MSL_LAUNCH", "label": "LAUNCH", "color": "red"},
+            {"id": "LIGHT_ECM", "label": "ECM", "color": "green"},
+            {"id": "LIGHT_CMDS_NO_GO", "label": "NO GO", "color": "green"},
+            {"id": "LIGHT_CMDS_GO", "label": "GO", "color": "green"},
+        ],
+        "controls": [
+            {**selector("MASTER_ARM_SW", "MASTER ARM", ((0, "MASTER ARM"), (1, "OFF"), (2, "SIMULATE"))), "grid": [1, 7, 1, 1]},
+            {**selector("LASER_ARM_SW", "LASER ARM", ((1, "LASER ARM"), (0, "OFF"))), "grid": [2, 7, 1, 1]},
+            {**readout("CMDS_CH_AMOUNT", "CH", 4), "grid": [3, 1, 1, 1]},
+            {**readout("CMDS_FL_AMOUNT", "FL", 4), "grid": [3, 2, 1, 1]},
+            {**selector("CMDS_MODE_KNB", "CMDS MODE", ((0, "OFF"), (1, "STBY"), (2, "MAN"), (3, "SEMI"), (4, "AUTO"), (5, "BYP"))), "grid": [3, 3, 1, 1]},
+            {**program, "grid": [3, 4, 1, 1]},
+            {**selector("ECM_PW_SW", "ECM", ((2, "OPR"), (1, "STBY"), (0, "OFF"))), "grid": [3, 5, 1, 1]},
+            {**selector("ECM_XMIT_SW", "XMIT", ((2, "1"), (1, "2"), (0, "3"))), "grid": [3, 6, 1, 1]},
+            {**selector("RF_SW", "RF", ((2, "NORM"), (1, "QUIET"), (0, "SILENT"))), "grid": [3, 7, 1, 1]},
+        ],
+    }
+
+
 VIEWS = [
     {
         "name": "COCKPIT", "seats": [0], "layout": "map", "controls": [],
@@ -903,6 +965,8 @@ VIEWS = [
             {"label": "MFD R", "view": "MFD", "side": "R", "seats": [0], "map": [2, 8, 2, 1]},
         ],
     },
+    flight_view(),
+    fight_view(),
     *canopy_pages(),
     *fuel_pages(),
     *flcs_pages(),
