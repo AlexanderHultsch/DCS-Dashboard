@@ -11,6 +11,11 @@ BUTTON_HOLD = 0.3
 UP_DOWN = {"up": "tri-up", "down": "tri-down"}
 MFD_ROCKERS = [("GAIN", "TL"), ("SYM", "TR"), ("BRT", "BL"), ("CON", "BR")]
 
+ARROW_UP = (10, 9, [("M0.5 8.5L5 0.5L9.5 8.5Z", 1, True)])
+ARROW_DOWN = (10, 9, [("M0.5 0.5L5 8.5L9.5 0.5Z", 1, True)])
+ARROW_LEFT = (9, 10, [("M8.5 0.5L0.5 5L8.5 9.5Z", 1, True)])
+ARROW_RIGHT = (9, 10, [("M0.5 0.5L8.5 5L0.5 9.5Z", 1, True)])
+
 MASTER_LAMPS = [
     {"id": "LIGHT_MASTER_CAUTION", "label": "MASTER CAUTION", "color": "amber", "button": "MASTER_CAUTION"},
 ]
@@ -29,9 +34,9 @@ def mfd_controls(side: str) -> list[dict]:
     return controls
 
 
-def kit_page(name: str, cell: list, page: dict) -> dict:
+def kit_page(name: str, cell: list | None, page: dict) -> dict:
     return {
-        "name": name, "seats": [0], "panel": True, "layout": "panel", "map": cell, "box": page["box"],
+        "name": name, "seats": [0], **({"panel": True} if cell else {}), "layout": "panel", **({"map": cell} if cell else {}), "box": page["box"],
         "lamps": MASTER_LAMPS, "print": page["print"], "art": page["art"], "controls": page["controls"],
         **({"indicators": page["indicators"]} if page["indicators"] else {}),
         **({"scroll": True} if page.get("scroll") else {}),
@@ -837,6 +842,52 @@ def avionics_pages() -> list[dict]:
     return [kit_page("AVIONICS POWER", [3, 11, 2, 2], g.build())]
 
 
+ICP_OVERRIDES = (("COM1", "ICP_COM1_BTN", "COM 1"), ("COM2", "ICP_COM2_BTN", "COM 2"), ("LIST", "ICP_LIST_BTN", "LIST"), ("AA", "ICP_AA_MODE_BTN", "A-A"), ("AG", "ICP_AG_MODE_BTN", "A-G"))
+ICP_KEYS = (
+    ("K1", "ICP_BTN_1", "1", "T-ILS"), ("K2", "ICP_BTN_2", "2", "ALOW"), ("K3", "ICP_BTN_3", "3", ""), ("RCL", "ICP_RCL_BTN", "", "RCL"),
+    ("K4", "ICP_BTN_4", "4", "STPT"), ("K5", "ICP_BTN_5", "5", "CRUS"), ("K6", "ICP_BTN_6", "6", "TIME"), ("ENTR", "ICP_ENTR_BTN", "", "ENTR"),
+    ("K7", "ICP_BTN_7", "7", "MARK"), ("K8", "ICP_BTN_8", "8", "FIX"), ("K9", "ICP_BTN_9", "9", "A-CAL"), ("K0", "ICP_BTN_0", "0", "M-SEL"),
+)
+DCS_KEYS = (("UP", "ICP_DATA_UP_DN_SW", 2, ARROW_UP, 516, 284), ("DOWN", "ICP_DATA_UP_DN_SW", 0, ARROW_DOWN, 516, 404), ("LEFT", "ICP_DATA_RTN_SEQ_SW", 0, ARROW_LEFT, 456, 344), ("RIGHT", "ICP_DATA_RTN_SEQ_SW", 2, ARROW_RIGHT, 576, 344))
+
+
+def ded_plate(g: PanelGroup):
+    p = g.panel("DED", 640, 272, 0, 0)
+    p.display("DED", 320, 136, 568, 200, {"id": "DED_L1", "label": "DED", "type": "display", "cols": 24, "ids": [f"DED_L{n}" for n in range(1, 6)]})
+
+
+def icp_plate(g: PanelGroup):
+    p = g.panel("ICP", 640, 556, 0, 288)
+    for n, (name, bios, label) in enumerate(ICP_OVERRIDES):
+        p.round(name, 112 + 104 * n, 70, {**push_button(bios, label), "shape": "round"})
+        p.label(label, "NAME", name, "below")
+    for n, (name, bios, glyph, legend) in enumerate(ICP_KEYS):
+        p.push_small(name, 160 + 72 * (n % 4), 192 + 92 * (n // 4), {**push_button(bios, f"{glyph} {legend}".strip()), "style": "flat"}, glyph)
+        if legend:
+            p.label(legend, "POS", name, "above")
+    p.knob("SYM", "KNOB_M", 80, 204, knob("ICP_HUD_BRT_KNB", "SYM"))
+    p.label("SYM", "NAME", "SYM", "above")
+    p.knob("RET", "KNOB_M", 516, 204, knob("ICP_RETICLE_DEPRESS_KNB", "RET DEPR"))
+    p.label("RET DEPR", "NAME", "RET", "above")
+    p.rocker("DED", 80, 344, {"id": "ICP_DED_SW", "label": "DED", "type": "hat", "ud": "ICP_DED_SW", "hold": BUTTON_HOLD, "positions": UP_DOWN})
+    p.label("INCR", "POS", "DED", "above")
+    p.label("DECR", "POS", "DED", "below")
+    for name, bios, value, glyph, x, y in DCS_KEYS:
+        p.push_small(f"DCS_{name}", x, y, {"id": f"ICP_DCS_{name}", "label": f"DCS {name}", "type": "button", "style": "flat", "bios": bios, "value": value, "rest": 1, "hold": BUTTON_HOLD}, glyph)
+    p.label("RTN", "POS", "DCS_LEFT", "below")
+    p.label("SEQ", "POS", "DCS_RIGHT", "below")
+    drift = spring("ICP_DRIFT_SW", "DRIFT C/O / WARN RESET", ((0, "DRIFT C/O"), (1, "NORM"), (2, "WARN RESET")), 1)
+    del drift["positions"][0]["momentary"]
+    p.toggle("DRIFT", 320, 464, drift, "above_side_below")
+
+
+def ded_pages() -> list[dict]:
+    g = PanelGroup("DED", "f16c", scroll=True)
+    ded_plate(g)
+    icp_plate(g)
+    return [kit_page("DED", None, g.build())]
+
+
 VIEWS = [
     {
         "name": "COCKPIT", "seats": [0], "layout": "map", "controls": [],
@@ -848,6 +899,7 @@ VIEWS = [
         ],
         "links": [
             {"label": "MFD L", "view": "MFD", "side": "L", "seats": [0], "map": [2, 6, 2, 1]},
+            {"label": "DED / ICP", "view": "DED", "seats": [0], "map": [2, 7, 2, 1]},
             {"label": "MFD R", "view": "MFD", "side": "R", "seats": [0], "map": [2, 8, 2, 1]},
         ],
     },
@@ -876,6 +928,7 @@ VIEWS = [
         "name": "MFD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfd_controls("L") + mfd_controls("R"),
         "titles": {"L": "LEFT MFD", "R": "RIGHT MFD"}, "inert": [],
     },
+    *ded_pages(),
 ]
 
 CONTROL_NAMES = []

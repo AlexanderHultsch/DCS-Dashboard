@@ -2,8 +2,9 @@
 //
 // Usage: open the dashboard, choose the seat, then paste this file into the browser console (or run it with a
 // browser tool that allows top-level await). It opens every kit page of the current seat through the long-hold
-// page list of the COCKPIT tab, measures the drawn labels, parts, screws, ears and plates (a page of several panels
-// has one plate per panel, 16 du apart on a shared edge line) and prints a compact JSON report. An empty "problems"
+// page list of the COCKPIT tab (and every kit tab, such as the F-16C DED, from the tab bar), measures the drawn
+// labels, parts, screws, ears and plates (a page of several panels has one plate per panel, 16 du apart on a
+// shared edge line) and prints a compact JSON report. An empty "problems"
 // object is the acceptance. Run it at 1180 x 820 and 1024 x 768 (reload after a resize), in the pilot and in the
 // CP/G seat.
 //
@@ -199,10 +200,11 @@ await (async () => {
   };
   await openList();
   const names = listNames().filter((n) => !kitNames || kitNames.has(n));
+  const tabNames = typeof views !== 'undefined' ? views.filter((v) => v.kit && !v.panel).map((v) => v.name.toUpperCase()) : [];
   document.getElementById('pageclose').click();
-  for (const name of names) {
-    await openList();
-    const btn = [...document.querySelectorAll('#pagelist > *')].find((e) => e.textContent.trim() === name);
+  for (const name of [...names, ...tabNames]) {
+    if (!tabNames.includes(name)) await openList();
+    const btn = [...document.querySelectorAll(tabNames.includes(name) ? '#tabs .tab' : '#pagelist > *')].find((e) => e.textContent.trim() === name);
     if (!btn) continue;
     btn.click();
     await sleep(500);
