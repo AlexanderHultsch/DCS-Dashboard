@@ -718,6 +718,125 @@ def hud_pages() -> list[dict]:
     return [kit_page("HUD CONTROL", [3, 9, 1, 2], g.build())]
 
 
+def snsr_plate(g: PanelGroup):
+    p = g.panel("SNSR PWR", 544, 240, 0, 0)
+    p.mark("SNSR PWR", "TITLE", 52, 120, "panel name turned along the left edge", 90)
+    for n, (name, bios, label, text) in enumerate((("LEFT", "HDPT_SW_L", "LEFT HDPT", "LEFT\nHDPT"), ("RIGHT", "HDPT_SW_R", "RIGHT HDPT", "RIGHT\nHDPT"), ("FCR", "FCR_PWR_SW", "FCR", "FCR"))):
+        p.toggle(name, 126 + 108 * n, 148, selector(bios, label, ((1, "ON"), (0, "OFF"))), "above_below")
+        p.label(text, "NAME", name, "above")
+    p.toggle("ALT", 450, 148, selector("RDR_ALT_PWR_SW", "RDR ALT", ((0, "RDR ALT"), (1, "STBY"), (2, "OFF"))), "above_side_below")
+
+
+def voice_plate(g: PanelGroup):
+    p = g.panel("VOICE MESSAGE", 232, 252, 0, 256)
+    p.toggle("VMS", 116, 148, selector("VMS_INHIBIT_SW", "VOICE MESSAGE", ((0, "VOICE MESSAGE"), (1, "INHIBIT"))), "above_below")
+
+
+def zeroize_plate(g: PanelGroup):
+    p = g.panel("ZEROIZE", 296, 252, 248, 256)
+    p.toggle("ZERO", 148, 148, selector("ZEROIZE_SW", "ZEROIZE", ((0, "OFP"), (1, "OFF"), (2, "DATA")), guard=True, cover="ZEROIZE_SW_COVER"), "above_side_below")
+    p.label("ZEROIZE", "NAME", "ZERO", "above")
+
+
+def snsr_pages() -> list[dict]:
+    g = PanelGroup("SNSR PWR / VMS / ZEROIZE", "f16c")
+    snsr_plate(g)
+    voice_plate(g)
+    zeroize_plate(g)
+    return [kit_page("SNSR PWR / VMS / ZEROIZE", [4, 9, 2, 2], g.build())]
+
+
+def interior_lighting_plate(g: PanelGroup):
+    p = g.panel("INTERIOR LIGHTING", 392, 460, 0, 0)
+    p.mark("LIGHTING", "TITLE", 52, 176, "panel name turned along the left edge", 90)
+    p.bracket("PRIMARY", "PRIMARY", 66, 354, 60)
+    for n, (name, bios, label, text) in enumerate((("CONSOLES", "PRI_CONSOLES_BRT_KNB", "PRIMARY CONSOLES", "CONSOLES"), ("INST", "PRI_INST_PNL_BRT_KNB", "PRIMARY INST PNL", "INST\nPNL"), ("DED", "PRI_DATA_DISPLAY_BRT_KNB", "PRIMARY DATA ENTRY DISPLAY", "DATA\nENTRY\nDISPLAY"))):
+        p.knob(name, "KNOB_M", 124 + 89 * n, 190, knob(bios, label))
+        p.label(text, "NAME", name, "above")
+    p.bracket("FLOOD", "FLOOD", 66, 246, 262)
+    for n, (name, bios, label, text) in enumerate((("FCONSOLES", "FLOOD_CONSOLES_BRT_KNB", "FLOOD CONSOLES", "CONSOLES"), ("FINST", "FLOOD_INST_PNL_BRT_KNB", "FLOOD INST PNL", "INST\nPNL"))):
+        p.knob(name, "KNOB_M", 124 + 89 * n, 368, knob(bios, label))
+        p.label(text, "NAME", name, "above")
+    p.toggle("MAL", 302, 368, spring("MAL_IND_LTS_BRT_SW", "MAL & IND LTS", ((0, "BRT"), (1, "CENTER"), (2, "DIM")), 1))
+    p.label("BRT", "POS", "MAL", "above")
+    p.label("MAL &\nIND LTS", "NAME", "MAL", "above")
+    p.label("DIM", "POS", "MAL", "below")
+
+
+def air_cond_plate(g: PanelGroup):
+    p = g.panel("AIR COND", 232, 256, 408, 0)
+    p.mark("AIR\nSOURCE", "NAME", 142, 66, "name above the position labels of the knob")
+    p.rotary("SOURCE", 142, 170, {
+        "id": "AIR_SOURCE_KNOB", "label": "AIR SOURCE", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "OFF", -125), (1, "NORM", -80), (2, "DUMP", -35), (3, "RAM", 35))),
+    })
+
+
+def lighting_pages() -> list[dict]:
+    g = PanelGroup("LIGHTING / AIR COND", "f16c")
+    interior_lighting_plate(g)
+    air_cond_plate(g)
+    return [kit_page("LIGHTING / AIR COND", [1, 11, 1, 2], g.build())]
+
+
+def oxygen_plate(g: PanelGroup):
+    p = g.panel("OXYGEN", 372, 448, 0, 0)
+    p.lamp("FLOW", 138, 110, lamp("FLOW_INDICATOR_LIGHT", "FLOW", "white"))
+    p.bar("PSI", 292, 240, {"id": "OXYGEN_PRESSURE", "label": "OXYGEN PSI", "type": "bar", "max": 65535})
+    p.label("OXYGEN\nPSI", "NAME", "PSI", "above")
+    p.toggle("DIL", 86, 356, selector("OXY_DILUTER_LVR", "DILUTER", ((1, "100%"), (0, "NORM"))), "above_below")
+    p.label("DILUTER", "NAME", "DIL", "above")
+    p.toggle("SUPPLY", 190, 356, selector("OXY_SUPPLY_LVR", "SUPPLY", ((0, "PBG"), (1, "ON"), (2, "OFF"))), "above_side_below")
+    p.label("SUPPLY", "NAME", "SUPPLY", "above")
+
+
+def anti_ice_plate(g: PanelGroup):
+    p = g.panel("ANTI-ICE", 252, 216, 388, 0)
+    p.toggle("ENGINE", 126, 124, selector("ENG_ANTI_ICE", "ANTI-ICE ENGINE", ((0, "ON"), (1, "AUTO"), (2, "OFF"))), "above_side_below")
+    p.label("ENGINE", "NAME", "ENGINE", "above")
+
+
+def ant_sel_plate(g: PanelGroup):
+    p = g.panel("ANT SEL", 252, 216, 388, 232)
+    for name, bios, x in (("IFF", "IFF_ANT_SEL_SW", 68), ("UHF", "UHF_ANT_SEL_SW", 160)):
+        p.toggle(name, x, 124, selector(bios, f"ANT SEL {name}", ((2, "UPPER"), (1, "NORM"), (0, "LOWER"))), "above_side_below")
+        p.label(name, "NAME", name, "above")
+
+
+def oxygen_pages() -> list[dict]:
+    g = PanelGroup("OXYGEN / ANTI-ICE", "f16c")
+    oxygen_plate(g)
+    anti_ice_plate(g)
+    ant_sel_plate(g)
+    return [kit_page("OXYGEN / ANTI-ICE", [2, 11, 1, 2], g.build())]
+
+
+def avionics_plate(g: PanelGroup):
+    p = g.panel("AVIONICS POWER", 624, 412, 0, 0)
+    p.mark("AVIONICS POWER", "TITLE", 52, 206, "panel name turned along the left edge", 90)
+    switches = (("MMC", "MMC_PWR_SW", "MMC"), ("STSTA", "ST_STA_SW", "ST STA"), ("MFD", "MFD_SW", "MFD"), ("UFC", "UFC_SW", "UFC"), ("GPS", "GPS_SW", "GPS"), ("DL", "DL_SW", "DL"))
+    for n, (name, bios, label) in enumerate(switches):
+        x, y = (120 + 110 * n, 124) if n < 5 else (120, 298)
+        p.toggle(name, x, y, selector(bios, label, ((1, "ON"), (0, "OFF"))), "above_below")
+        p.label(label, "NAME", name, "above")
+    p.mark("INS", "NAME", 272, 200, "name above the position labels of the knob")
+    p.rotary("INS", 272, 298, {
+        "id": "INS_KNB", "label": "INS", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "OFF", -150), (1, "STOR HDG", -108), (2, "NORM", -75), (3, "NAV", -35), (4, "CAL", 35, True), (5, "IN FLT", 90), (6, "ATT", 145))),
+    }, labels="fan")
+    p.mark("MIDS LVT", "NAME", 500, 200, "name above the position labels of the knob")
+    p.rotary("MIDS", 500, 298, {
+        "id": "MIDS_LVT_KNB", "label": "MIDS LVT", "type": "selector", "style": "rotary",
+        "positions": rotary_positions(((0, "ZERO", -60), (1, "OFF", 0), (2, "ON", 60))),
+    })
+
+
+def avionics_pages() -> list[dict]:
+    g = PanelGroup("AVIONICS POWER", "f16c")
+    avionics_plate(g)
+    return [kit_page("AVIONICS POWER", [3, 11, 2, 2], g.build())]
+
+
 VIEWS = [
     {
         "name": "COCKPIT", "seats": [0], "layout": "map", "controls": [],
@@ -749,6 +868,10 @@ VIEWS = [
     *seat_pages(),
     *caution_pages(),
     *hud_pages(),
+    *snsr_pages(),
+    *lighting_pages(),
+    *oxygen_pages(),
+    *avionics_pages(),
     {
         "name": "MFD", "seats": [0], "layout": "mfcd", "lamps": [], "controls": mfd_controls("L") + mfd_controls("R"),
         "titles": {"L": "LEFT MFD", "R": "RIGHT MFD"}, "inert": [],
