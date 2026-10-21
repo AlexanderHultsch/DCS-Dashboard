@@ -1,6 +1,6 @@
 # DCS-Dashboard
 
-A tablet dashboard for the **AH-64D Apache** and the **A-10C II Tank Killer** (under development) in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Touch panels replace keyboard combinations and mouse clicks for cockpit commands.
+A tablet dashboard for the **AH-64D Apache**, the **A-10C II Tank Killer** and the **F-16C Viper** (the last two under development) in DCS World. A small Python bridge connects to DCS via [DCS-BIOS](https://github.com/DCS-Skunkworks/dcs-bios) and serves an HTML page you open on an iPad or any tablet. Touch panels replace keyboard combinations and mouse clicks for cockpit commands.
 
 The AH-64D has these tabs:
 
@@ -8,6 +8,12 @@ The AH-64D has these tabs:
 - **FLIGHT, FIGHT**: power levers, symbology, trim display, weapons, sights, countermeasures. FIGHT has one page per seat; the CP/G page adds the TADS controls (FOV, sensor, IAT, OFS, slave).
 - **MPD, KU**: both MPD bezels with live button labels, the TEDAC (CP/G), the cursor pad and the keyboard unit.
 - **GEORGE**: direct buttons for the AI crew member (search, targets, engagement, request control).
+
+The F-16C has these tabs:
+
+- **COCKPIT**: a map of the cockpit and 21 panel pages (fuel, canopy, landing gear, countermeasures, radios, caution lights, lighting and more). Pages taller than the screen scroll.
+- **FLIGHT, FIGHT**: gear, flaps, lights, brake switch, engine, fuel and hydraulic bars; arming switches, countermeasure counts and controls, ECM.
+- **MFD, DED**: both MFD bezels, one at a time, and the live DED with the ICP keypad.
 
 The A-10C II has these tabs:
 
@@ -17,19 +23,19 @@ The A-10C II has these tabs:
 
 The dashboard follows the aircraft DCS reports and, in the AH-64D, the seat you are in; a long hold on the seat badge shows the pages of the other seat, view only, for debugging. Everything is plain Python (standard library only) and one HTML file. Full description: the engine in [docs/SPEC.md](docs/SPEC.md), the AH-64D in [docs/AH64D/SPEC.md](docs/AH64D/SPEC.md), the A-10C II in [docs/A10C/SPEC.md](docs/A10C/SPEC.md).
 
-**Status:** the AH-64D is mature and tested in DCS. The A-10C II is under development: it is tested only against a simulated DCS-BIOS, and its keypress controls are not built yet. Open points: [docs/FIXES.md](docs/FIXES.md).
+**Status:** the AH-64D is mature and tested in DCS. The A-10C II and the F-16C are under development: they are tested only against a simulated DCS-BIOS, and their keypress controls are not built yet. Open points: [docs/FIXES.md](docs/FIXES.md).
 
 ## Aircraft
 
 - **AH-64D Apache** (pilot and CP/G seat): mature and tested. Specification: [docs/AH64D/SPEC.md](docs/AH64D/SPEC.md).
 - **A-10C II Tank Killer**: under development, tested only against a simulated DCS-BIOS, not yet in DCS. The controls that need a keypress (speed brake, trim, nosewheel steering, the HOTAS hats) are not built yet: the A-10C default keybinds are not known until they are exported from DCS. Specification: [docs/A10C/SPEC.md](docs/A10C/SPEC.md); research and plan: [docs/A10C/RESEARCH.md](docs/A10C/RESEARCH.md).
-- **F-16C Viper**: planned, research started, nothing built. Research and plan: [docs/F16C/RESEARCH.md](docs/F16C/RESEARCH.md).
+- **F-16C Viper**: under development, built from the manual and DCS-BIOS without the module, tested only against a simulated DCS-BIOS, not yet in DCS. The controls that need a keypress (the HOTAS key hats, speed brake, trim, nosewheel steering) are not built yet. Specification: [docs/F16C/SPEC.md](docs/F16C/SPEC.md); research and plan: [docs/F16C/RESEARCH.md](docs/F16C/RESEARCH.md).
 
 The bridge loads every aircraft file and follows the aircraft that DCS-BIOS reports, so you can fly one after the other without a restart; the page reloads when the aircraft changes. The settings page has an AIRCRAFT switch (AUTO or one button per aircraft) for debugging. The engine that all aircraft share is described in [docs/SPEC.md](docs/SPEC.md).
 
 ## Requirements
 
-- Windows, DCS World with the AH-64D and / or the A-10C II module, single player (multiplayer servers may block exports)
+- Windows, DCS World with the AH-64D, the A-10C II and / or the F-16C module, single player (multiplayer servers may block exports)
 - Python 3.12 or newer
 - A tablet with a current browser (iPadOS 16 or newer, or a current Chrome) on the same network as the PC; designed for 1180 × 820 landscape, works from 1024 × 768
 
@@ -54,7 +60,7 @@ In the paths below, `<Saved Games>` is your DCS Saved Games folder, usually `%US
    After an update of the repo, copy the script again and restart the mission. The script now has one table per aircraft, so a copy from an older version must be replaced. At start the dashboard warns if the copy is missing, outdated or not loaded by `Export.lua`.
 5. **Config (optional).** The defaults fit a standard install and the DCS folder is found automatically. To change something (another DCS folder, ports, rebound keys, a fixed aircraft instead of `aircraft = "auto"`), copy `config\config.example.toml` to `config\config.toml` and keep only the lines you change. That file stays on your machine and is never committed.
 6. **Run.** Start DCS in windowed or borderless mode, then double-click `start_dashboard.bat` (or run `python core\dashboard.py`). It prints the address to open, for example `http://<PC address>:8080`. If Windows asks to allow Python on the network, allow it for private networks.
-7. **Tablet.** Open that address in the tablet's browser. On an iPad: Share → Add to Home Screen; the page then runs full screen with its own icon. Load an AH-64D or A-10C II mission; the page switches to the aircraft by itself.
+7. **Tablet.** Open that address in the tablet's browser. On an iPad: Share → Add to Home Screen; the page then runs full screen with its own icon. Load an AH-64D, A-10C II or F-16C mission; the page switches to the aircraft by itself.
 
 Stop the bridge with Ctrl+C or close the window.
 
@@ -82,11 +88,12 @@ core/                 the generic bridge: web server, DCS-BIOS, keys, config, lo
 core/tools/test/      developer test kit: test bridge with a fake keyboard, DCS-BIOS simulator, page checks (for developers only)
 aircraft/ah64d.py     everything specific to the AH-64D: views, controls, labels, default keybinds
 aircraft/a10c.py      everything specific to the A-10C II: panel pages, views, controls, labels
+aircraft/f16c.py      everything specific to the F-16C: panel pages, views, controls, labels
 config/               config.example.toml (config.toml and settings.json are local and ignored)
 logs/                 rolling log, created at runtime (ignored)
 docs/                 SPEC.md (the engine spec), FIXES.md (open points and fixes in progress),
                       AH64D/ (AH-64D spec), A10C/ (A-10C II spec, research and plan),
-                      F16C/ (F-16C research and plan)
+                      F16C/ (F-16C spec, research and plan)
 ```
 
 Further aircraft may follow: the bridge and the page engine are aircraft-independent, an aircraft is one file in `aircraft/` (every file there is loaded) plus its drawings. See [docs/SPEC.md](docs/SPEC.md).

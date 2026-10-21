@@ -268,7 +268,7 @@ Sections and control names follow PANELS.md. Columns:
 
 | Control | DCS-BIOS identifier | Access | Build | Position order | Note |
 | --- | --- | --- | --- | --- | --- |
-| Fault list window | — | — | not exported | — | No PFLD text output; the HUD DED/PFLD switch is HUD_DED_DATA_SW |
+| Fault list window | — | — | not exported | — | No PFLD text output; HUD_DED_DATA_SW (the HUD DED/PFLD switch) belongs to the HUD Control Panel (p. 94), not to the PFLD |
 
 ### Caution Light Panel (p. 59)
 
@@ -596,7 +596,7 @@ Sections and control names follow PANELS.md. Columns:
 
 | Control | DCS-BIOS identifier | Access | Build | Position order | Note |
 | --- | --- | --- | --- | --- | --- |
-| VOICE MESSAGE switch | VMS_INHIBIT_SW | read + command | selector (2) | guess: 0 = VOICE MESSAGE, 1 = INHIBIT | Voice Message Inhibit Switch, VOICE MESSAGE/INHIBIT |
+| VOICE MESSAGE switch | VMS_INHIBIT_SW | read + command | selector (2) | guess: 0 = VOICE MESSAGE, 1 = INHIBIT | Voice Message Inhibit Switch, VOICE MESSAGE/INHIBIT. Inconsistent with the toggle rule above: here the first name of the DCS-BIOS description is taken as 0, while most other toggles (for example HOOK_SW, AIR_REFUEL_SW) take the first name as the higher value. Check both ways in DCS |
 
 ### ZEROIZE Switch (p. 80)
 
@@ -648,7 +648,7 @@ Sections and control names follow PANELS.md. Columns:
 | --- | --- | --- | --- | --- | --- |
 | 1. Scales Switch | HUD_SCALES_SW | read + command | selector (3) | 0 = VV/VAH, 1 = VAH, 2 = OFF | HUD Scales Switch |
 | 2. Flightpath Marker Switch | HUD_FP_MARKER_SW | read + command | selector (3) | 0 = ATT/FPM, 1 = FPM, 2 = OFF | HUD Flightpath Marker Switch |
-| 3. DED/PFLD Switch | HUD_DED_DATA_SW | read + command | selector (3) | 0 = DED, 1 = PFL, 2 = OFF | HUD DED/PFLD Data Switch |
+| 3. DED/PFLD Switch | HUD_DED_DATA_SW | read + command | selector (3) | 0 = DED, 1 = PFL, 2 = OFF | HUD DED/PFLD Data Switch; the only row for this id (the PFLD section has none) |
 | 4. Depressible Reticle Switch | HUD_DEPRESS_RET_SW | read + command | selector (3) | 0 = STBY, 1 = PRI, 2 = OFF | HUD Depressible Reticle Switch |
 | 5. Velocity Switch | HUD_SPEED_SW | read + command | selector (3) | 0 = CAS, 1 = TAS, 2 = GND SPD | HUD Velocity Switch |
 | 6. Altitude Switch | HUD_ALT_SW | read + command | selector (3) | 0 = RADAR, 1 = BARO, 2 = AUTO | HUD Altitude Switch |
@@ -843,7 +843,7 @@ These controls exist in DCS-BIOS but no row of PANELS.md describes them (the man
 
 | DCS-BIOS identifier | Access | Build | Position order | Description | Note |
 | --- | --- | --- | --- | --- | --- |
-| AIR_SOURCE_KNB | read + command | selector (5) | guess: 0 = OFF, 1 = NORM, 2 = DUMP, 3 = RAM, 4 = unknown | AIR SOURCE Knob | Deprecated since 0.11.1: five positions for a four-position knob; use AIR_SOURCE_KNOB (AIR COND Control Panel) |
+| AIR_SOURCE_KNB | read + command | selector (5) | guess: 0 = OFF, 1 = NORM, 2 = DUMP, 3 = RAM, 4 = unknown | AIR SOURCE Knob | Deprecated since 0.11.1: five positions for a four-position knob; use AIR_SOURCE_KNOB (AIR COND Control Panel). Not used by the dashboard |
 
 ### External Aircraft Model (DCS-BIOS only)
 
@@ -1064,7 +1064,7 @@ Every identifier whose position order starts with `guess:` above, to be checked 
   - 6. ECM Module Control Button SPL: ECM_SPL_BTN — 0 = out, 1 = in
 - DCS-BIOS controls not in PANELS.md
   - HIDE_STICK — 0 = off, 1 = on
-  - AIR_SOURCE_KNB — 0 = OFF, 1 = NORM, 2 = DUMP, 3 = RAM, 4 = unknown
+  - AIR_SOURCE_KNB (deprecated, not used; the AIR COND page uses AIR_SOURCE_KNOB, which has a known order) — 0 = OFF, 1 = NORM, 2 = DUMP, 3 = RAM, 4 = unknown
 
 99 identifiers have a guessed position order.
 

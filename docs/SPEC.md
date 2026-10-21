@@ -1,12 +1,12 @@
 # DCS-Dashboard – Spec
 
-The specification of the product as built, for the engine that all aircraft share. The AH-64D is specified in [AH64D/SPEC.md](AH64D/SPEC.md), the A-10C II in [A10C/SPEC.md](A10C/SPEC.md). Open points and the fix log are in [FIXES.md](FIXES.md).
+The specification of the product as built, for the engine that all aircraft share. The AH-64D is specified in [AH64D/SPEC.md](AH64D/SPEC.md), the A-10C II in [A10C/SPEC.md](A10C/SPEC.md), the F-16C in [F16C/SPEC.md](F16C/SPEC.md). Open points and the fix log are in [FIXES.md](FIXES.md).
 
 ## 1. Purpose and principles
 
 A self-made helper dashboard on a tablet (iPad) for aircraft in DCS World. It replaces keyboard combinations and mouse clicks for cockpit commands and shows the cockpit state. Flying itself stays on stick, collective and pedals. It is an open-source hobby project.
 
-Aircraft: the AH-64D (pilot and CP/G seat) is mature and tested, see [AH64D/SPEC.md](AH64D/SPEC.md); the A-10C II is under development (built except its keypress controls, tested only against a simulated DCS-BIOS), see [A10C/SPEC.md](A10C/SPEC.md). The bridge serves the aircraft that DCS reports, see [Several aircraft](#9-several-aircraft). For the AH-64D the dashboard shows a COCKPIT map with one page per cockpit panel, quick pages for flight and fight, both MPDs, the TEDAC, the KU and direct buttons for George, the AI crew member.
+Aircraft: the AH-64D (pilot and CP/G seat) is mature and tested, see [AH64D/SPEC.md](AH64D/SPEC.md); the A-10C II is under development (built except its keypress controls, tested only against a simulated DCS-BIOS), see [A10C/SPEC.md](A10C/SPEC.md); the F-16C is under development in the same way (built except its keypress controls, tested only against a simulated DCS-BIOS), see [F16C/SPEC.md](F16C/SPEC.md). The bridge serves the aircraft that DCS reports, see [Several aircraft](#9-several-aircraft). For the AH-64D the dashboard shows a COCKPIT map with one page per cockpit panel, quick pages for flight and fight, both MPDs, the TEDAC, the KU and direct buttons for George, the AI crew member.
 
 Principles:
 
@@ -54,12 +54,14 @@ core/                      generic infrastructure
     test/                  developer test kit (test bridge with a fake keyboard, DCS-BIOS simulator, page checks; see its README.md)
 aircraft/ah64d.py          all AH-64D data: views, controls, labels, MPD indications, trim data, default keybinds
 aircraft/a10c.py           all A-10C II data: panel pages, views, controls, labels
+aircraft/f16c.py           all F-16C data: panel pages, views, controls, labels
 config/                    config.example.toml (tracked); config.toml (optional, ignored: machine settings and
                            keybind overrides); settings.json (ignored: logging switch, last detected aircraft)
 logs/                      generated at runtime (ignored)
 docs/                      SPEC.md (this spec: the engine) and FIXES.md (a temporary working note)
   AH64D/                   SPEC.md (the AH-64D spec)
   A10C/                    the A-10C II spec, engine changes, research notes and reference data
+  F16C/                    the F-16C spec, engine changes, research notes and reference data
 ```
 
 ```
@@ -160,7 +162,7 @@ The bridge checks DCS-BIOS after sending: a push button is held until DCS report
 
 ## 6. Views
 
-A view is one entry of the `VIEWS` list of the aircraft file ([section 8](#8-the-bridge-interface)). The tab bar has one tab per view name, and a tab opens the view of that name for the current seat. The `layout` of a view tells the page how to draw it: `map` (a cockpit map whose boxes open the panel pages), `panel` (one cockpit panel drawn by the panel kit, [section 7](#7-the-panel-kit)), `mpd` (a display bezel with its buttons and live labels), `ku` (a keyboard unit drawn 1:1 after a photo), `mfcd` (the A-10C II MFCD bezel, one side at a time) and `cdu` (the A-10C II CDU and UFC, one at a time); without a `layout` the page draws the fixed grid of buttons, lamps and displays of the quick pages. The views of the AH-64D are described in [The views](AH64D/SPEC.md#2-the-views) of its spec, those of the A-10C II in [A10C/SPEC.md](A10C/SPEC.md).
+A view is one entry of the `VIEWS` list of the aircraft file ([section 8](#8-the-bridge-interface)). The tab bar has one tab per view name, and a tab opens the view of that name for the current seat. The `layout` of a view tells the page how to draw it: `map` (a cockpit map whose boxes open the panel pages), `panel` (one cockpit panel drawn by the panel kit, [section 7](#7-the-panel-kit)), `mpd` (a display bezel with its buttons and live labels), `ku` (a keyboard unit drawn 1:1 after a photo), `mfcd` (a display bezel with 20 option select buttons and four corner rocker places, one side at a time: the A-10C II MFCD and the F-16C MFD) and `cdu` (the A-10C II CDU and UFC, one at a time); without a `layout` the page draws the fixed grid of buttons, lamps and displays of the quick pages. A `panel` view without `"panel": true` is a panel kit page used as a tab (the F-16C DED): it has no `map` cell and gets a tab of its own ([section 7](#7-the-panel-kit)). In the grid of the quick pages a selector with more than four positions draws its buttons in two columns. The views of the AH-64D are described in [The views](AH64D/SPEC.md#2-the-views) of its spec, those of the A-10C II in [A10C/SPEC.md](A10C/SPEC.md).
 
 ## 7. The panel kit
 
@@ -175,7 +177,7 @@ A view is one entry of the `VIEWS` list of the aircraft file ([section 8](#8-the
  "lamps": [...], "print": [...], "art": [...], "controls": [...], "indicators": [...], "kit": True, "ref": [640, 600]}
 ```
 
-`map` is the cell on the cockpit map; `box` the size in du; `ref` the 640 × 600 budget the scale is computed from; `kit` marks a page drawn by the kit; `print` the placard text as `[text, x, y, size, width, rotation]`; `art` the drawn parts (plate, ear, screw, bracket, outline, slot, glass, hazard, line, arrow, path, text); `lamps` the top row with the master lamps; `indicators` (optional) free lamps drawn on the panel (the CMWS threat sectors), each with a bright and a dim DCS-BIOS id.
+A kit page that is a tab and not a map page (the F-16C DED, ICP and DED display) has `"layout": "panel"` but no `"panel": true` and no `map`; the layout checker measures it from the tab bar. `map` is the cell on the cockpit map; `box` the size in du; `ref` the 640 × 600 budget the scale is computed from; `kit` marks a page drawn by the kit; `print` the placard text as `[text, x, y, size, width, rotation]`; `art` the drawn parts (plate, ear, screw, bracket, outline, slot, glass, hazard, line, arrow, path, text); `lamps` the top row with the master lamps; `indicators` (optional) free lamps drawn on the panel (the CMWS threat sectors), each with a bright and a dim DCS-BIOS id.
 
 The COCKPIT view (layout `map`) is one entry for both seats. It holds `links` (the map boxes that open the KU, MPD and TEDAC tabs, each with `view`, `side`, `seats` and `map`) and the canopy key.
 
@@ -203,14 +205,14 @@ The COCKPIT view (layout `map`) is one entry for both seats. It holds `links` (t
 | `HOUSING`, `HAZARD_STRIP` | dark housing = the part (or its cover) + 12 on each side; strip 32 wide against a housing side | the three fire buttons |
 | `EAR` | rectangular corner ear 52 × 52, flush in the plate corner, 2 border | the four corners of every plate with the look `ah64d` |
 | `SCREW_L` / `_M` / `_S` | diameter 26 / 18 / 12 | `SCREW_L` centred in each ear |
-| `DZUS` | fastener, diameter 24, centre 22 from both edges of its corner | the four corners of every plate with the look `a10c`, instead of ears and screws |
+| `DZUS` | fastener, diameter 24, centre 22 from both edges of its corner | the four corners of every plate with the look `a10c` (a Dzus fastener) or `f16c` (a cross-head screw of the same size and place), instead of ears and screws |
 | `LAMP` / `LAMP_WIDE` | 72 × 40 / 136 × 40 | legend lamps without a touch target (`Panel.lamp`): text on the lamp face, at most two lines, colour green, amber, red or white; it lights while its DCS-BIOS output is above 0 |
 | `BAR` | 40 × 200 | read-only vertical bar (`Panel.bar`): track, fill from the bottom, percentage below; no touch action |
 | Label styles | `TITLE` 32, `NAME` 24, `POS` 20, `SMALL` 16 | every printed text; one font, one weight per style; the page stretches each text to the width the kit estimated (19, 14, 12, 10 du per character), so the font does not change the layout |
 
 Also in the kit: a printed bracket over a group of parts (SOL, AUX on COMM) and a printed vertical rule (EXT / INTR LT). A push button can be lit in green, amber, red or white.
 
-**Looks.** `Panel(..., look=...)` and `PanelGroup(..., look=...)` choose the plate style for every plate of the page: `"ah64d"` (default: four ears with a screw each) or `"a10c"` (four Dzus fasteners, no ears). The look changes only the drawing of the plate corners; parts, touch areas and layout rules are the same.
+**Looks.** `Panel(..., look=...)` and `PanelGroup(..., look=...)` choose the plate style for every plate of the page: `"ah64d"` (default: four ears with a screw each), `"a10c"` (four Dzus fasteners, no ears) or `"f16c"` (near-black plates, four cross-head screws at the places of the Dzus fasteners, no ears, semi-bold off-white labels). The look changes only the drawing of the plate corners and the plate and label colours; parts, touch areas and layout rules are the same. The page data carries the look on the plate (`art`, shape `plate`, `look`) and the corner fasteners as shape `dzus` or `cross`.
 
 **Scroll pages.** `Panel(..., scroll=True)` and `PanelGroup(..., scroll=True)` allow a page taller than 600 du, up to `SCROLL_MAX` (1800 du); `build()` then adds `"scroll": True` to the page data. The page keeps the width of 640 du and the scale of every page, so parts stay the same size. Only the plate area scrolls vertically; the tabs, the lamp row and the settings button stay fixed. The scroll area has a visible frame, its own scroll bar at the right edge (iPadOS hides the browser's own) and a shaded edge with a chevron where more of the page is hidden. A touch that moves is a scroll and never a tap, a hold or a knob turn. A scroll page opens at the top. Every other page keeps the 640 × 600 du budget. The layout checker allows 1800 du for a scroll page.
 
@@ -229,10 +231,10 @@ Also in the kit: a printed bracket over a group of parts (SOL, AUX on COMM) and 
 
 **Compile-time checks.** `Panel.build()` raises a `LayoutError` when the aircraft file is loaded and a page collides with itself; `Panel.check()` tests every page in du: collisions of parts, labels, touch squares, screws and printed lines, the 36 du plate margin and the 12 du clearance to the ears.
 
-**Layout checker.** `core/tools/check_panels.js` measures the drawn pages in the browser. Paste it into the browser console of the open dashboard (or run it through a browser tool); it opens every page of the current seat from the long-hold page list and prints a JSON report with `pages`, `sizes`, `problems` and `info`. An empty `problems` is the acceptance. Run it in both seats at 1180 × 820 and 1024 × 768, with a reload after a resize. It reports:
+**Layout checker.** `core/tools/check_panels.js` measures the drawn pages in the browser. Paste it into the browser console of the open dashboard (or run it through a browser tool); it opens every page of the current seat from the long-hold page list, and every kit page that is a tab from the tab bar, and prints a JSON report with `pages`, `sizes`, `problems` and `info`. An empty `problems` is the acceptance. Run it in both seats at 1180 × 820 and 1024 × 768, with a reload after a resize. It reports:
 
 - parts (body, frame, cover and pad together) overlapping each other or closer than 12 du to the plate edge or an ear; labels closer than 6 du to the plate edge or overlapping a part, label or screw; a guard cover that is not exactly the part (or its frame) + 12 du; a part kind (with frame and cover) drawn at different sizes on different pages of the seat; a page larger than 640 × 600 du (1800 du tall for a scroll page);
-- corner screws not in the centre of their ear or not on the two shared x and y lines (for the look `a10c`: a Dzus fastener not centred 22 du from the two edges of its corner); plates of one page not 16 du apart on a shared edge line; an inner or edge screw that shares no line with anything goes to `info`;
+- corner screws not in the centre of their ear or not on the two shared x and y lines (for the looks `a10c` and `f16c`: a Dzus fastener or cross-head screw, both measured the same way, not centred 22 du from the two edges of its corner); plates of one page not 16 du apart on a shared edge line; an inner or edge screw that shares no line with anything goes to `info`;
 - a touch area under 56 px, or two touch areas overlapping by 6 px or more in both directions (guard covers, the APU flap, elements inside another, and the PULL chip floor of 32 px excepted).
 
 
@@ -257,7 +259,7 @@ Also in the kit: a printed bracket over a group of parts (SOL, AUX on COMM) and 
 | `MPD_INDICATIONS` | the export script indication numbers sent at 4 Hz: `(7, 9, 11, 13)`; empty for the A-10C II |
 | `MPD_SEATS` | seat → (left, right) indication numbers: `{0: (7, 9), 1: (11, 13)}`; empty for the A-10C II |
 
-**View.** `{"name", "seats": [0, 1], "lamps": [...], "controls": [...]}` (a name may occur once per seat, as FIGHT: the page has one tab per name and opens the view whose `seats` contain the current seat) plus, per layout: `"layout"` (`"map"`, `"panel"`, `"mpd"`, `"ku"`, `"mfcd"`, `"cdu"`; omitted = the fixed grid of FLIGHT / FIGHT), `"links"` (COCKPIT map), and the panel fields of [section 7](#7-the-panel-kit) (`"scroll": True` for a scroll page). A lamp is `{"id", "label", "color", "button"?}` (`button` makes it a lighted push button).
+**View.** `{"name", "seats": [0, 1], "lamps": [...], "controls": [...]}` (a name may occur once per seat, as FIGHT: the page has one tab per name and opens the view whose `seats` contain the current seat) plus, per layout: `"layout"` (`"map"`, `"panel"`, `"mpd"`, `"ku"`, `"mfcd"`, `"cdu"`; omitted = the fixed grid of FLIGHT / FIGHT), `"links"` (COCKPIT map), and the panel fields of [section 7](#7-the-panel-kit) (`"scroll": True` for a scroll page). A lamp is `{"id", "label", "color", "button"?}` (`button` makes it a lighted push button). The `mfcd` layout needs two more fields: `"titles"` (side letter to the name on the side switch and in the title of the knob bar, for example `{"L": "LEFT MFD", "R": "RIGHT MFD"}`) and `"inert"` (the printed rockers without a function that the bezel draws: any of `DSP`, `CON`, `SYM`; `[]` for none). Every `mfcd` view carries both. The `PWR` print (DAY / NT / OFF) is drawn only if the view has a control with the slot `PWR`.
 
 **Control fields**
 
@@ -282,7 +284,7 @@ Also in the kit: a printed bracket over a group of parts (SOL, AUX on COMM) and 
 | `step`, `step_fallback` | `knob`: step of an `up` / `down` command; selector: turn the knob with INC / DEC steps if the position is not reached |
 | `readback`, `states`, `key` | `lever` / `key` controls: the DCS-BIOS id read back, the state names, the `[keys]` name |
 | `steps` (macro) | `macro`: the key sequence, a list of `[key name, hold seconds, pause after seconds]`, key names from `[keys]` |
-| `side`, `slot`, `view` | MPD / TEDAC bezel controls and links |
+| `side`, `slot`, `view` | MPD / TEDAC bezel controls and links. On the `mfcd` bezel `slot` is an OSB number (`"1"` … `"20"`), a corner rocker place (`TL`, `TR`, `BL`, `BR`; `ADJ` and `BRT` are aliases of `TL` and `BR`, kept for the A-10C) or `PWR` |
 | `style`, `shape`, `orient`, `sweep`, `angle`, `group`, `pull` | how the panel kit draws it: `rotary`, `cover`, `slider`, `cap`, `chip`, `plunger`, `flat`; `shape: "round"`; `orient: "h"`; knob pointer angles at min / max; angle per position of a rotary; dual-function knob members; the pull-to-disable id of a knob (it shows pulled out when it reads 1, a 0.6 s hold toggles it) |
 
 Written by the kit for every control of a panel page (a page never types them): `at` (touch area `[x, y, w, h]` in du), `kit` (the part and the sizes), `cover_at` (box of the cover), `handle` (grip of the levers and FRICT, `[x, w, h]`), `knob` (`[cx, cy, r]` of a rotary), `mark` / `dot` (members of a dual-function knob), and `positions[].y` (where the lever grip stands).
@@ -345,8 +347,8 @@ One running bridge serves every aircraft file in `aircraft/`. The decisions behi
 - **Seats.** The aircraft file declares its seats (`SEATS`) and the seat output (`SEAT_OUTPUT`). With one seat and `SEAT_OUTPUT = None` the seat is 0 as soon as DCS-BIOS data arrives, the badge shows the aircraft, and there is no debug-seat hold.
 - **Trim display.** Only for an aircraft with a `TRIM_SWITCH`; without one the bridge does no trim tracking and needs no `trim_reset` key.
 - **Power levers.** The lever keys (`power_*`) are required only for an aircraft with `lever` controls. The A-10C II throttles are read-only bars.
-- **Display pages.** The MFCD, CDU and UFC are hand-drawn layouts in the page (`mfcd`, `cdu`), like the AH-64D `mpd` and `ku`.
-- **Panel look.** An aircraft chooses the plate look per page (`ah64d` or `a10c`, [section 7](#7-the-panel-kit)).
+- **Display pages.** The MFCD (A-10C II) and MFD (F-16C), the CDU and the UFC are hand-drawn layouts in the page (`mfcd`, `cdu`), like the AH-64D `mpd` and `ku`. The F-16C DED is not one of them: it is a panel kit page used as a tab.
+- **Panel look.** An aircraft chooses the plate look per page (`ah64d`, `a10c` or `f16c`, [section 7](#7-the-panel-kit)).
 - **Export script.** One table per aircraft name; the A-10C II table is empty.
 - **Keys.** The required keys depend on the aircraft. A key hat (a `hat` with `keys`, [section 8](#8-the-bridge-interface)) carries the HOTAS controls of the A-10C II once its keybinds are known.
 - **Scroll page.** A panel page that does not fit 640 × 600 du is a scroll page ([section 7](#7-the-panel-kit)).
