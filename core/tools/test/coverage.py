@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Coverage of the panel pages of an aircraft against its docs folder (SPEC.md section 2 and 11, BIOS.md).
+"""Coverage of the panel pages of an aircraft against its docs folder (SPEC.md section 2 and "Not on the dashboard", BIOS.md).
 
   python3 coverage.py [--docs docs/F16C] [PAGE ...]               per page: expected / used / missing / extra DCS-BIOS ids
   python3 coverage.py [--docs docs/F16C] --expected [PAGE ...]    print the expected ids of the pages instead
 
---docs is the docs folder of the aircraft (default docs/A10C); the aircraft file is aircraft/<folder in lower case>.py (a10c.py, f16c.py)
-and its DCSBIOS_MODULE names the JSON file. No page name = all pages of the spec. Exit code is always 0. The JSON comes from the DCS-BIOS
-JSON folder of the dashboard config.
+--docs is the docs folder of the aircraft (default docs/A10C); the aircraft file is aircraft/<folder in lower case>.py (a10c.py, f16c.py,
+ah64d.py) and its DCSBIOS_MODULE names the JSON file. No page name = all pages of the spec. Exit code is always 0. The JSON comes from the
+DCS-BIOS JSON folder of the dashboard config.
+A two-seat aircraft (AH-64D) writes an id that exists in both seats once as "{S}_NAME" in the docs and "{seat}_NAME" in the aircraft file;
+both become PLT_NAME / CPG_NAME (SEATS prefix) for the seats of the views of the page. Ids written in full stay as they are.
 The page -> panel table of the A-10C is PAGE_SECTIONS below (its Panels lines are prose). For any other aircraft it is read from the spec:
 the Panels line of every "#### PAGE" section, each "Name (p. N)" is the "### " heading of BIOS.md with that text.
 """
@@ -94,6 +96,12 @@ def aircraft_file() -> str:
     return Path(DOCS).name.lower()
 
 
+def seat_ids(id_: str, prefixes: list) -> list:
+    if not id_.startswith("{S}_"):
+        return [id_]
+    return [f"{prefix}_{id_[4:]}" for prefix in prefixes]
+
+
 def load_json_ids() -> set:
     sys.path.insert(0, str(REPO / "core"))
     sys.path.insert(0, str(REPO / "aircraft"))
@@ -105,11 +113,13 @@ def load_json_ids() -> set:
     return {c["identifier"] for category in data.values() for c in category.values()}
 
 
-def split_sections(path: Path, level: str) -> dict:
-    sections, name = {}, None
+def split_sections(path: Path, level: str, only: str = "") -> dict:
+    sections, name, inside = {}, None, not only
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.startswith("#"):
-            name = line[len(level) + 1:].strip() if line.startswith(level + " ") else None
+            if line.startswith("## "):
+                inside = not only or line.startswith(only)
+            name = line[len(level) + 1:].strip() if inside and line.startswith(level + " ") else None
             if name is not None:
                 sections.setdefault(name, [])
             continue
@@ -168,11 +178,11 @@ def section11_ids() -> list:
     lines, inside = [], False
     for line in SPEC_MD.read_text(encoding="utf-8").splitlines():
         if line.startswith("## "):
-            inside = line.startswith("## 11.")
+            inside = "Not on the dashboard" in line
             continue
         if inside:
             lines.append(line)
-    return [t for t in re.findall(r"`([^`]+)`", "\n".join(lines)) if re.match(r"^[A-Z][A-Z0-9_*]*$", t)]
+    return [t for t in re.findall(r"`([^`]+)`", "\n".join(lines)) if re.match(r"^(\{S\}_)?[A-Z][A-Z0-9_*]*$", t)]
 
 
 def plus_ids(page: str, spec_pages: dict) -> list:
@@ -187,7 +197,7 @@ def matches(id_: str, patterns: list) -> bool:
     return any(fnmatch.fnmatchcase(id_, p) for p in patterns)
 
 
-def expected(page: str, sections: dict, json_ids: set, bios: dict, spec_pages: dict, excluded: list, warnings: list) -> list:
+def expected(page: str, sections: dict, json_ids: set, bios: dict, spec_pages: dict, excluded: list, warnings: list, prefixes: list) -> list:
     candidates = []
     for entry in sections[page]:
         heading, only = entry if isinstance(entry, tuple) else (entry, None)
@@ -198,7 +208,7 @@ def expected(page: str, sections: dict, json_ids: set, bios: dict, spec_pages: d
         candidates += [i for i in found if only is None or i in only]
     candidates += plus_ids(page, spec_pages)
     result = []
-    for id_ in candidates:
+    for id_ in [i for c in candidates for i in seat_ids(c, prefixes)]:
         if id_ in result:
             continue
         if id_ not in json_ids:
@@ -222,11 +232,11 @@ def walk(node, out: set) -> None:
             walk(v, out)
 
 
-def load_views():
+def load_aircraft():
     sys.dont_write_bytecode = True
     sys.path.insert(0, str(REPO / "core"))
     sys.path.insert(0, str(REPO / "aircraft"))
-    return importlib.import_module(aircraft_file()).VIEWS
+    return importlib.import_module(aircraft_file())
 
 
 def main(argv: list) -> int:
@@ -239,10 +249,9 @@ def main(argv: list) -> int:
     show_expected = "--expected" in args
     json_ids = load_json_ids()
     bios = split_sections(BIOS_MD, "###")
-    spec_pages = split_sections(SPEC_MD, "####")
+    spec_pages = split_sections(SPEC_MD, "####", "## 2.")
     sections = PAGE_SECTIONS if aircraft_file() == "a10c" else spec_page_sections(spec_pages)
     pages = [a for a in args if a != "--expected"] or list(sections)
-    excluded = section11_ids()
     warnings = []
     for page in sections:
         if page not in spec_pages:
@@ -250,18 +259,20 @@ def main(argv: list) -> int:
     for page in spec_pages:
         if page not in sections:
             warnings.append(f"WARNING SPEC.md page section '#### {page}' has no Panels line" if aircraft_file() != "a10c" else f"WARNING SPEC.md page section '#### {page}' is not in PAGE_SECTIONS")
-    views = []
-    if not show_expected:
-        try:
-            views = load_views()
-        except Exception as e:
-            print(f"WARNING cannot import aircraft/{aircraft_file()}.py: {e!r}")
+    views, seats = [], []
+    try:
+        aircraft = load_aircraft()
+        views, seats = aircraft.VIEWS, [seat["prefix"] for seat in aircraft.SEATS]
+    except Exception as e:
+        print(f"WARNING cannot import aircraft/{aircraft_file()}.py: {e!r}")
+    excluded = [i for t in section11_ids() for i in seat_ids(t, seats)]
     total = 0
     for page in pages:
         if page not in sections:
             print(f"{page}: unknown page")
             continue
-        exp = expected(page, sections, json_ids, bios, spec_pages, excluded, warnings)
+        page_seats = {n for v in views if v.get("name") == page and v.get("panel") for n in v.get("seats", [0])}
+        exp = expected(page, sections, json_ids, bios, spec_pages, excluded, warnings, [seats[n] for n in sorted(page_seats)] or seats)
         if show_expected:
             print(f"{page}: expected {len(exp)}")
             print("  " + ", ".join(exp))
@@ -272,7 +283,9 @@ def main(argv: list) -> int:
             continue
         strings = set()
         for v in built:
-            walk(v, strings)
+            found = set()
+            walk(v, found)
+            strings |= {s.replace("{seat}", seats[n]) for s in found for n in v.get("seats", [0])}
         used = {s for s in strings if s in json_ids}
         missing = [i for i in exp if i not in used]
         extra = sorted(used - set(exp))
