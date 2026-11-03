@@ -137,7 +137,10 @@ def reader(sock: socket.socket) -> None:
 def follow_aircraft() -> None:
     global detected
     name = dcsbios.read_value(state, name_output)
-    if name is None or name == detected:
+    if name is None:
+        return
+    name = name.split("\x00")[0].strip()
+    if name == detected:
         return
     detected = name
     if aircraft_mode != "auto":

@@ -173,6 +173,7 @@ Temporary: the one list of everything still open, sorted by area. Delete an entr
 - [ ] The full sweep takes about 4 minutes.
 - [ ] `sim.py` resolves ids over all JSON files of the DCS-BIOS folder: an id that two aircraft share (`CANOPY_POS`, `DEFOG_LEVER` in the A-10C and the F-16C) needs `--json` with the folder of one aircraft.
 - [ ] `smoke.py` without `--acft` tests the A-10C (default `A-10C_2`), so a page name of another aircraft is not found: always pass `--acft`, or change the default to the AH-64D.
+- [ ] `sim.py` and the test scripts send `_ACFT_NAME` without the padding that real DCS adds (a NUL and spaces up to 24 characters): the aircraft choice is checked only by a unit test, not by the browser checks. Pad the simulator's name the way DCS does.
 - [ ] `coverage.py` cannot name a panel kit tab: the F-16C DED tab has no `####` page section in its spec, so it is not covered.
 - [ ] `coverage.py` for the AH-64D lists the master warning and caution lamps and buttons of the lamp row as `extra` on every page, and `PLT_ALT_SET_KNB` on CENTER (section 12 of the AH-64D spec names it in backticks, so the tool takes it as not shown). Not gaps; a short ignore list would clean the output.
 
@@ -202,3 +203,4 @@ The arrangement and text of the panel pages follow the photos. These are the pla
 | 2026-10-11 | No way to look at the other seat; shared FIGHT page | Debug seat view, one FIGHT page per seat, gunner controls, TKR pad | Simulated DCS-BIOS in the browser, both seats and sizes; not yet in DCS |
 | 2026-10-21 | A-10C: the long-hold page list with 29 entries was taller than the screen and cut off entries | The page list scrolls inside its card ([F16C/ENGINE.md](F16C/ENGINE.md) F1) | `core/tools/test/sweep.js --acft A-10C_2` opens every page-list entry (320 PASS); not yet on the iPad |
 | 2026-11-03 | The AH-64D was built and documented differently from the A-10C and F-16C | Shared `core/kit_helpers.py` for the aircraft files; AH-64D docs in the common set (SPEC, PANELS, BIOS, STARTUP, PICTURES, ENGINE, RESEARCH); `coverage.py` handles two seats | Layout data of all three aircraft byte-identical before and after; `coverage.py --docs docs/AH64D`: 0 missing; A-10C and F-16C coverage output unchanged |
+| 2026-11-03 | Real DCS pads the `_ACFT_NAME` string with a NUL and spaces, so the aircraft was never recognised and the bridge stayed on the A-10C | The bridge cuts the name at the NUL and strips spaces | Unit test with the padded value; not yet in DCS |
