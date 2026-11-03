@@ -33,7 +33,7 @@ Public repo rules:
 | Code | Public GitHub repo `DCS-Dashboard`, only the main branch; usable by anyone |
 | Dashboard | One HTML page served by the bridge, used in a tablet browser over the local network, no login |
 | Debug log | Rolling log file with a size limit: 5 MB per file, the last 3 files kept, about 15 MB in total |
-| AI | Not part of the product (George, the game's own AI crew member, is an AH-64D feature and has buttons on its GEORGE tab, see [AH64D/SPEC.md](AH64D/SPEC.md#george)); see [section 11](#11-future-development-and-out-of-scope) |
+| AI | Not part of the product (George, the game's own AI crew member, is an AH-64D feature and has buttons on its GEORGE tab, see [AH64D/SPEC.md](AH64D/SPEC.md#7-george)); see [section 11](#11-future-development-and-out-of-scope) |
 
 ## 2. Repository layout and architecture
 
@@ -98,17 +98,17 @@ Tablet dashboard (HTML page, follows the current seat)
 | `[dcs_bios] command_port` | `7778` | DCS-BIOS commands (UDP to 127.0.0.1) |
 | `[export] port` | `7790` | UDP port the export script sends to; must match `PORT` in `core/lua/DCS-Dashboard-Export.lua` |
 | `[dashboard] host`, `port` | `0.0.0.0`, `8080` | Web server for the tablet |
-| `[dashboard] macro_pause_scale` | `1.0` | Multiplies the pauses between the key presses of the GEORGE buttons of the AH-64D ([GEORGE](AH64D/SPEC.md#george)); raise it (1.5, 2) if DCS misses keys |
+| `[dashboard] macro_pause_scale` | `1.0` | Multiplies the pauses between the key presses of the GEORGE buttons of the AH-64D ([GEORGE](AH64D/SPEC.md#7-george)); raise it (1.5, 2) if DCS misses keys |
 | `[log] file`, `max_mb`, `backups` | `logs/dcs-dashboard.log`, 5, 2 | Rolling log: the active file plus 2 backups of 5 MB, about 15 MB in total |
 | `[keys]` | from the aircraft file | Overrides of the default keybinds, per key |
 
-- **Keybinds.** The default DCS keybinds sent as keypresses are in `KEYS` in the aircraft file (`aircraft/ah64d.py` for the AH-64D). A `[keys]` line in `config/config.toml` overrides one key; the others stay. Format: modifiers and key joined by `+`. Supported modifiers: `LCtrl` `RCtrl` `LShift` `RShift` `LAlt` `RAlt` `LWin`; keys `A`–`Z`, `0`–`9`, `F1`–`F12`, `Home` `End` `PageUp` `PageDown` `Insert` `Delete`, `Up` `Down` `Left` `Right`, `Space`, `Enter`. The bridge checks all keys it needs at start and stops with a message if one is missing or invalid. The default keys of the AH-64D are in [Keybinds](AH64D/SPEC.md#3-keybinds).
+- **Keybinds.** The default DCS keybinds sent as keypresses are in `KEYS` in the aircraft file (`aircraft/ah64d.py` for the AH-64D). A `[keys]` line in `config/config.toml` overrides one key; the others stay. Format: modifiers and key joined by `+`. Supported modifiers: `LCtrl` `RCtrl` `LShift` `RShift` `LAlt` `RAlt` `LWin`; keys `A`–`Z`, `0`–`9`, `F1`–`F12`, `Home` `End` `PageUp` `PageDown` `Insert` `Delete`, `Up` `Down` `Left` `Right`, `Space`, `Enter`. The bridge checks all keys it needs at start and stops with a message if one is missing or invalid. The default keys of the AH-64D are in [Keybinds](AH64D/SPEC.md#9-keybinds).
 - **settings.json.** `config/settings.json` (ignored) holds the LOGGING switch of the settings page ([section 5](#5-dashboard-design-rules-seat-handling-settings)) and the last detected aircraft (`aircraft`), which is the start aircraft until DCS reports one. The AIRCRAFT switch of the settings page is not saved. The file is created by the bridge, not edited by hand.
-- **DCS side.** DCS-BIOS (DCS-Skunkworks fork) is installed in Saved Games, and DCS has the module of each aircraft you fly. The bridge reads the control list of every aircraft file (`<Saved Games>/Scripts/DCS-BIOS/doc/json/<DCSBIOS_MODULE>.json`, for example `AH-64D.json`) and `MetadataStart.json`, which holds the aircraft name `_ACFT_NAME`. If a file is missing the bridge stops and names the path. An aircraft whose file uses an id that is not in its control list is left out and logged (`aircraft | <name> not available, not in DCS-BIOS: ...`); the bridge stops only when no aircraft is left. The export script `core/lua/DCS-Dashboard-Export.lua` is copied to `<Saved Games>/Scripts/` and loaded by one line at the end of `Export.lua`, after the DCS-BIOS line: `dofile(lfs.writedir() .. [[Scripts\DCS-Dashboard-Export.lua]])`. At start the bridge compares the installed copy with the repo copy (line endings ignored) and checks that `Export.lua` names it; it logs `export script | not installed`, `outdated` or `not loaded` and keeps running. After an update of the repo, copy the script again: the script now holds one table per aircraft, and a copy of an older version is `outdated`. The default keybinds must be bound in the DCS controls settings (the standard AH-64D bindings); for the AH-64D the `george_*` keys are not DCS defaults and must be added once, see [GEORGE](AH64D/SPEC.md#george). DCS should run in windowed or borderless mode so that bringing it to the front works. Windows may ask to allow Python on the network: allow it for private networks.
+- **DCS side.** DCS-BIOS (DCS-Skunkworks fork) is installed in Saved Games, and DCS has the module of each aircraft you fly. The bridge reads the control list of every aircraft file (`<Saved Games>/Scripts/DCS-BIOS/doc/json/<DCSBIOS_MODULE>.json`, for example `AH-64D.json`) and `MetadataStart.json`, which holds the aircraft name `_ACFT_NAME`. If a file is missing the bridge stops and names the path. An aircraft whose file uses an id that is not in its control list is left out and logged (`aircraft | <name> not available, not in DCS-BIOS: ...`); the bridge stops only when no aircraft is left. The export script `core/lua/DCS-Dashboard-Export.lua` is copied to `<Saved Games>/Scripts/` and loaded by one line at the end of `Export.lua`, after the DCS-BIOS line: `dofile(lfs.writedir() .. [[Scripts\DCS-Dashboard-Export.lua]])`. At start the bridge compares the installed copy with the repo copy (line endings ignored) and checks that `Export.lua` names it; it logs `export script | not installed`, `outdated` or `not loaded` and keeps running. After an update of the repo, copy the script again: the script now holds one table per aircraft, and a copy of an older version is `outdated`. The default keybinds must be bound in the DCS controls settings (the standard AH-64D bindings); for the AH-64D the `george_*` keys are not DCS defaults and must be added once, see [GEORGE](AH64D/SPEC.md#7-george). DCS should run in windowed or borderless mode so that bringing it to the front works. Windows may ask to allow Python on the network: allow it for private networks.
 
 ## 4. What DCS allows
 
-The generic findings of the research phase. The results for the AH-64D are in [What DCS allows for the AH-64D](AH64D/SPEC.md#4-what-dcs-allows-for-the-ah-64d).
+The generic findings of the research phase. The results for the AH-64D are in [What DCS allows for the AH-64D](AH64D/SPEC.md#what-dcs-allows-for-the-ah-64d).
 
 ### Reading
 
@@ -124,7 +124,7 @@ The generic findings of the research phase. The results for the AH-64D are in [W
 
 ### Blocklist idea
 
-Dangerous or irreversible controls are never part of a sweep or a quick page: for the AH-64D every identifier containing `JETT`, `FIRE_ENG`, `FIRE_APU`, `FIRE_PRIME`, `FIRE_RES`, `ZERO`, `CHOP`, `BUCS` or `TRIGGER` (jettison, fire buttons and extinguishers, zeroize, CHOP, BUCS, weapons trigger, M4 trigger, with their covers). On the dashboard these controls exist only on their own COCKPIT panel page, behind a guard ([AH-64D, Guarded controls](AH64D/SPEC.md#guarded-controls)); the grip controls with guards (CHOP, BUCS, emergency jettison, weapons trigger) are not on the dashboard at all.
+Dangerous or irreversible controls are never part of a sweep or a quick page: for the AH-64D every identifier containing `JETT`, `FIRE_ENG`, `FIRE_APU`, `FIRE_PRIME`, `FIRE_RES`, `ZERO`, `CHOP`, `BUCS` or `TRIGGER` (jettison, fire buttons and extinguishers, zeroize, CHOP, BUCS, weapons trigger, M4 trigger, with their covers). On the dashboard these controls exist only on their own COCKPIT panel page, behind a guard ([AH-64D, COCKPIT, Guarded controls](AH64D/SPEC.md#2-cockpit)); the grip controls with guards (CHOP, BUCS, emergency jettison, weapons trigger) are not on the dashboard at all.
 
 ## 5. Dashboard design rules, seat handling, settings
 
@@ -144,7 +144,7 @@ Dangerous or irreversible controls are never part of a sweep or a quick page: fo
 
 ### Seat
 
-Seats are defined per aircraft (`SEATS` in the aircraft file, served in `/layout`). The two-seat handling of the AH-64D (PILOT / CP/G, the debug seat) is in [Seats](AH64D/SPEC.md#1-seats) of its spec. An aircraft with one seat, like the A-10C II, has no seat switch and no debug seat; the badge shows the aircraft. See [Several aircraft](#9-several-aircraft).
+Seats are defined per aircraft (`SEATS` in the aircraft file, served in `/layout`). The two-seat handling of the AH-64D (PILOT / CP/G, the debug seat) is in [Seats](AH64D/SPEC.md#seats) of its spec. An aircraft with one seat, like the A-10C II, has no seat switch and no debug seat; the badge shows the aircraft. See [Several aircraft](#9-several-aircraft).
 
 ### Settings and page lock
 
@@ -162,7 +162,7 @@ The bridge checks DCS-BIOS after sending: a push button is held until DCS report
 
 ## 6. Views
 
-A view is one entry of the `VIEWS` list of the aircraft file ([section 8](#8-the-bridge-interface)). The tab bar has one tab per view name, and a tab opens the view of that name for the current seat. The `layout` of a view tells the page how to draw it: `map` (a cockpit map whose boxes open the panel pages), `panel` (one cockpit panel drawn by the panel kit, [section 7](#7-the-panel-kit)), `mpd` (a display bezel with its buttons and live labels), `ku` (a keyboard unit drawn 1:1 after a photo), `mfcd` (a display bezel with 20 option select buttons and four corner rocker places, one side at a time: the A-10C II MFCD and the F-16C MFD) and `cdu` (the A-10C II CDU and UFC, one at a time); without a `layout` the page draws the fixed grid of buttons, lamps and displays of the quick pages. A `panel` view without `"panel": true` is a panel kit page used as a tab (the F-16C DED): it has no `map` cell and gets a tab of its own ([section 7](#7-the-panel-kit)). In the grid of the quick pages a selector with more than four positions draws its buttons in two columns. The views of the AH-64D are described in [The views](AH64D/SPEC.md#2-the-views) of its spec, those of the A-10C II in [A10C/SPEC.md](A10C/SPEC.md).
+A view is one entry of the `VIEWS` list of the aircraft file ([section 8](#8-the-bridge-interface)). The tab bar has one tab per view name, and a tab opens the view of that name for the current seat. The `layout` of a view tells the page how to draw it: `map` (a cockpit map whose boxes open the panel pages), `panel` (one cockpit panel drawn by the panel kit, [section 7](#7-the-panel-kit)), `mpd` (a display bezel with its buttons and live labels), `ku` (a keyboard unit drawn 1:1 after a photo), `mfcd` (a display bezel with 20 option select buttons and four corner rocker places, one side at a time: the A-10C II MFCD and the F-16C MFD) and `cdu` (the A-10C II CDU and UFC, one at a time); without a `layout` the page draws the fixed grid of buttons, lamps and displays of the quick pages. A `panel` view without `"panel": true` is a panel kit page used as a tab (the F-16C DED): it has no `map` cell and gets a tab of its own ([section 7](#7-the-panel-kit)). In the grid of the quick pages a selector with more than four positions draws its buttons in two columns. The views of the AH-64D are described in [sections 2 to 7](AH64D/SPEC.md#2-cockpit) of its spec, those of the A-10C II in [A10C/SPEC.md](A10C/SPEC.md).
 
 ## 7. The panel kit
 
@@ -355,7 +355,7 @@ One running bridge serves every aircraft file in `aircraft/`. The decisions behi
 
 ## 10. Manual test run
 
-The manual test run of the AH-64D is in [Manual test run (AH-64D)](AH64D/SPEC.md#5-manual-test-run-ah-64d).
+The manual test run of the AH-64D is in [Manual test run (AH-64D)](AH64D/SPEC.md#13-manual-test-run-ah-64d).
 
 ## 11. Future development and out of scope
 
