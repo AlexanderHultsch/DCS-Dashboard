@@ -1,4 +1,8 @@
-from panel_kit import REF, Panel, PanelGroup
+from functools import partial
+
+import kit_helpers
+from kit_helpers import ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP, BUTTON_HOLD, KNOB_STEP, UP_DOWN, readout, step_rocker
+from panel_kit import Panel, PanelGroup
 
 DCSBIOS_MODULE = "F-16C_50"
 NAME = "F-16C"
@@ -6,19 +10,12 @@ DCS_NAMES = ["F-16C_50"]
 
 KEYS = {}
 
-KNOB_STEP = 3200
-BUTTON_HOLD = 0.3
-UP_DOWN = {"up": "tri-up", "down": "tri-down"}
 MFD_ROCKERS = [("GAIN", "TL"), ("SYM", "TR"), ("BRT", "BL"), ("CON", "BR")]
-
-ARROW_UP = (10, 9, [("M0.5 8.5L5 0.5L9.5 8.5Z", 1, True)])
-ARROW_DOWN = (10, 9, [("M0.5 0.5L5 8.5L9.5 0.5Z", 1, True)])
-ARROW_LEFT = (9, 10, [("M8.5 0.5L0.5 5L8.5 9.5Z", 1, True)])
-ARROW_RIGHT = (9, 10, [("M0.5 0.5L8.5 5L0.5 9.5Z", 1, True)])
 
 MASTER_LAMPS = [
     {"id": "LIGHT_MASTER_CAUTION", "label": "MASTER CAUTION", "color": "amber", "button": "MASTER_CAUTION"},
 ]
+kit_page = partial(kit_helpers.kit_page, lamps=MASTER_LAMPS)
 
 
 def mfd_controls(side: str) -> list[dict]:
@@ -32,16 +29,6 @@ def mfd_controls(side: str) -> list[dict]:
         for name, corner in MFD_ROCKERS
     ]
     return controls
-
-
-def kit_page(name: str, cell: list | None, page: dict) -> dict:
-    return {
-        "name": name, "seats": [0], **({"panel": True} if cell else {}), "layout": "panel", **({"map": cell} if cell else {}), "box": page["box"],
-        "lamps": MASTER_LAMPS, "print": page["print"], "art": page["art"], "controls": page["controls"],
-        **({"indicators": page["indicators"]} if page["indicators"] else {}),
-        **({"scroll": True} if page.get("scroll") else {}),
-        "kit": True, "ref": list(REF),
-    }
 
 
 def selector(bios: str, label: str, positions: tuple, **extra) -> dict:
@@ -65,14 +52,6 @@ def knob(bios: str, label: str) -> dict:
 
 def lamp(bios: str, legend: str, color: str) -> dict:
     return {"id": bios, "legend": legend, "color": color}
-
-
-def step_rocker(bios: str, label: str) -> dict:
-    return {"id": bios, "label": label, "type": "hat", "ud": bios, "steps": "fixed", "positions": {"up": "tri-up", "down": "tri-down"}}
-
-
-def readout(bios: str, label: str, cols: int) -> dict:
-    return {"id": bios, "label": label, "type": "display", "cols": cols, "ids": [bios]}
 
 
 def canopy_plate(g: PanelGroup):

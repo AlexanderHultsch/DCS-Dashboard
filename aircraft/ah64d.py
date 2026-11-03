@@ -1,6 +1,9 @@
 import math
+from functools import partial
 
-from panel_kit import PARTS, REF, Panel, PanelGroup
+import kit_helpers
+from kit_helpers import BUTTON_HOLD, KNOB_STEP
+from panel_kit import PARTS, Panel, PanelGroup
 
 DCSBIOS_MODULE = "AH-64D"
 NAME = "AH-64D"
@@ -51,8 +54,6 @@ TEDAC_MODE_POSITIONS = [
     {"value": 1, "label": "NT"},
     {"value": 0, "label": "OFF"},
 ]
-KNOB_STEP = 3200
-BUTTON_HOLD = 0.3
 GEORGE_SHORT = 0.15
 GEORGE_LONG = 1.2
 GEORGE_HIDE_PAUSE = 0.5
@@ -138,19 +139,12 @@ MASTER_LAMPS = [
     {"id": "{seat}_MASTER_WARNING_L", "label": "MASTER WARNING", "color": "red", "button": "{seat}_INTL_MWARN_BTN"},
     {"id": "{seat}_MASTER_CAUTION_L", "label": "MASTER CAUTION", "color": "amber", "button": "{seat}_INTL_MCAUTION_BTN"},
 ]
+kit_page = partial(kit_helpers.kit_page, lamps=MASTER_LAMPS)
 
 
 def kit_pages(name: str, cells: dict, panel: Panel) -> list[dict]:
     page = panel.build()
-    return [
-        {
-            "name": name, "seats": [seat], "panel": True, "layout": "panel", "map": cell, "box": page["box"],
-            "lamps": MASTER_LAMPS, "print": page["print"], "art": page["art"], "controls": page["controls"],
-            **({"indicators": page["indicators"]} if page["indicators"] else {}),
-            "kit": True, "ref": list(REF),
-        }
-        for seat, cell in cells.items()
-    ]
+    return [kit_page(name, cell, page, seat=seat) for seat, cell in cells.items()]
 
 
 def tail_wheel_pages() -> list[dict]:

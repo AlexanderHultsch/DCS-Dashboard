@@ -1,4 +1,8 @@
-from panel_kit import REF, Panel, PanelGroup
+from functools import partial
+
+import kit_helpers
+from kit_helpers import ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP, BUTTON_HOLD, KNOB_STEP, UP_DOWN, readout, step_rocker
+from panel_kit import Panel, PanelGroup
 
 DCSBIOS_MODULE = "A-10C"
 NAME = "A-10C"
@@ -6,8 +10,6 @@ DCS_NAMES = ["A-10C_2"]
 
 KEYS = {}
 
-KNOB_STEP = 3200
-BUTTON_HOLD = 0.3
 PWR_POSITIONS = [
     {"value": 2, "label": "DAY"},
     {"value": 1, "label": "NT"},
@@ -17,18 +19,9 @@ PWR_POSITIONS = [
 MASTER_LAMPS = [
     {"id": "MASTER_CAUTION", "label": "MASTER CAUTION", "color": "amber", "button": "UFC_MASTER_CAUTION"},
 ]
+kit_page = partial(kit_helpers.kit_page, lamps=MASTER_LAMPS)
 GUN_READY_LAMP = {"id": "GUN_READY", "label": "GUN READY", "color": "green"}
 CANOPY_LAMP = {"id": "CANOPY_UNLOCKED", "label": "CANOPY UNLOCKED", "color": "red"}
-
-
-def kit_page(name: str, cell: list, page: dict) -> dict:
-    return {
-        "name": name, "seats": [0], "panel": True, "layout": "panel", "map": cell, "box": page["box"],
-        "lamps": MASTER_LAMPS, "print": page["print"], "art": page["art"], "controls": page["controls"],
-        **({"indicators": page["indicators"]} if page["indicators"] else {}),
-        **({"scroll": True} if page.get("scroll") else {}),
-        "kit": True, "ref": list(REF),
-    }
 
 
 EMER_BRAKE = {
@@ -100,13 +93,6 @@ def brake_pages() -> list[dict]:
     aux_plate(g)
     sas_plate(g)
     return [kit_page("BRAKE / AUX LT / SAS", [1, 1, 2, 2], g.build())]
-
-
-# arrow heads of the emergency trim hat, in glyph units (width, height, paths)
-ARROW_UP = (10, 9, [("M0.5 8.5L5 0.5L9.5 8.5Z", 1, True)])
-ARROW_DOWN = (10, 9, [("M0.5 0.5L5 8.5L9.5 0.5Z", 1, True)])
-ARROW_LEFT = (9, 10, [("M8.5 0.5L0.5 5L8.5 9.5Z", 1, True)])
-ARROW_RIGHT = (9, 10, [("M0.5 0.5L8.5 5L0.5 9.5Z", 1, True)])
 
 
 def emer_hat_button(name: str, label: str, value: int) -> dict:
@@ -402,14 +388,6 @@ def laste_pages() -> list[dict]:
     laste_plate(g)
     seat_plate(g)
     return [kit_page("LASTE", [4, 3, 1, 2], g.build())]
-
-
-def step_rocker(bios: str, label: str) -> dict:
-    return {"id": bios, "label": label, "type": "hat", "ud": bios, "steps": "fixed", "positions": {"up": "tri-up", "down": "tri-down"}}
-
-
-def readout(bios: str, label: str, cols: int) -> dict:
-    return {"id": bios, "label": label, "type": "display", "cols": cols, "ids": [bios]}
 
 
 def uhf_pages() -> list[dict]:
@@ -1065,7 +1043,6 @@ def mfcd_controls(side: str) -> list[dict]:
 
 
 CDU_LABELS = {"POINT": ".", "SLASH": "/"}
-UP_DOWN = {"up": "tri-up", "down": "tri-down"}
 LEFT_RIGHT = {"left": "tri-left", "right": "tri-right"}
 
 
