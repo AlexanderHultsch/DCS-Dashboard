@@ -92,8 +92,8 @@ aircraft/f16c.py      everything specific to the F-16C: panel pages, views, cont
 config/               config.example.toml (config.toml and settings.json are local and ignored)
 logs/                 rolling log, created at runtime (ignored)
 docs/                 SPEC.md (the engine spec), FIXES.md (open points and fixes in progress),
-                      AH64D/ (AH-64D spec), A10C/ (A-10C II spec, research and plan),
-                      F16C/ (F-16C spec, research and plan)
+                      AH64D/, A10C/, F16C/ (one folder per aircraft with the same files: SPEC,
+                      PANELS, BIOS, STARTUP, PICTURES, ENGINE, RESEARCH)
 ```
 
 Further aircraft may follow: the bridge and the page engine are aircraft-independent, an aircraft is one file in `aircraft/` (every file there is loaded) plus its drawings. See [docs/SPEC.md](docs/SPEC.md).

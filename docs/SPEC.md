@@ -59,7 +59,7 @@ config/                    config.example.toml (tracked); config.toml (optional,
                            keybind overrides); settings.json (ignored: logging switch, last detected aircraft)
 logs/                      generated at runtime (ignored)
 docs/                      SPEC.md (this spec: the engine) and FIXES.md (a temporary working note)
-  AH64D/                   SPEC.md (the AH-64D spec)
+  AH64D/                   the AH-64D spec, engine features, research notes and reference data
   A10C/                    the A-10C II spec, engine changes, research notes and reference data
   F16C/                    the F-16C spec, engine changes, research notes and reference data
 ```
